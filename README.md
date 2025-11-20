@@ -4,6 +4,6 @@ The growth of digital rental platforms has shaped global tourism, yet regional m
 
 ## Workshops
 
-- [Workshop 1](https://github.com/JulianSpinoza/BD2Project/blob/main/Workshops/Workshop-1.pdf)
-- [Workshop 2](https://github.com/JulianSpinoza/BD2Project/blob/main/Workshops/Workshop-2.pdf)
+- [Workshop 1](https://github.com/JulianSpinoza/BD2Project/blob/main/docs/Workshops/Workshop-1.pdf)
+- [Workshop 2](https://github.com/JulianSpinoza/BD2Project/blob/main/docs/Workshops/Workshop-2.pdf)
 - [Workshop 3]()
