@@ -25,7 +25,7 @@ Install on your device using the next command:
 ```
 npm install -g pnpm
 ```
-Then install the dependecies of the project with:
+Being on the frontend folder, then install the dependecies of the project with:
 ```
 pnpm install
 ```
