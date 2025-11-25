@@ -1,0 +1,43 @@
+/* Contenedor general */
+.listings-page {
+  width: 100%;
+  max-width: 1200px;      /* Opcional: limite de ancho centrado */
+  background-color: blue;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Barra de búsqueda */
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.search-bar button {
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.listings-container {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.listings-grid {
+  display: grid;
+  /* Máx 4, pero automático según el espacio */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+
+  /* Para que no se vuelva enorme en pantallas gigantes */
+  max-width: 1200px;
+  width: 100%;
+}
