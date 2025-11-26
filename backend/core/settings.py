@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     # My services (apps)
     'users_service',
+    'listings_service',
 ]
 
 # Change for later to JWT, role permissions and throttling
