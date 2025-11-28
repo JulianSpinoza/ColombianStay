@@ -1,40 +1,20 @@
-// --- Datos Mock por ahora ---
-const MOCK_LISTINGS = [
-  { id: 1, title: "Apartamento en Bogotá", city: "Bogotá" , images:
-    ['/PruebaImagen.png',
-      '/PruebaImagen2.png'
-    ]
-   },
-  { id: 2, title: "Casa en Boston", city: "Boston" , images:
-    ['/PruebaImagen2.png',
-      '/PruebaImagen.png'
-    ]},
-  { id: 3, title: "Cabaña en Medellín", city: "Medellín" , images:
-    ['/PruebaImagen.png',
-      '/PruebaImagen2.png'
-    ]},
-  { id: 4, title: "Hostal en Bogotá", city: "Bogotá" , images:
-    ['/PruebaImagen.png',
-      '/PruebaImagen2.png'
-    ]},
-  { id: 5, title: "Loft en Barranquilla", city: "Barranquilla" , images:
-    ['/PruebaImagen.png',
-      '/PruebaImagen2.png'
-    ]},
-];
+import httpClient from "../../../services/api/httpClient";
 
-// --- Función simple getListings(query) ---
-export async function getListings(query) {
-  // Simulamos latencia mínima para parecer una API real
-  await new Promise(resolve => setTimeout(resolve, 5000));
+/**
+ * Trae todos los listings o los filtra según parámetros.
+ * @param {Object} filters - Objeto con filtros opcionales.
+ * @returns {Promise<Array>} Lista de listings.
+ */
 
-  if (!query || query.trim() === "") {
-    return MOCK_LISTINGS;
+export const getListings = async (query = {}) => {
+  try {
+    const response = await httpClient.get("listings/", {
+      params: query, 
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching listings:", error);
+    throw error;
   }
-
-  const normalized = query.toLowerCase();
-
-  return MOCK_LISTINGS.filter(item =>
-    item.city.toLowerCase().includes(normalized)
-  );
-}
+};

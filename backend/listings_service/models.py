@@ -15,3 +15,20 @@ class Listing(models.Model):
 
     class Meta:
         db_table = 'accomodation'
+        managed = False # Do not change the model of what i have on my db
+
+class Municipality(models.Model):
+
+    # To later
+    #idregion = models.ForeignKey(Region, on_delete=models.DO_NOTHING, db_column='idregion')
+    #iddepartment = models.ForeignKey(Department, on_delete=models.DO_NOTHING, db_column='iddepartment')
+
+    idregion = models.IntegerField()
+    iddepartment = models.IntegerField()
+    idmunicipality = models.AutoField(primary_key= True)
+    name = models.CharField(max_length=40, db_column= 'namemunicipal')
+
+    class Meta:
+        db_table = 'municipality'
+        managed = False # Do not change the model of what i have on my db
+        unique_together = ('idregion', 'iddepartment', 'idmunicipality')

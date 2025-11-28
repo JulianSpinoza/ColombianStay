@@ -5,7 +5,7 @@ import useListings from "../../hooks/useListings";
 
 export default function ListingsPage() {
 
-  const [query, setQuery] = useState("");
+  const [filterMunicipality, setFilterMunicipality] = useState("");
   const { 
     listings, 
     fetchListings,
@@ -14,6 +14,9 @@ export default function ListingsPage() {
   } = useListings();
 
   const handleSearch = () => {
+    const query = {
+      municipality: filterMunicipality
+    }
     fetchListings(query);
   };
 
@@ -22,9 +25,9 @@ export default function ListingsPage() {
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Buscar ciudad..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar por municipio..."
+          value={filterMunicipality}
+          onChange={(e) => setFilterMunicipality(e.target.value, 'Municipal')}
         />
         <button onClick={handleSearch}>
           Buscar

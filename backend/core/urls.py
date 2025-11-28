@@ -22,4 +22,5 @@ urlpatterns = [
 
     # API services
     path('api/', include('users_service.urls')),
+    path('api/', include('listings_service.urls')),
 ]

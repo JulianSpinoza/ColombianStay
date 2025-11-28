@@ -23,7 +23,7 @@ export default function ListingCard({ listing }) {
     <div className="listing-card">
 
       {/* Carrusel */}
-      <div className="carousel-container">
+      {/*<div className="carousel-container">
         <img
           src={images[currentIndex]}
           alt={title}
@@ -36,7 +36,7 @@ export default function ListingCard({ listing }) {
         <button className="carousel-btn right" onClick={nextImage}>
           ›
         </button>
-      </div>
+      </div>*/}
 
       {/* Info */}
       <div className="listing-info">
