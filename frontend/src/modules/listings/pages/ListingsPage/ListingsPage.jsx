@@ -2,8 +2,44 @@ import "./ListingsPage.css";
 import { useState } from "react";
 import ListingCard from "../../components/ListingCard/ListingCard";
 import useListings from "../../hooks/useListings";
+import SearchBarAutocomplete from "../../components/SearchBarAutocomplete/SearchBarAutocomplete";
 
 export default function ListingsPage() {
+
+  const municipalities = [
+    'Barranquilla',
+    'Soledad',
+    'Puerto Colombia',
+    'Cartagena',
+    'Turbaco',
+    'Santa Marta',
+    'Montería',
+    'Sincelejo',
+    'Riohacha',
+    'Bogotá',
+    'Zipaquirá',
+    'La Calera',
+    'Medellín',
+    'Envigado',
+    'Guatapé',
+    'Bucaramanga',
+    'San Gil',
+    'Tunja',
+    'Villa de Leyva',
+    'Pereira',
+    'Armenia',
+    'Manizales',
+    'Cali',
+    'Buenaventura',
+    'Palmira',
+    'Quibdó',
+    'Villavicencio',
+    'Arauca',
+    'Florencia',
+    'Leticia',
+    'San Andrés',
+    'Providencia'
+  ]
 
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const { 
@@ -23,17 +59,12 @@ export default function ListingsPage() {
 
   return (
     <div className="listings-page">
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Buscar por municipio..."
-          value={filterMunicipality}
-          onChange={(e) => setFilterMunicipality(e.target.value, 'Municipal')}
-        />
-        <button onClick={handleSearch}>
-          Buscar
-        </button>
-      </div>
+      <SearchBarAutocomplete 
+        textSearch={filterMunicipality}
+        setTextSearch={setFilterMunicipality}
+        options={municipalities}
+        handleSearch={handleSearch}
+      />
 
       {/* LOADING */}
       {loading && <p>Cargando...</p>}

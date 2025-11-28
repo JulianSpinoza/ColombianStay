@@ -1,9 +1,8 @@
-// ListingCard.jsx
 import { useState } from "react";
 import "./ListingCard.css";
 
 export default function ListingCard({ listing }) {
-  const { title, city, pricePerNight, images } = listing;
+  const { title, municipality, pricepernight, images } = listing;
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -41,8 +40,8 @@ export default function ListingCard({ listing }) {
       {/* Info */}
       <div className="listing-info">
         <h3 className="listing-title">{title}</h3>
-        <p className="listing-city">{city}</p>
-        <p className="listing-price">${pricePerNight} / noche</p>
+        {/*<p className="listing-municipality">{municipality}</p>*/}
+        <p className="listing-price">${pricepernight} / noche</p>
       </div>
 
     </div>

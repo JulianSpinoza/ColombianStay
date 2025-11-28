@@ -7,24 +7,6 @@
   padding: 20px;
 }
 
-/* Barra de búsqueda */
-.search-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.search-bar input {
-  flex: 1;
-  padding: 10px 12px;
-  font-size: 16px;
-}
-
-.search-bar button {
-  padding: 10px 16px;
-  cursor: pointer;
-}
-
 .listings-container {
   padding: 20px;
   display: flex;

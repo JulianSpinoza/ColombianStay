@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getListings } from "../services/listingsService";
 import { useApiState } from "./useApiState";
 
 export default function useListings() {
   const [listings, setListings] = useState([]);
-  const [queryCached,setQueryCached] = useState({})
-
+  const [queryCached,setQueryCached] = useState(null)
   const {
     loading,
     setLoading,
@@ -13,6 +12,11 @@ export default function useListings() {
     setError,
     handleError,
   } = useApiState();
+
+  // Initial set up
+  useEffect(() => {
+    fetchListings({})
+  }, [])
 
   async function fetchListings(searchQuery) {
     if(JSON.stringify(queryCached) !== JSON.stringify(searchQuery)){
