@@ -1,4 +1,6 @@
 import httpClient from "../../../services/api/httpClient";
+import { LISTINGS_ENDPOINTS } from "../../../services/api/endpoints.js";
+
 
 /**
  * Trae todos los listings o los filtra según parámetros.
@@ -8,7 +10,7 @@ import httpClient from "../../../services/api/httpClient";
 
 export const getListings = async (query = {}) => {
   try {
-    const response = await httpClient.get("listings/", {
+    const response = await httpClient.get(LISTINGS_ENDPOINTS.ALL, {
       params: query, 
     });
 
