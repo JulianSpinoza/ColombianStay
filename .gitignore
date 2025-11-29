@@ -1,26 +1,37 @@
-# === Python / Django ===
+# Python / Django
 __pycache__/
 *.py[cod]
 *.sqlite3
 *.log
-
-# Entorno virtual (Django)
 backend/venv/
+backend/.env
+backend/.env.local
 
-# === Node / React ===
+# Node / React
+node_modules/
 frontend/node_modules/
+frontend/dist/
 frontend/build/
+frontend/.env
+frontend/.env.local
+pnpm-lock.yaml
+package.json
 
-# === Sistema operativo ===
+# Sistema operativo
 .DS_Store
 Thumbs.db
 
-# === Editores ===
-#.vscode/
-#.idea/
-#*.swp
-#*.swo
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# === Otros ===
+# IDEs
+*.iml
+
+# Misc
 .env
 *.env
+.env.*.local
+

@@ -1,0 +1,18 @@
+/* CategoryBar specific styles if needed */
+/* Most styling is handled by Tailwind CSS */
+
+/* Smooth scrolling animation already handled by Tailwind */
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.category-item {
+  animation: fadeInRight 0.3s ease-in-out;
+}
