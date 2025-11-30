@@ -3,19 +3,23 @@
   flex-direction: row;
   gap: 10px;
   height: 50px;
+  width: 100%;
 }
 
 .input-wrapper {
   position: relative;
+  width: 90%;
 }
 
 .input-wrapper input {
   height: 100%;
   width: 100%;
-  padding: 0 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  padding: 0 10%;
   box-sizing: border-box;
+}
+
+.input-wrapper input:focus {
+  outline: none;
 }
 
 .suggestions-list {
@@ -23,13 +27,14 @@
   top: 100%;
   left: 0;
   width: 100%;
-  background: black;
+  background: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   list-style: none;
   padding: 0;
   margin: 4px 0 0 0;
   z-index: 1000;
+  font-size: small;
 }
 
 .suggestions-list li {

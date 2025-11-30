@@ -2,7 +2,7 @@ import "./ListingsPage.css";
 import { useState } from "react";
 import ListingCard from "../../components/ListingCard/ListingCard";
 import useListings from "../../hooks/useListings";
-import SearchBarAutocomplete from "../../components/SearchBarAutocomplete/SearchBarAutocomplete";
+import SearchBarAutocomplete from "../../../../global/components/SearchBarAutocomplete/SearchBarAutocomplete";
 
 export default function ListingsPage() {
 

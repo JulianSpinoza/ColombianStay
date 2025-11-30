@@ -1,8 +1,52 @@
 import React, { useState } from "react";
+import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, handleQuery }) => {
+  const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const municipalities = [
+    'Barranquilla',
+    'Soledad',
+    'Puerto Colombia',
+    'Cartagena',
+    'Turbaco',
+    'Santa Marta',
+    'Montería',
+    'Sincelejo',
+    'Riohacha',
+    'Bogotá',
+    'Zipaquirá',
+    'La Calera',
+    'Medellín',
+    'Envigado',
+    'Guatapé',
+    'Bucaramanga',
+    'San Gil',
+    'Tunja',
+    'Villa de Leyva',
+    'Pereira',
+    'Armenia',
+    'Manizales',
+    'Cali',
+    'Buenaventura',
+    'Palmira',
+    'Quibdó',
+    'Villavicencio',
+    'Arauca',
+    'Florencia',
+    'Leticia',
+    'San Andrés',
+    'Providencia'
+  ]
+
+  const handleSearch = () => {
+      const query = {};
+      if(filterMunicipality != ""){ 
+        query.municipality = filterMunicipality;
+      }
+      handleQuery(query);
+    };
 
   const handleLogout = () => {
     setIsProfileMenuOpen(false);
@@ -45,7 +89,7 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
           <div className="flex-1 hidden sm:block max-w-md">
             <div className="relative">
               <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-text">
-                <svg
+                {/*<svg
                   className="w-5 h-5 text-gray-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
@@ -62,6 +106,12 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-transparent outline-none text-sm flex-1 placeholder-gray-500"
+                />*/}
+                <SearchBarAutocomplete 
+                  textSearch={filterMunicipality}
+                  setTextSearch={setFilterMunicipality}
+                  options={municipalities}
+                  handleSearch={handleSearch}
                 />
               </div>
             </div>

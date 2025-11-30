@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import HomePage from "./global/components/Home/HomePage.jsx";
+import HomePage from "./global/pages/Home/HomePage.jsx";
 import Login from "./modules/users/components/Login/Login.jsx";
 import Signup from "./modules/users/components/Signup/Signup.jsx";
 import "./App.css"
