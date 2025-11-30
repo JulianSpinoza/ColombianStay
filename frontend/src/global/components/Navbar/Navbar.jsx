@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
+import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, handleQuery }) => {
+const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -40,12 +41,14 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, handleQuery }) =>
     'Providencia'
   ]
 
+  const { fetchListings } = useListingsContext()
+
   const handleSearch = () => {
       const query = {};
       if(filterMunicipality != ""){ 
         query.municipality = filterMunicipality;
       }
-      handleQuery(query);
+      fetchListings(query);
     };
 
   const handleLogout = () => {
@@ -89,24 +92,6 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, handleQuery }) =>
           <div className="flex-1 hidden sm:block max-w-md">
             <div className="relative">
               <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-text">
-                {/*<svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Where are you going?"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent outline-none text-sm flex-1 placeholder-gray-500"
-                />*/}
                 <SearchBarAutocomplete 
                   textSearch={filterMunicipality}
                   setTextSearch={setFilterMunicipality}
