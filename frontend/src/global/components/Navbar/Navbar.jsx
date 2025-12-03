@@ -62,6 +62,7 @@ const Navbar = ({ onLoginClick, onSignupClick}) => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
 
+    // Update context to Logout
     dispatch({
         type: "LOGOUT",
       })
