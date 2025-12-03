@@ -3,22 +3,11 @@ import HomePage from "./global/pages/Home/HomePage.jsx";
 import Login from "./modules/users/components/Login/Login.jsx";
 import Signup from "./modules/users/components/Signup/Signup.jsx";
 import "./App.css"
+import { AuthProvider } from "./modules/users/contexts/AuthContext.jsx";
 
 function App() {
-  const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setShowLoginModal(false);
-  };
-
-  const handleRegister = (userData) => {
-    // After successful registration, treat as logged in
-    setUser(userData);
-    setShowSignupModal(false);
-  };
 
   const handleLogout = () => {
     setUser(null);
@@ -34,21 +23,19 @@ function App() {
 
   return (
     <div className="w-full">
-      <HomePage 
-        user={user} 
-        onLogout={handleLogout}
-        onLoginClick={handleLoginClick}
-        onSignupClick={handleSignupClick}
-      />
-      {showLoginModal && (
-        <Login 
-          onLogin={handleLogin}
-          onClose={() => setShowLoginModal(false)}
+      <AuthProvider>
+        <HomePage 
+          onLogout={handleLogout}
+          onLoginClick={handleLoginClick}
+          onSignupClick={handleSignupClick}
         />
-      )}
-      {showSignupModal && (
-        <Signup onRegister={handleRegister} onClose={() => setShowSignupModal(false)} />
-      )}
+        {showLoginModal && (
+          <Login onClose={() => setShowLoginModal(false)}/>
+        )}
+        {showSignupModal && (
+          <Signup onClose={() => setShowSignupModal(false)} />
+        )}
+      </AuthProvider>
     </div>
   );
 }

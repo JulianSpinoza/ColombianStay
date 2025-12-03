@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import './Login.css'
+import { useAuthContext } from "../../contexts/AuthContext";
+import { loginUser } from "../../services/usersService";
+import { jwtDecode } from "jwt-decode";
 
-function Login({ onLogin, onClose }) {
+function Login({ onClose }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { dispatch } = useAuthContext();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,17 +30,27 @@ function Login({ onLogin, onClose }) {
     }
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await httpClient.post("users/login/", {
-      //   username,
-      //   password,
-      // });
+      const credentials = {
+        username: username,
+        password: password
+      };
 
-      // Simulate API call with mock authentication
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const JWTToken = await loginUser(credentials);
+
+      const access = JWTToken.access;
+      const refresh = JWTToken.refresh;
+      const user = jwtDecode(access);
+
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      dispatch({
+        type: "LOGIN",
+        payload: { access, refresh, user }
+      });
 
       // Mock successful login
-      const userData = {
+      const userData1 = {
         id: 1,
         username: username,
         email: `${username}@colombianstay.com`,
@@ -44,11 +58,11 @@ function Login({ onLogin, onClose }) {
         isAuthenticated: true,
       };
 
-      onLogin(userData);
     } catch (err) {
       setError(err.response?.data?.detail || "Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
+      onClose();
     }
   };
 

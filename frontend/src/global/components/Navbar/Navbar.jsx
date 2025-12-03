@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
 import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
+import { useAuthContext } from "../../../modules/users/contexts/AuthContext.jsx";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
+const Navbar = ({ onLogout, onLoginClick, onSignupClick}) => {
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  // Context about the active user
+  const { state } = useAuthContext();
 
   const municipalities = [
     'Barranquilla',
@@ -153,11 +157,11 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
               {/* Dropdown Menu */}
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  {user ? (
+                  {state.user ? (
                     <>
                       <div className="px-4 py-2 text-sm border-b border-gray-200">
-                        <p className="font-semibold text-gray-900">{user.firstName}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="font-semibold text-gray-900">{state.user.username}</p>
+                        <p className="text-xs text-gray-500">{state.user.email}</p>
                       </div>
                       <a
                         href="#"

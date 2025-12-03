@@ -15,6 +15,7 @@ from pathlib import Path
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
 
     # Third-party apps
     "rest_framework", # To do petitions
+    'rest_framework_simplejwt', # To apply JWT
     "corsheaders", # To accept petitions from the frontend
 
     # My services (apps)
@@ -60,7 +62,13 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
 MIDDLEWARE = [
@@ -114,6 +122,8 @@ DATABASES = {
     }
 }
 
+# Authentication user model
+AUTH_USER_MODEL = 'users_service.CustomUser'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
