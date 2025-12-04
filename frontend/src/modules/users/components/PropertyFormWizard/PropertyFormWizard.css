@@ -1,0 +1,518 @@
+/* PropertyFormWizard Styles */
+
+.wizard-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: linear-gradient(180deg, rgba(102, 126, 234, 0.04), rgba(118, 75, 162, 0.02));
+  min-height: 100vh;
+}
+
+.wizard-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.wizard-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #222;
+  margin-bottom: 0.5rem;
+}
+
+.wizard-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+/* Progress Bar */
+.progress-wrapper {
+  margin-bottom: 3rem;
+}
+
+.progress-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.progress-step-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.progress-step {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #999;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transform: scale(1.05);
+}
+
+.progress-step.completed {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.progress-line {
+  flex: 1;
+  height: 2px;
+  background: #ddd;
+  margin: 0 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.progress-line.completed {
+  background: #667eea;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.progress-label {
+  flex: 1;
+  text-align: center;
+}
+
+.label-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #666;
+}
+
+/* Form */
+.wizard-form {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Step */
+.form-step {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.form-step-header {
+  margin-bottom: 2rem;
+}
+
+.form-step-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 0.5rem;
+}
+
+.form-step-header p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-helper {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.3rem;
+}
+
+.price-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.price-currency {
+  position: absolute;
+  left: 1rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.price-input {
+  padding-left: 3.5rem !important;
+}
+
+/* Info Box */
+.info-box {
+  background: rgba(102, 126, 234, 0.08);
+  border-left: 4px solid #667eea;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.info-box h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.info-box p,
+.info-box li {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.info-box ul {
+  margin-left: 1.5rem;
+}
+
+.pricing-info,
+.photos-info {
+  margin-top: 2rem;
+}
+
+/* Drag & Drop */
+.drag-drop-zone {
+  border: 2px dashed #ddd;
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  position: relative;
+}
+
+.drag-drop-zone:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.04);
+}
+
+.drag-drop-zone.active {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.08);
+  transform: scale(1.01);
+}
+
+.drag-drop-content {
+  pointer-events: none;
+}
+
+.drag-drop-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: #667eea;
+  margin: 0 auto 1rem;
+}
+
+.drag-drop-zone h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.drag-drop-zone p {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.drag-drop-hint {
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+.drag-drop-input {
+  display: none;
+}
+
+.drag-drop-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 16px;
+}
+
+/* Photos Grid */
+.photos-count {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 1.5rem 0;
+  font-weight: 500;
+}
+
+.count-warning {
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.photo-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+  transform: scale(1.02);
+}
+
+.photo-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.photo-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: #667eea;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-top: 1px solid #eee;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.photo-item:hover .photo-actions {
+  opacity: 1;
+}
+
+.photo-btn {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.photo-btn:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.photo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.photo-btn-delete {
+  background: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
+}
+
+.photo-btn-delete:hover {
+  background: #ff5252;
+  border-color: #ff5252;
+}
+
+/* Navigation Buttons */
+.wizard-navigation {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.875rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  flex: 1;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: #666;
+  border: 1px solid #ddd;
+  flex: 0.5;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Step Info */
+.wizard-step-info {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #999;
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wizard-container {
+    padding: 1rem;
+  }
+
+  .wizard-form {
+    padding: 1.5rem;
+  }
+
+  .wizard-title {
+    font-size: 1.75rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-navigation {
+    flex-direction: column-reverse;
+  }
+
+  .btn-secondary {
+    flex: 1;
+  }
+
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .drag-drop-zone {
+    padding: 2rem 1rem;
+  }
+}

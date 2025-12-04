@@ -4,7 +4,7 @@ import CategoryBar from "../CategoryBar/CategoryBar.jsx";
 import ListingCard from "../ListingCard/ListingCard.jsx";
 import "./HomePage.css";
 
-const HomePage = ({ user, onLogout, onLoginClick, onSignupClick }) => {
+const HomePage = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) => {
   const [selectedListing, setSelectedListing] = useState(null);
 
   const sampleListings = [
@@ -123,7 +123,7 @@ const HomePage = ({ user, onLogout, onLoginClick, onSignupClick }) => {
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Navbar */}
-      <Navbar user={user} onLogout={onLogout} onLoginClick={onLoginClick} onSignupClick={onSignupClick} />
+      <Navbar user={user} onLogout={onLogout} onLoginClick={onLoginClick} onSignupClick={onSignupClick} onBecomeHost={onBecomeHost} />
 
       {/* Category Bar */}
       <CategoryBar />

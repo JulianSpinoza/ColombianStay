@@ -56,7 +56,9 @@ const Signup = ({ onRegister, onClose }) => {
       };
 
       if (onRegister) onRegister(userData);
-    } catch (err) {
+    } catch (error) {
+      // Log error for debugging and show friendly message
+      console.error(error);
       setError("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
+const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -22,6 +22,13 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
     setIsProfileMenuOpen(false);
     if (onSignupClick) {
       onSignupClick();
+    }
+  };
+
+  const handleBecomeHost = () => {
+    setIsProfileMenuOpen(false);
+    if (onBecomeHost) {
+      onBecomeHost();
     }
   };
 
@@ -70,7 +77,10 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
           {/* Right Menu */}
           <div className="flex items-center gap-4">
             {/* Become a Host Link */}
-            <button className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors">
+            <button 
+              onClick={handleBecomeHost}
+              className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors"
+            >
               Become a host
             </button>
 
@@ -166,12 +176,12 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick }) => {
                         Sign up
                       </button>
                       <hr className="my-2" />
-                      <a
-                        href="#"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      <button
+                        onClick={handleBecomeHost}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Become a host
-                      </a>
+                      </button>
                       <a
                         href="#"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
