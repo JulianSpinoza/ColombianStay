@@ -5,7 +5,7 @@ import CategoryBar from "../../components/CategoryBar/CategoryBar.jsx";
 import MainContent from "./MainContent.jsx";
 import { ListingProvider } from "../../../modules/listings/contexts/ListingsContext.jsx";
 
-const HomePage = ({ user, onLogout, onLoginClick, onSignupClick }) => {
+const HomePage = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) => {
 
   const [actualContent, setActualContent] = useState('listingsPage');
 
@@ -18,6 +18,7 @@ const HomePage = ({ user, onLogout, onLoginClick, onSignupClick }) => {
           onLogout={onLogout} 
           onLoginClick={onLoginClick} 
           onSignupClick={onSignupClick} 
+          onBecomeHost={onBecomeHost}
         />
 
         {/* Category Bar */}

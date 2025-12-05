@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
 import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
+const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) => {
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -72,6 +72,13 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
     }
   };
 
+  const handleBecomeHost = () => {
+    setIsProfileMenuOpen(false);
+    if (onBecomeHost) {
+      onBecomeHost();
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -105,7 +112,10 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
           {/* Right Menu */}
           <div className="flex items-center gap-4">
             {/* Become a Host Link */}
-            <button className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors">
+            <button 
+              onClick={handleBecomeHost}
+              className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors"
+            >
               Become a host
             </button>
 
@@ -201,12 +211,12 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
                         Sign up
                       </button>
                       <hr className="my-2" />
-                      <a
-                        href="#"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      <button
+                        onClick={handleBecomeHost}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Become a host
-                      </a>
+                      </button>
                       <a
                         href="#"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
