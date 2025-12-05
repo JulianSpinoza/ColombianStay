@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import './Signup.css'
+import { registerUser } from "../../services/usersService";
 
-const Signup = ({ onRegister, onClose }) => {
+const Signup = ({ onClose }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,25 +45,23 @@ const Signup = ({ onRegister, onClose }) => {
     }
 
     try {
-      // TODO: Replace with real registration API call
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
+      
       const userData = {
-        id: Date.now(),
         username,
+        password,
         email,
         firstName: username.charAt(0).toUpperCase() + username.slice(1),
-        isAuthenticated: true,
+        is_host: false,
       };
 
-      if (onRegister) onRegister(userData);
+      await registerUser(userData);
+
     } catch (error) {
-      // Log error for debugging and show friendly message
-      console.error(error);
       setError("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
+    onClose();
   };
 
   return (

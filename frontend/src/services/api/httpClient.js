@@ -1,7 +1,8 @@
 import axios from "axios";
+import { BACKENDDJANGO } from "./endpoints";
 
 const httpClient = axios.create({
-  baseURL: "http://localhost:8000/api/", // URL del backend Django
+  baseURL: BACKENDDJANGO, // URL del backend Django
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

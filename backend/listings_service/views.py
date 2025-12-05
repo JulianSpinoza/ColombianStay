@@ -20,9 +20,7 @@ class ListingListView(generics.ListAPIView):
             
             try:
                 qs = qs.filter(
-                    idmunicipality=m.idmunicipality,
-                    iddepartment=m.iddepartment,
-                    idregion=m.idregion
+                    municipality=m.municipalityid
                 )
             except ValueError:
                 # Left to insert some log

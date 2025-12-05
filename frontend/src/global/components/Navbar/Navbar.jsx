@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
 import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
+import { useAuthContext } from "../../../modules/users/contexts/AuthContext.jsx";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) => {
+const Navbar = ({ onLoginClick, onSignupClick, onBecomeHost }) => {
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  // Context about the active user
+  const { state, dispatch } = useAuthContext();
 
   const municipalities = [
     'Barranquilla',
@@ -53,9 +57,15 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) =
 
   const handleLogout = () => {
     setIsProfileMenuOpen(false);
-    if (onLogout) {
-      onLogout();
-    }
+
+    // Removing JWT Auth from localStorage
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    // Update context to Logout
+    dispatch({
+        type: "LOGOUT",
+      })
   };
 
   const handleLoginClick = () => {
@@ -163,11 +173,10 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick, onBecomeHost }) =
               {/* Dropdown Menu */}
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  {user ? (
+                  {state.isAuthenticated ? (
                     <>
                       <div className="px-4 py-2 text-sm border-b border-gray-200">
-                        <p className="font-semibold text-gray-900">{user.firstName}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="font-semibold text-gray-900">{state.user.username}</p>
                       </div>
                       <a
                         href="#"
