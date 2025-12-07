@@ -10,6 +10,15 @@ class ListingSerializer(serializers.ModelSerializer):
         model = Listing
         fields = '__all__'
         read_only_fields = ['accomodationid']
+
+class PublishListingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Listing
+        exclude = ['owner','municipality']
+        read_only_fields = ['accomodationid']
         extra_kwargs = {
             'pricepernight': {'min_value': 0},
+            'bedrooms': {'min_value': 1},
+            'bathrooms': {'min_value': 1},
         }

@@ -8,7 +8,6 @@ import httpClient from "../../../services/api/httpClient.js";
  */
 
 export const getListings = async (query = {}) => {
-
   try {
     const response = await httpClient.get(LISTINGS_ENDPOINTS.ALL, {
       params: query, 
@@ -20,3 +19,12 @@ export const getListings = async (query = {}) => {
     throw error;
   }
 };
+
+export const publishProperty = async (property, privateConnection) => {
+  try {
+    const response = await privateConnection.post(LISTINGS_ENDPOINTS.PUBLISH, property);
+  } catch (error) {
+    console.error("Error publishing property:", error);
+    throw error;
+  }
+}

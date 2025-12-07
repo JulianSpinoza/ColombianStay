@@ -29,9 +29,15 @@ class Municipality(models.Model):
 class Listing(models.Model):
 
     accomodationid = models.AutoField(primary_key=True)
-    user = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE)
+    owner = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE)
     municipality = models.ForeignKey(Municipality, on_delete=models.CASCADE )
     title = models.CharField(max_length=50)
+    description = models.TextField()
+    bedrooms = models.IntegerField()
+    bathrooms = models.IntegerField()
+    locationdesc = models.TextField()
+    addresstext = models.CharField(max_length=50)
+    propertytype = models.CharField(max_length=20)
     pricepernight = models.IntegerField()
     maxguests = models.IntegerField()
 

@@ -5,21 +5,20 @@ import PricingLocation from "./steps/PricingLocation.jsx";
 import PhotoUpload from "./steps/PhotoUpload.jsx";
 import "./PropertyFormWizard.css";
 
-const PropertyFormWizard = () => {
+const PropertyFormWizard = ({ onPublish }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Step 1
     title: "",
     description: "",
-    propertyType: "apartment",
+    propertytype: "apartment",
     bedrooms: 1,
     bathrooms: 1,
-    guests: 2,
+    maxguests: 2,
     // Step 2
-    price: "",
-    currency: "COP",
-    location: "",
-    address: "",
+    pricepernight: 0,
+    locationdesc: "",
+    addresstext: "",
     city: "",
     // Step 3
     photos: [],
@@ -55,15 +54,12 @@ const PropertyFormWizard = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-
-    // TODO: Replace with actual API call
-    // const response = await httpClient.post("properties/create/", formData);
-    // Handle success/error
-
-    alert("Property submitted successfully! (Mock)");
+    if (currentStep < totalSteps) return;
+    // Para probar sin fotos
+    delete formData.photos;
+    onPublish(formData);
   };
 
   return (

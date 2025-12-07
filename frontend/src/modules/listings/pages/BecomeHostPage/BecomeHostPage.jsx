@@ -2,9 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
 import PropertyFormWizard from "../../components/PropertyFormWizard/PropertyFormWizard.jsx";
+import { publishProperty } from "../../services/listingsService.js";
 const BecomeHostPage = () => {
   
-  const { state , dispatch } = useAuthContext();
+  const { state , dispatch, axiosInstance } = useAuthContext();
   const navigate = useNavigate()
 
   const onBack = () => {
@@ -22,7 +23,18 @@ const BecomeHostPage = () => {
     dispatch({
         type: "LOGOUT",
       })
-  } 
+  }
+  
+  const publish = async (property) => {
+    try {
+      await publishProperty(property, axiosInstance);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      // Some loading left
+      navigate("/");
+    }
+  }
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -50,7 +62,7 @@ const BecomeHostPage = () => {
       </div>
 
       {/* Wizard Component */}
-      <PropertyFormWizard/>
+      <PropertyFormWizard onPublish={publish}/>
     </div>
   );
 };

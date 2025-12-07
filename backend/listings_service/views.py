@@ -1,7 +1,10 @@
 from rest_framework import generics
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from .models import Municipality, Listing
-from .serializers import ListingSerializer #, ListingCreateSerializer  # si tienes uno para POST
+from .serializers import ListingSerializer, PublishListingSerializer
 
 class ListingListView(generics.ListAPIView):
     
@@ -28,3 +31,28 @@ class ListingListView(generics.ListAPIView):
                 return qs.none()
 
         return qs
+    
+class PublishProperty(APIView):
+    def post(self, request):
+        # Pasr municipality de name a id
+        print(f"Datos recibidos: {request.data}")
+        print(f"Usuario recibido: {request.user}")
+        property = request.data
+        try:
+            city = Municipality.objects.get(name=property.pop('city'))
+        except Municipality.DoesNotExist:
+            print("Error: Municipality could not be found")
+        except Municipality.MultipleObjectsReturned:
+            print("Error: Multiple municipalities found")
+        else:
+            print(f"Id ciudad:{city}")
+            serializer = PublishListingSerializer(data=property)
+            if serializer.is_valid():
+                serializer.save(owner=request.user,municipality=city)
+                return Response(
+                    {
+                        "message": "Property created successfully.",
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
