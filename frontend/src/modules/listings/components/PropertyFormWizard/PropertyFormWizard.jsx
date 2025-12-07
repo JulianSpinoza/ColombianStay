@@ -56,7 +56,6 @@ const PropertyFormWizard = ({ onPublish }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (currentStep < totalSteps) return;
     // Para probar sin fotos
     delete formData.photos;
     onPublish(formData);
@@ -101,11 +100,11 @@ const PropertyFormWizard = ({ onPublish }) => {
           </button>
 
           {currentStep === totalSteps ? (
-            <button type="submit" className="btn-primary">
+            <button key="btn-submit" type="submit" className="btn-primary">
               Publish Property ✓
             </button>
           ) : (
-            <button type="button" onClick={handleNext} className="btn-primary">
+            <button key="btn-next" type="button" onClick={handleNext} className="btn-primary">
               Next →
             </button>
           )}
