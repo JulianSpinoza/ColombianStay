@@ -11,8 +11,8 @@ const PropertyDetails = ({ formData, onInputChange }) => {
       <div className="form-group">
         <label className="form-label">Property Type</label>
         <select
-          value={formData.propertyType}
-          onChange={(e) => onInputChange("propertyType", e.target.value)}
+          value={formData.propertytype}
+          onChange={(e) => onInputChange("propertytype", e.target.value)}
           className="form-input"
         >
           <option value="apartment">Apartment</option>
@@ -83,8 +83,8 @@ const PropertyDetails = ({ formData, onInputChange }) => {
             type="number"
             min={1}
             max={20}
-            value={formData.guests}
-            onChange={(e) => onInputChange("guests", parseInt(e.target.value))}
+            value={formData.maxguests}
+            onChange={(e) => onInputChange("maxguests", parseInt(e.target.value))}
             className="form-input"
           />
         </div>

@@ -12,30 +12,17 @@ const PricingLocation = ({ formData, onInputChange }) => {
         <div className="form-group">
           <label className="form-label">Nightly Price *</label>
           <div className="price-input-wrapper">
-            <span className="price-currency">{formData.currency}</span>
+            <span className="price-currency">COP</span>
             <input
               type="number"
-              placeholder="0"
+              placeholder={0}
               min={0}
-              value={formData.price}
-              onChange={(e) => onInputChange("price", e.target.value)}
+              value={formData.pricepernight}
+              onChange={(e) => onInputChange("pricepernight", parseInt(e.target.value))}
               className="form-input price-input"
               required
             />
           </div>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Currency</label>
-          <select
-            value={formData.currency}
-            onChange={(e) => onInputChange("currency", e.target.value)}
-            className="form-input"
-          >
-            <option value="COP">COP (Colombian Peso)</option>
-            <option value="USD">USD (US Dollar)</option>
-            <option value="EUR">EUR (Euro)</option>
-          </select>
         </div>
       </div>
 
@@ -47,14 +34,38 @@ const PricingLocation = ({ formData, onInputChange }) => {
           className="form-input"
           required
         >
-          <option value="">Select a city</option>
+          <option value="" disabled hidden>Select a city</option>
           <option value="Bogotá">Bogotá</option>
           <option value="Medellín">Medellín</option>
           <option value="Cali">Cali</option>
           <option value="Cartagena">Cartagena</option>
           <option value="Santa Marta">Santa Marta</option>
           <option value="Barranquilla">Barranquilla</option>
-          <option value="Other">Other</option>
+          <option value="Soledad">Soledad</option>
+          <option value="Puerto Colombia">Puerto Colombia</option>
+          <option value="Montería">Montería</option>
+          <option value="Sincelejo">Sincelejo</option>
+          <option value="Riohacha">Riohacha</option>
+          <option value="Zipaquirá">Zipaquirá</option>
+          <option value="La Calera">La Calera</option>
+          <option value="Envigado">Envigado</option>
+          <option value="Guatapé">Guatapé</option>
+          <option value="Bucaramanga">Bucaramanga</option>
+          <option value="San Gil">San Gil</option>
+          <option value="Tunja">Tunja</option>
+          <option value="Villa de Leyva">Villa de Leyva</option>
+          <option value="Pereira">Pereira</option>
+          <option value="Armenia">Armenia</option>
+          <option value="Manizales">Manizales</option>
+          <option value="Buenaventura">Buenaventura</option>
+          <option value="Palmira">Palmira</option>
+          <option value="Quibdó">Quibdó</option>
+          <option value="Villavicencio">Villavicencio</option>
+          <option value="Arauca">Arauca</option>
+          <option value="Florencia">Florencia</option>
+          <option value="Leticia">Leticia</option>
+          <option value="San Andrés">San Andrés</option>
+          <option value="Providencia">Providencia</option>
         </select>
       </div>
 
@@ -63,8 +74,8 @@ const PricingLocation = ({ formData, onInputChange }) => {
         <input
           type="text"
           placeholder="e.g., Cra 7 No. 28-45, Bogotá"
-          value={formData.address}
-          onChange={(e) => onInputChange("address", e.target.value)}
+          value={formData.addresstext}
+          onChange={(e) => onInputChange("addresstext", e.target.value)}
           className="form-input"
           required
         />
@@ -75,8 +86,8 @@ const PricingLocation = ({ formData, onInputChange }) => {
         <input
           type="text"
           placeholder="e.g., La Candelaria neighborhood, close to museums"
-          value={formData.location}
-          onChange={(e) => onInputChange("location", e.target.value)}
+          value={formData.locationdesc}
+          onChange={(e) => onInputChange("locationdesc", e.target.value)}
           className="form-input"
         />
       </div>

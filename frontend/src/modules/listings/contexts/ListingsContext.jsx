@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import useListings from "../hooks/useListings";
+import { useListings } from "../hooks/useListings";
 
 const ListingContext = createContext();
 
