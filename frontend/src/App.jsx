@@ -2,6 +2,7 @@ import HomePage from "./global/pages/Home/HomePage.jsx";
 import Login from "./modules/users/components/Login/Login.jsx";
 import Signup from "./modules/users/components/Signup/Signup.jsx";
 import BecomeHostPage from "./modules/listings/pages/BecomeHostPage/BecomeHostPage.jsx";
+import PropertyManager from "./modules/listings/components/PropertyManager/PropertyManager.jsx";
 import "./App.css"
 import { AuthProvider } from "./modules/users/contexts/AuthContext.jsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -26,6 +27,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <BecomeHostPage />
+                </PrivateRoute>
+              }
+            />
+            {/* Host-only availability/price manager */}
+            <Route
+              path="/host/availability"
+              element={
+                <PrivateRoute requireHost={false}>
+                  <PropertyManager />
                 </PrivateRoute>
               }
             />
