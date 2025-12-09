@@ -3,6 +3,7 @@ import Login from "./modules/users/components/Login/Login.jsx";
 import Signup from "./modules/users/components/Signup/Signup.jsx";
 import BecomeHostPage from "./modules/listings/pages/BecomeHostPage/BecomeHostPage.jsx";
 import PropertyManager from "./modules/listings/components/PropertyManager/PropertyManager.jsx";
+import ProfilePage from "./modules/users/components/Profile/ProfilePage.jsx";
 import "./App.css"
 import { AuthProvider } from "./modules/users/contexts/AuthContext.jsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -34,8 +35,18 @@ function App() {
             <Route
               path="/host/availability"
               element={
-                <PrivateRoute requireHost={false}>
+                <PrivateRoute requireHost={true}>
                   <PropertyManager />
+                </PrivateRoute>
+              }
+            />
+
+            {/* User profile (authenticated only) */}
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <ProfilePage />
                 </PrivateRoute>
               }
             />

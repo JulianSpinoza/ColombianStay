@@ -92,6 +92,11 @@ const Navbar = () => {
     navigate("/host/availability");
   };
 
+  const handleProfileClick = () => {
+    setIsProfileMenuOpen(false);
+    navigate("/profile");
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -190,6 +195,12 @@ const Navbar = () => {
                       <div className="px-4 py-2 text-sm border-b border-gray-200">
                         <p className="font-semibold text-gray-900">{state.user.username}</p>
                       </div>
+                      <button
+                        onClick={handleProfileClick}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        My Profile
+                      </button>
                       <a
                         href="#"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -201,12 +212,6 @@ const Navbar = () => {
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Saved
-                      </a>
-                      <a
-                        href="#"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Account
                       </a>
                       <hr className="my-2" />
                       <button
