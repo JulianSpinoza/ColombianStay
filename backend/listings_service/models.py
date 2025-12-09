@@ -40,7 +40,6 @@ class Listing(models.Model):
 
 
 class Rating(models.Model):
-    """Modelo para calificaciones de huéspedes a alojamientos"""
     RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
     
     ratingid = models.AutoField(primary_key=True)

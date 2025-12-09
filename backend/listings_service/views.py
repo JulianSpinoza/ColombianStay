@@ -34,21 +34,18 @@ class ListingListView(generics.ListAPIView):
 
 
 class HostRatingsView(generics.ListAPIView):
-    """Vista para obtener todos los ratings de las propiedades del host actual"""
+    #Vista para obtener todos los ratings de las propiedades del host que está ctualmente
     serializer_class = RatingSerializer
     
     def get_queryset(self):
-        """Retorna ratings de las propiedades del usuario autenticado"""
+        #nos trae los ratings del usuario host autenticado
         if not self.request.user or not self.request.user.is_authenticated:
             return Rating.objects.none()
         
-        # Obtener todas las propiedades del host
         host_listings = Listing.objects.filter(user=self.request.user)
-        # Retornar todos los ratings de esas propiedades
         return Rating.objects.filter(listing__in=host_listings).order_by('-created_at')
     
     def list(self, request, *args, **kwargs):
-        """Override para retornar datos estructurados por propiedad"""
         if not request.user or not request.user.is_authenticated:
             return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         

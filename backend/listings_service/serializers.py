@@ -16,7 +16,7 @@ class ListingSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    """Serializer para ratings de huéspedes"""
+#Serializer para ratings de huéspedes
     guest_name = serializers.CharField(source='guest.get_full_name', read_only=True)
 
     class Meta:

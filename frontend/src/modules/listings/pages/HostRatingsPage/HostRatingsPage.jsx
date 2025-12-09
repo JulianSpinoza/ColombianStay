@@ -23,7 +23,7 @@ const HostRatingsPage = () => {
         
         if (response.data && Array.isArray(response.data)) {
           setAccommodations(response.data);
-          // Seleccionar la primera propiedad por defecto
+          // Siempre la primera propiedad por defecto
           if (response.data.length > 0) {
             setSelectedAccommodation(response.data[0]);
           }
@@ -31,13 +31,13 @@ const HostRatingsPage = () => {
         
         setLoading(false);
       } catch (err) {
-        console.error("Error al cargar ratings:", err);
+        console.error("Failed to load ratings", err);
         
         if (err.response?.status === 401) {
-          setError("Debes estar autenticado para ver los ratings");
+          setError("You must be logged in to view host ratings");
           navigate('/login');
         } else {
-          setError("No se pudieron cargar los ratings. Intenta más tarde.");
+          setError("It was not possible to load the ratings. Please try again later.");
         }
         setLoading(false);
       }
@@ -52,7 +52,7 @@ const HostRatingsPage = () => {
       <div className="p-8 text-center">
         <div className="inline-block">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Cargando ratings...</p>
+          <p className="mt-4 text-gray-600">Loading ratings...</p>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ const HostRatingsPage = () => {
             onClick={() => navigate('/')}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
-            Volver al inicio
+            Go to Home
           </button>
         </div>
       </div>
@@ -80,9 +80,9 @@ const HostRatingsPage = () => {
     <div className="host-ratings-page min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tus Calificaciones</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Ratings</h1>
           <p className="text-gray-600">
-            Mira las calificaciones y reseñas de los huéspedes en tus propiedades
+            View ratings and reviews from guests who stayed at your properties
           </p>
         </div>
 
@@ -91,12 +91,12 @@ const HostRatingsPage = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-4 bg-gray-50 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Tus Propiedades</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Your Properties</h2>
               </div>
               <div className="divide-y divide-gray-200">
                 {accommodations.length === 0 ? (
                   <div className="p-4 text-gray-500 text-center">
-                    Aún no tienes propiedades
+                    No properties yet
                   </div>
                 ) : (
                   accommodations.map((accommodation) => (
@@ -113,7 +113,7 @@ const HostRatingsPage = () => {
                         {accommodation.listing_title}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        ⭐ {accommodation.average_rating?.toFixed(1)} ({accommodation.rating_count} {accommodation.rating_count === 1 ? 'reseña' : 'reseñas'})
+                        ⭐ {accommodation.average_rating?.toFixed(1)} ({accommodation.rating_count} {accommodation.rating_count === 1 ? 'review' : 'reseñas'})
                       </div>
                     </button>
                   ))
@@ -136,7 +136,7 @@ const HostRatingsPage = () => {
                         {selectedAccommodation.average_rating?.toFixed(1)}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Basado en {selectedAccommodation.rating_count} {selectedAccommodation.rating_count === 1 ? 'reseña' : 'reseñas'}
+                        Basado en {selectedAccommodation.rating_count} {selectedAccommodation.rating_count === 1 ? 'review' : 'reviews'}
                       </div>
                     </div>
                   </div>
@@ -151,13 +151,13 @@ const HostRatingsPage = () => {
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <div className="font-medium text-gray-900">
-                              {rating.guest_name || "Huésped Anónimo"}
+                              {rating.guestName || "Anonymous Guest"}
                             </div>
                             <div className="text-sm text-gray-500">
                               {new Date(rating.created_at).toLocaleDateString('es-CO')}
                             </div>
                           </div>
-                          {/* Muestra las estrellas */}
+                          {/* Muestra las estrellas, si el logo se ve mal editarlo por una imagen o algo */}
                           <div className="text-lg">
                             {"⭐".repeat(rating.rating)}
                           </div>
@@ -172,7 +172,7 @@ const HostRatingsPage = () => {
                     ))
                   ) : (
                     <div className="p-8 text-center text-gray-500">
-                      Aún no hay reseñas para esta propiedad
+                      No reviews yet for this property
                     </div>
                   )}
                 </div>
@@ -180,7 +180,7 @@ const HostRatingsPage = () => {
             ) : (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
                 <p className="text-gray-500">
-                  Selecciona una propiedad para ver sus calificaciones y reseñas
+                  Select a property to view its ratings and reviews
                 </p>
               </div>
             )}

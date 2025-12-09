@@ -19,12 +19,12 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      setErrorMessage("Por favor selecciona una calificación");
+      setErrorMessage("Please select a rating");
       return;
     }
 
     if (!listing || !listing.accomodationid) {
-      setErrorMessage("Error: No se encontró la propiedad");
+      setErrorMessage("Error: no property to rate");
       return;
     }
 
@@ -39,7 +39,7 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
         comment: comment || null,
       });
 
-      setSuccessMessage("¡Calificación enviada exitosamente!");
+      setSuccessMessage("Rating successfully submitted");
       
       // Llamar el callback si existe
       if (onSubmit) {
@@ -51,14 +51,14 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
         handleClose();
       }, 1500);
     } catch (error) {
-      console.error("Error al enviar calificación:", error);
+      console.error("Error submitting rating:", error);
       
       if (error.response?.status === 401) {
-        setErrorMessage("Debes estar autenticado para calificar");
+        setErrorMessage("You must be logged in to submit a rating");
       } else if (error.response?.data?.non_field_errors) {
         setErrorMessage(error.response.data.non_field_errors[0]);
       } else {
-        setErrorMessage("Error al enviar la calificación. Intenta de nuevo.");
+        setErrorMessage("Error submitting rating. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -73,26 +73,24 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
     onClose();
   };
 
-  const listingTitle = listing?.title || "tu estancia";
+  const listingTitle = listing?.title || "your stay";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-2">Califica tu Estancia</h2>
+        <h2 className="text-xl font-semibold mb-2">Rate Your Stay</h2>
         {listing && (
           <p className="text-gray-600 text-sm mb-4">
-            Tu experiencia en <span className="font-medium">{listingTitle}</span>
+            Your experience at <span className="font-medium">{listingTitle}</span>
           </p>
         )}
 
-        {/* Mensaje de éxito */}
         {successMessage && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-700 text-sm">{successMessage}</p>
           </div>
         )}
 
-        {/* Mensaje de error */}
         {errorMessage && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-700 text-sm">{errorMessage}</p>
@@ -102,7 +100,7 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
         {/* Star Rating Selection */}
         <div className="mb-6">
           <label className="block mb-3 text-sm font-medium text-gray-700">
-            ¿Cómo calificarías esta propiedad?
+            How would you rate this property?
           </label>
           <div className="flex gap-2 justify-center">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -114,34 +112,32 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
                 className={`text-3xl transition-transform transform hover:scale-110 disabled:opacity-50 ${
                   star <= rating ? "text-yellow-400" : "text-gray-300"
                 }`}
-                aria-label={`Calificar ${star} estrellas`}
+                aria-label={`Rate ${star} stars`}
               >
                 ⭐
               </button>
             ))}
           </div>
           <p className="text-center text-sm text-gray-600 mt-2">
-            {rating > 0
-              ? `Seleccionaste ${rating} estrella${rating !== 1 ? "s" : ""}`
-              : "Selecciona una calificación"}
+            {rating > 0 ? `You selected ${rating} star${rating !== 1 ? "s" : ""}` : "Select a rating"}
           </p>
         </div>
 
         {/* Comment Section */}
         <div className="mb-6">
           <label className="block mb-2 text-sm font-medium text-gray-700">
-            Comentario (Opcional)
+            Comment (Optional)
           </label>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             rows={4}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Comparte tu experiencia con otros huéspedes..."
+            placeholder="Share your experience with other guests..."
             disabled={isSubmitting}
           />
           <p className="text-xs text-gray-500 mt-1">
-            {comment.length} caracteres
+            {comment.length} characters
           </p>
         </div>
 
@@ -152,7 +148,7 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            Cancelar
+            Cancel
           </button>
           <button
             className={`px-4 py-2 rounded-lg text-white transition-colors ${
@@ -163,7 +159,7 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
             onClick={handleSubmit}
             disabled={isSubmitting || rating === 0}
           >
-            {isSubmitting ? "Enviando..." : "Enviar Calificación"}
+            {isSubmitting ? "Submitting..." : "Submit Rating"}
           </button>
         </div>
       </div>
