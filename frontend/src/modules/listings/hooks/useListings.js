@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getListings } from "../services/listingsService";
-import { useApiState } from "./useApiState";
+import { useApiState } from "../../../services/api/useApiState";
 
 export default function useListings() {
   const [listings, setListings] = useState([]);

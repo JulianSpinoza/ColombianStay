@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import './Login.css'
+import { useAuthContext } from "../../contexts/AuthContext";
+import { loginUser } from "../../services/usersService";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
-function Login({ onLogin, onClose }) {
+function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { dispatch } = useAuthContext();
+  const navigate = useNavigate()
+
+  const onClose = () => {
+    navigate("/")
+  } 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,29 +36,30 @@ function Login({ onLogin, onClose }) {
     }
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await httpClient.post("users/login/", {
-      //   username,
-      //   password,
-      // });
-
-      // Simulate API call with mock authentication
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Mock successful login
-      const userData = {
-        id: 1,
+      const credentials = {
         username: username,
-        email: `${username}@colombianstay.com`,
-        firstName: username.charAt(0).toUpperCase() + username.slice(1),
-        isAuthenticated: true,
+        password: password
       };
 
-      onLogin(userData);
+      const JWTToken = await loginUser(credentials);
+
+      const access = JWTToken.access;
+      const refresh = JWTToken.refresh;
+      const user = jwtDecode(access);
+
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      dispatch({
+        type: "LOGIN",
+        payload: { access, refresh, user }
+      });
+
     } catch (err) {
       setError(err.response?.data?.detail || "Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
+      onClose();
     }
   };
 

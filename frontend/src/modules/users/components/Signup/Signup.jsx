@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import './Signup.css'
+import { registerUser } from "../../services/usersService";
+import { useNavigate } from "react-router-dom";
 
-const Signup = ({ onRegister, onClose }) => {
+const Signup = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate()
+
+  const onClose = () => {
+    navigate("/")
+  } 
 
   const validateEmail = (e) => {
     // simple regex
@@ -44,23 +51,23 @@ const Signup = ({ onRegister, onClose }) => {
     }
 
     try {
-      // TODO: Replace with real registration API call
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
+      
       const userData = {
-        id: Date.now(),
         username,
+        password,
         email,
         firstName: username.charAt(0).toUpperCase() + username.slice(1),
-        isAuthenticated: true,
+        is_host: false,
       };
 
-      if (onRegister) onRegister(userData);
-    } catch (err) {
+      await registerUser(userData);
+
+    } catch (error) {
       setError("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
+    onClose();
   };
 
   return (

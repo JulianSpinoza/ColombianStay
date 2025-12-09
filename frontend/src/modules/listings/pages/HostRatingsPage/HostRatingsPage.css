@@ -1,0 +1,21 @@
+
+.host-ratings-page {
+  /* un fondo con gradiante, si ta feo borrar */
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* Animación que me encontre por ahí jeje, es basica al cargar */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.host-ratings-page .bg-white {
+  animation: slideIn 0.3s ease-out;
+}

@@ -1,14 +1,14 @@
-import httpClient from "../../../services/api/httpClient";
 import { LISTINGS_ENDPOINTS } from "../../../services/api/endpoints.js";
-
+import httpClient from "../../../services/api/httpClient.js";
 
 /**
- * Trae todos los listings o los filtra según parámetros.
- * @param {Object} filters - Objeto con filtros opcionales.
- * @returns {Promise<Array>} Lista de listings.
+ * It retrieves all listings or filters them according to parameters.
+ * @param {Object} filters - Object with optional filters.
+ * @returns {Promise<Array>} List of listings.
  */
 
 export const getListings = async (query = {}) => {
+
   try {
     const response = await httpClient.get(LISTINGS_ENDPOINTS.ALL, {
       params: query, 

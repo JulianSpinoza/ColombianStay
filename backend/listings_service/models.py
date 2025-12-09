@@ -1,34 +1,56 @@
 from django.db import models
 
+class Region(models.Model):
+
+    regionid = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=40, db_column= 'nameregion')
+
+    class Meta:
+        db_table = 'region'
+
+class Department(models.Model):
+
+    departmentid = models.AutoField(primary_key=True)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+    name = models.CharField(max_length=40, db_column= 'namedeparment')
+
+    class Meta:
+        db_table = 'department'
+
+class Municipality(models.Model):
+
+    municipalityid = models.AutoField(primary_key=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    name = models.CharField(max_length=40, db_column= 'namemunicipal')
+
+    class Meta:
+        db_table = 'municipality'
+
 class Listing(models.Model):
 
-    # To use nested serializer cause the fk
-    #user = models.ForeignKey(User, on_delete=models.CASCADE)
     accomodationid = models.AutoField(primary_key=True)
-    userid = models.IntegerField()
-    idregion = models.IntegerField()
-    iddepartment = models.IntegerField()
-    idmunicipality = models.IntegerField()
+    user = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE)
+    municipality = models.ForeignKey(Municipality, on_delete=models.CASCADE )
     title = models.CharField(max_length=50)
     pricepernight = models.IntegerField()
     maxguests = models.IntegerField()
 
     class Meta:
         db_table = 'accomodation'
-        managed = False # Do not change the model of what i have on my db
 
-class Municipality(models.Model):
 
-    # To later
-    #idregion = models.ForeignKey(Region, on_delete=models.DO_NOTHING, db_column='idregion')
-    #iddepartment = models.ForeignKey(Department, on_delete=models.DO_NOTHING, db_column='iddepartment')
-
-    idregion = models.IntegerField()
-    iddepartment = models.IntegerField()
-    idmunicipality = models.AutoField(primary_key= True)
-    name = models.CharField(max_length=40, db_column= 'namemunicipal')
+class Rating(models.Model):
+    """Modelo para calificaciones de huéspedes a alojamientos"""
+    RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
+    
+    ratingid = models.AutoField(primary_key=True)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='ratings')
+    guest = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE, related_name='guest_ratings')
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'municipality'
-        managed = False # Do not change the model of what i have on my db
-        unique_together = ('idregion', 'iddepartment', 'idmunicipality')
+        db_table = 'rating'
+        unique_together = ('listing', 'guest')

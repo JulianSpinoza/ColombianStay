@@ -1,57 +1,48 @@
-import React, { useState } from "react";
 import HomePage from "./global/pages/Home/HomePage.jsx";
 import Login from "./modules/users/components/Login/Login.jsx";
 import Signup from "./modules/users/components/Signup/Signup.jsx";
+import BecomeHostPage from "./modules/listings/pages/BecomeHostPage/BecomeHostPage.jsx";
+import HostRatingsPage from "./modules/listings/pages/HostRatingsPage/HostRatingsPage.jsx";
 import "./App.css"
+import { AuthProvider } from "./modules/users/contexts/AuthContext.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PrivateRoute from "./global/routes/PrivateRoute.jsx";
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setShowLoginModal(false);
-  };
-
-  const handleRegister = (userData) => {
-    // After successful registration, treat as logged in
-    setUser(userData);
-    setShowSignupModal(false);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  const handleLoginClick = () => {
-    setShowLoginModal(true);
-  };
-
-  const handleSignupClick = () => {
-    setShowSignupModal(true);
-  };
-
   return (
     <div className="w-full">
-      <HomePage 
-        user={user} 
-        onLogout={handleLogout}
-        onLoginClick={handleLoginClick}
-        onSignupClick={handleSignupClick}
-      />
-      {showLoginModal && (
-        <Login 
-          onLogin={handleLogin}
-          onClose={() => setShowLoginModal(false)}
-        />
-      )}
-      {showSignupModal && (
-        <Signup onRegister={handleRegister} onClose={() => setShowSignupModal(false)} />
-      )}
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+
+            {/* Rutas públicas */}
+            <Route path="*" element={<HomePage />}>
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Signup />} />
+            </Route>
+            
+            {/* Rutas protegidas */}
+            <Route
+              path="/become-host"
+              element={
+                <PrivateRoute>
+                  <BecomeHostPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/host-ratings"
+              element={
+                <PrivateRoute>
+                  <HostRatingsPage />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }
 
 export default App
-

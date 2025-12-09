@@ -1,10 +1,16 @@
 import React, { useState } from "react";
 import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
 import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
+import { useAuthContext } from "../../../modules/users/contexts/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
+const Navbar = () => {
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const navigate = useNavigate()
+
+  // Context about the active user
+  const { state, dispatch } = useAuthContext();
 
   const municipalities = [
     'Barranquilla',
@@ -53,23 +59,31 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
 
   const handleLogout = () => {
     setIsProfileMenuOpen(false);
-    if (onLogout) {
-      onLogout();
-    }
+
+    // Removing JWT Auth from localStorage
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    // Update context to Logout
+    dispatch({
+        type: "LOGOUT",
+      })
+    navigate("/");
   };
 
   const handleLoginClick = () => {
     setIsProfileMenuOpen(false);
-    if (onLoginClick) {
-      onLoginClick();
-    }
+    navigate("/login");
   };
 
   const handleSignupClick = () => {
     setIsProfileMenuOpen(false);
-    if (onSignupClick) {
-      onSignupClick();
-    }
+    navigate("/register");
+  };
+
+  const handleBecomeHost = () => {
+    setIsProfileMenuOpen(false);
+    navigate("/become-host")
   };
 
   return (
@@ -105,7 +119,10 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
           {/* Right Menu */}
           <div className="flex items-center gap-4">
             {/* Become a Host Link */}
-            <button className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors">
+            <button 
+              onClick={handleBecomeHost}
+              className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors"
+            >
               Become a host
             </button>
 
@@ -128,7 +145,7 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
             <div className="relative">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-full hover:shadow-md transition-shadow"
+                className="flex items-center gap-2 px-3 py-2 border border-none rounded-full hover:shadow-md transition-shadow"
               >
                 <svg
                   className="w-5 h-5 text-gray-700"
@@ -153,11 +170,10 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
               {/* Dropdown Menu */}
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  {user ? (
+                  {state.isAuthenticated ? (
                     <>
                       <div className="px-4 py-2 text-sm border-b border-gray-200">
-                        <p className="font-semibold text-gray-900">{user.firstName}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="font-semibold text-gray-900">{state.user.username}</p>
                       </div>
                       <a
                         href="#"
@@ -201,12 +217,12 @@ const Navbar = ({ user, onLogout, onLoginClick, onSignupClick}) => {
                         Sign up
                       </button>
                       <hr className="my-2" />
-                      <a
-                        href="#"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      <button
+                        onClick={handleBecomeHost}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Become a host
-                      </a>
+                      </button>
                       <a
                         href="#"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
