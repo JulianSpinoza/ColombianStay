@@ -117,7 +117,7 @@ const HostReservationsDashboard = () => {
     setError("");
     try {
       const response = await axiosInstance.get('hostreservations/');
-      setReservations(response.data);
+      // setReservations(response.data);
       console.log("Reservas obtenidas:", response.data);
 
     } catch (err) {

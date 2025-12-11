@@ -31,9 +31,9 @@ function App() {
             <Route
               path="/become-host"
               element={
-                <PrivateRoute>
+
                   <BecomeHostPage />
-                </PrivateRoute>
+
               }
             />
             <Route

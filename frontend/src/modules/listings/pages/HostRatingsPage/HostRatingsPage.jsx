@@ -35,7 +35,7 @@ const HostRatingsPage = () => {
         
         if (err.response?.status === 401) {
           setError("You must be logged in to view host ratings");
-          navigate('/login');
+          navigate('/host-ratings');
         } else {
           setError("It was not possible to load the ratings. Please try again later.");
         }

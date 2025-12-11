@@ -56,13 +56,15 @@ class HostRatingsView(generics.ListAPIView):
         
         host_listings = Listing.objects.filter(user=self.request.user)
         return Rating.objects.filter(listing__in=host_listings).order_by('-created_at')
-    
+
     def list(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated:
-            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+        # if not request.user or not request.user.is_authenticated:
+        #     print("Usuario no autenticado")
+        #     return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+
         # Obtener todas las propiedades del host
-        host_listings = Listing.objects.filter(user=request.user)
+        print("Usuario autenticado:", request.user)
+        host_listings = Listing.objects.filter(owner=request.user)
         
         ratings_data = []
         for listing in host_listings:
