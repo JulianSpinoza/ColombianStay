@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Listing
+from .models import Listing, Rating
 
 class ListingSerializer(serializers.ModelSerializer):
 
@@ -22,3 +22,13 @@ class PublishListingSerializer(serializers.ModelSerializer):
             'bedrooms': {'min_value': 1},
             'bathrooms': {'min_value': 1},
         }
+
+
+class RatingSerializer(serializers.ModelSerializer):
+#Serializer para ratings de huéspedes
+    guest_name = serializers.CharField(source='guest.get_full_name', read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = ['ratingid', 'listing', 'guest', 'guest_name', 'rating', 'comment', 'created_at']
+        read_only_fields = ['ratingid', 'created_at']

@@ -18,6 +18,11 @@ from dotenv import load_dotenv
 from datetime import timedelta
 
 load_dotenv()
+print(">>> TEST DB_HOST:", os.getenv("DB_HOST"))
+print(">>> TEST DB_NAME:", os.getenv("DB_NAME"))
+print(">>> TEST DB_USER:", os.getenv("DB_USER"))
+print(">>> TEST DB_PASSWORD:", os.getenv("DB_PASSWORD"))
+print(">>> TEST DB_PORT:", os.getenv("DB_PORT"))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -110,6 +115,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
 
 DATABASES = {
     'default': {

@@ -8,6 +8,7 @@ import httpClient from "../../../services/api/httpClient.js";
  */
 
 export const getListings = async (query = {}) => {
+
   try {
     const response = await httpClient.get(LISTINGS_ENDPOINTS.ALL, {
       params: query, 

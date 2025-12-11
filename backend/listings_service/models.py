@@ -1,7 +1,7 @@
 from django.db import models
 
 class Region(models.Model):
-
+  
     regionid = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40, db_column= 'nameregion')
 
@@ -43,3 +43,18 @@ class Listing(models.Model):
 
     class Meta:
         db_table = 'accomodation'
+
+class Rating(models.Model):
+    RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
+    
+    ratingid = models.AutoField(primary_key=True)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='ratings')
+    guest = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE, related_name='guest_ratings')
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'rating'
+        unique_together = ('listing', 'guest')

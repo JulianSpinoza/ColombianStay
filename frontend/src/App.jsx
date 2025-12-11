@@ -2,6 +2,7 @@ import HomePage from "./global/pages/Home/HomePage.jsx";
 import Login from "./modules/users/components/Login/Login.jsx";
 import Signup from "./modules/users/components/Signup/Signup.jsx";
 import BecomeHostPage from "./modules/listings/pages/BecomeHostPage/BecomeHostPage.jsx";
+import HostRatingsPage from "./modules/listings/pages/HostRatingsPage/HostRatingsPage.jsx";
 import PropertyManager from "./modules/listings/components/PropertyManager/PropertyManager.jsx";
 import ProfilePage from "./modules/users/components/Profile/ProfilePage.jsx";
 import PropertyDetailsPage from "./modules/listings/pages/PropertyDetailsPage/PropertyDetailsPage.jsx";
@@ -26,8 +27,25 @@ function App() {
               <Route path="register" element={<Signup />} />
             </Route>
             
+            {/* Rutas protegidas */}
+            <Route
+              path="/become-host"
+              element={
+                <PrivateRoute>
+                  <BecomeHostPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/host-ratings"
+              element={
+                <PrivateRoute>
+                  <HostRatingsPage />
+                </PrivateRoute>
+              }
+            />
             {/* Rutas (temporarily public for testing) */}
-            <Route path="/become-host" element={<BecomeHostPage />} />
+            <Route path="/become-host-test" element={<BecomeHostPage />} />
 
             {/* Host-only availability/price manager (now public for tests) */}
             <Route path="/host/availability" element={<PropertyManager />} />

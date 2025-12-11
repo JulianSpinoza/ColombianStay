@@ -1,10 +1,8 @@
-[project]
+[tool.poetry]
 name = "backend"
 version = "0.1.0"
 description = "Backend for ColombianStay"
-authors = [
-    {name = "JulianSpinoza",email = "juliancamilosimpson@gmail.com"}
-]
+authors = ["JulianSpinoza <juliancamilosimpson@gmail.com>"]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
