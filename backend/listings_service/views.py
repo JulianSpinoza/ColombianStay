@@ -1,3 +1,4 @@
+from users_service.serializers import UserRegisterSerializer
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.decorators import action
@@ -7,6 +8,16 @@ from django.db.models import Avg
 from .models import Municipality, Listing, Rating
 from .serializers import ListingSerializer, RatingSerializer, PublishListingSerializer
 
+
+class hostListingsView(generics.ListAPIView):
+    serializer_class = ListingSerializer
+
+    def get_queryset(self):
+        #nos trae las propiedades del usuario host autenticado
+        if not self.request.user or not self.request.user.is_authenticated:
+            return Listing.objects.none()
+        return Listing.objects.filter(user=self.request.user)
+    
 
 class ListingListView(generics.ListAPIView):
     
@@ -83,8 +94,11 @@ class PublishProperty(APIView):
         else:
             print(f"Id ciudad:{city}")
             serializer = PublishListingSerializer(data=property)
+            serializeruser = UserRegisterSerializer(data=request.user)
             if serializer.is_valid():
+
                 serializer.save(owner=request.user,municipality=city)
+                serializeruser.update_host_status(is_host=True, user=request.user)
                 return Response(
                     {
                         "message": "Property created successfully.",

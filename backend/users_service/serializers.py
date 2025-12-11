@@ -20,6 +20,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)  # hash password
         user.save()
         return user
+    def update_host_status(self, is_host, user):
+        user.is_host = is_host
+        user.save()
+        return user
     
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

@@ -39,9 +39,9 @@ function App() {
             <Route
               path="/host-ratings"
               element={
-                <PrivateRoute>
+
                   <HostRatingsPage />
-                </PrivateRoute>
+
               }
             />
             {/* Rutas (temporarily public for testing) */}

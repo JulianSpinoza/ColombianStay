@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
-
+import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
 /**
  * HostReservationsDashboard
  * User Story: 'Como anfitrión, quiero ver todas las reservas de mis propiedades'
@@ -15,6 +15,7 @@ import CancelReservationModal from "../../components/CancelReservationModal/Canc
  * - Actualización optimista de UI
  */
 const HostReservationsDashboard = () => {
+  const { state , dispatch, axiosInstance } = useAuthContext();
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,13 +112,14 @@ const HostReservationsDashboard = () => {
   ];
 
   // Cargar reservas (mock)
-  useEffect(() => {
+  useEffect(async () => {
     setIsLoading(true);
     setError("");
     try {
-      // En producción: const response = await httpClient.get('/api/host/reservations/');
-      // setReservations(response.data);
-      setReservations(mockReservations);
+      const response = await axiosInstance.get('hostreservations/');
+      setReservations(response.data);
+      console.log("Reservas obtenidas:", response.data);
+
     } catch (err) {
       setError("Error al cargar las reservas");
       console.error(err);
