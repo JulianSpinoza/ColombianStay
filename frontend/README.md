@@ -18,7 +18,7 @@ If you are developing a production application, we recommend using TypeScript wi
 
 # How to start the frontend
 
-## PNPM to dependencies list
+## PNPM to install dependencies
 
 Install on your device using the next command:
 
@@ -29,6 +29,8 @@ Being on the frontend folder, then install the dependecies of the project with:
 ```
 pnpm install
 ```
+## Initialization of the frontend
+
 To start the frontend:
 ```
 pnpm run dev
