@@ -16,7 +16,7 @@ If you don't, the virtual environment will be created inside the source folder o
 Being on the backend folder, then execute the next command to install the dependecies of the project:
 
 ```
-poetry install
+poetry install --no-root
 ```
 
 > [!NOTE]
