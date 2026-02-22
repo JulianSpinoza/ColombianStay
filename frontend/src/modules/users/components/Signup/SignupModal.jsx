@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import './Signup.css'
+import './SignupModal.css'
 import { registerUser } from "../../services/usersService";
 import { useNavigate } from "react-router-dom";
 
-const Signup = () => {
+const SignupModal = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +13,7 @@ const Signup = () => {
   const navigate = useNavigate()
 
   const onClose = () => {
-    navigate("/")
+    navigate(-1);
   } 
 
   const validateEmail = (e) => {
@@ -64,6 +64,7 @@ const Signup = () => {
 
     } catch (error) {
       setError("Registration failed. Please try again.");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -129,4 +130,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default SignupModal;

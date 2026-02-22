@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
 import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
 import { useAuthContext } from "../../../modules/users/contexts/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+
+  const location = useLocation();
+
   const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const navigate = useNavigate()
@@ -73,12 +76,12 @@ const Navbar = () => {
 
   const handleLoginClick = () => {
     setIsProfileMenuOpen(false);
-    navigate("/login");
+    navigate("/login", { state: { backgroundLocation: location } });
   };
 
   const handleSignupClick = () => {
     setIsProfileMenuOpen(false);
-    navigate("/register");
+    navigate("/register", { state: { backgroundLocation: location } });
   };
 
   const handleBecomeHost = () => {
@@ -93,12 +96,16 @@ const Navbar = () => {
 
   const handleProfileClick = () => {
     setIsProfileMenuOpen(false);
-    navigate("/profile");
+    navigate("/user/my-profile");
   };
 
   const handleUserReservations = () => {
     setIsProfileMenuOpen(false);
-    navigate("/my-reservations");
+    navigate("/user/my-reservations");
+  }
+
+  const handleHome = () => {
+    navigate("/");
   }
 
   return (
@@ -106,7 +113,7 @@ const Navbar = () => {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center h-16 gap-8">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0" onClick={handleHome}>
             <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-lg">🏠</span>
@@ -133,8 +140,8 @@ const Navbar = () => {
 
           {/* Right Menu */}
           <div className="flex items-center gap-4">
-            {/* My Reservations / Become a Host Link */}
-            {!(state.isAuthenticated) && (
+            {/* Become a Host Link */}
+            {state.isAuthenticated && (
               <button
                 onClick={handleBecomeHost}
                 className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors"

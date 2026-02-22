@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import './Login.css'
+import './LoginModal.css'
 import { useAuthContext } from "../../contexts/AuthContext";
 import { loginUser } from "../../services/usersService";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
-function Login() {
+function LoginModal() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,7 +14,7 @@ function Login() {
   const navigate = useNavigate()
 
   const onClose = () => {
-    navigate("/")
+    navigate(-1);
   } 
 
   const handleSubmit = async (e) => {
@@ -130,4 +130,4 @@ function Login() {
   );
 }
 
-export default Login
+export default LoginModal;

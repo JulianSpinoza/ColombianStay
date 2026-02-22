@@ -11,8 +11,6 @@ export function useAxiosAuth () {
     user: null,       
     isAuthenticated: false
   };
-
-  const [state, dispatch] = useReducer(authReducer, initialState);
   
   function authReducer(state, action) {
     switch (action.type) {
@@ -49,18 +47,24 @@ export function useAxiosAuth () {
   }, []);
 
   // Initial charge of localStorage JWT
-  useEffect(() => {
+  const getLocalSession = () => {
     const access = localStorage.getItem("access");
     const refresh = localStorage.getItem("refresh");
 
     if (access && refresh) {
       const user = jwtDecode(access);
-      dispatch({
-        type: "LOGIN",
-        payload: { access, refresh, user }
-      });
+      return {
+        access: access,
+        refresh: refresh,
+        user: user,
+        isAuthenticated: true,
+      };
     }
-  }, []);
+
+    return initialState;
+  }
+
+  const [state, dispatch] = useReducer(authReducer, null, getLocalSession);
 
   useEffect(() => {
     const requestId = axiosInstance.interceptors.request.use(

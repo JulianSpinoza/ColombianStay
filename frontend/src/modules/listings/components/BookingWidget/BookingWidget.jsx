@@ -147,7 +147,7 @@ const BookingWidget = ({
         service_fee: pricing.serviceFee,
         guests: parseInt(guests),
       };
-
+      
       setSuccess(true);
 
       if (onReservationSuccess) onReservationSuccess(combined);

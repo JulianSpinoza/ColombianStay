@@ -1,9 +1,7 @@
 import "./ListingsPage.css";
 import ListingCard from "../../components/ListingCard/ListingCard";
-import SearchFilters from "../../../../global/components/SearchFilters/SearchFilters.jsx";
 import { useListingsContext } from "../../contexts/ListingsContext.jsx";
-import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 
 export default function ListingsPage() {
   const navigate = useNavigate();
