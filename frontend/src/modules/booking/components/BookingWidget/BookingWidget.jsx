@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
+import "./BookingWidget.css"
 
 /**
  * BookingWidget
@@ -173,87 +174,78 @@ const BookingWidget = ({
   const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
   return (
-    <div className="lg:sticky lg:top-20 bg-white rounded-xl border border-gray-200 p-6 shadow-xl">
+    <div className="reservation-card">
       {/* Success State */}
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-700 font-medium text-center">
-            ✓ Reservation created successfully!
-          </p>
-          <p className="text-sm text-green-600 text-center mt-1">
-            Redirecting to confirmation...
-          </p>
+        <div className="alert alert-success">
+          <p className="alert-title">✓ Reservation created successfully!</p>
+          <p className="alert-subtitle">Redirecting to confirmation...</p>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700 text-sm font-medium">{error}</p>
+        <div className="alert alert-error">
+          <p className="alert-error-text">{error}</p>
         </div>
       )}
 
       {/* Price & Rating Header */}
-      <div className="mb-6 pb-6 border-b">
-        <div className="flex items-baseline gap-2 mb-2">
-          <p className="text-3xl font-bold text-gray-900">
+      <div className="price-header">
+        <div className="price-row">
+          <p className="price-amount">
             ${pricePerNight.toLocaleString()}
           </p>
-          <p className="text-sm text-gray-600">per night</p>
+          <p className="price-unit">per night</p>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="text-yellow-400">⭐</span>
-          <span className="font-semibold text-gray-900">{rating}</span>
-          <span className="text-gray-600">({reviews} reviews)</span>
+
+        <div className="rating-row">
+          <span className="rating-star">⭐</span>
+          <span className="rating-value">{rating}</span>
+          <span className="rating-reviews">({reviews} reviews)</span>
         </div>
       </div>
 
       {/* Check-in Date */}
-      <div className="mb-4">
-        <label className="block text-xs font-semibold text-gray-700 mb-2">
-          CHECK-IN
-        </label>
+      <div className="form-group">
+        <label className="form-label">CHECK-IN</label>
         <input
           type="date"
           value={checkInDate}
+          min={today}
           onChange={(e) => {
             setCheckInDate(e.target.value);
             setError("");
           }}
-          min={today}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 font-medium"
           disabled={isLoading}
+          className="form-input"
         />
       </div>
 
       {/* Check-out Date */}
-      <div className="mb-4">
-        <label className="block text-xs font-semibold text-gray-700 mb-2">
-          CHECK-OUT
-        </label>
+      <div className="form-group">
+        <label className="form-label">CHECK-OUT</label>
         <input
           type="date"
           value={checkOutDate}
+          min={checkInDate || tomorrowStr}
           onChange={(e) => {
             setCheckOutDate(e.target.value);
             setError("");
           }}
-          min={checkInDate || tomorrowStr}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 font-medium"
           disabled={isLoading}
+          className="form-input"
         />
       </div>
 
       {/* Guests Selector */}
-      <div className="mb-6">
-        <label className="block text-xs font-semibold text-gray-700 mb-2">
-          GUESTS
-        </label>
+      <div className="form-group">
+        <label className="form-label">GUESTS</label>
         <select
           value={guests}
           onChange={(e) => setGuests(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 font-medium"
           disabled={isLoading}
+          className="form-input"
         >
           <option value="1">1 Guest</option>
           <option value="2">2 Guests</option>
@@ -268,15 +260,11 @@ const BookingWidget = ({
       <button
         onClick={handleReservation}
         disabled={isLoading || !checkInDate || !checkOutDate || success}
-        className="w-full py-4 rounded-lg font-bold text-white text-lg
-          bg-gradient-to-r from-indigo-600 to-purple-600
-          hover:from-indigo-700 hover:to-purple-700
-          disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed
-          transition-all duration-200 mb-4"
+        className="reserve-button"
       >
         {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+          <span className="loading">
+            <span className="spinner"></span>
             Processing...
           </span>
         ) : success ? (
@@ -286,49 +274,40 @@ const BookingWidget = ({
         )}
       </button>
 
-      {/* You won't be charged message */}
-      <p className="text-xs text-gray-600 text-center mb-6">
-        You won't be charged yet
-      </p>
+      <p className="disclaimer">You won't be charged yet</p>
 
       {/* Price Breakdown */}
       {pricing.nights > 0 && (
-        <div className="pt-6 border-t space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-700">
+        <div className="price-breakdown">
+          <div className="row">
+            <span>
               ${pricePerNight.toLocaleString()} × {pricing.nights}{" "}
               {pricing.nights === 1 ? "night" : "nights"}
             </span>
-            <span className="font-medium text-gray-900">
+            <span className="bold">
               ${pricing.subtotal.toLocaleString()}
             </span>
           </div>
 
-          <div className="flex justify-between">
-            <span className="text-gray-700">Cleaning fee</span>
-            <span className="font-medium text-gray-900">
-              ${pricing.cleaningFee.toLocaleString()}
-            </span>
+          <div className="row">
+            <span>Cleaning fee</span>
+            <span className="bold">${pricing.cleaningFee.toLocaleString()}</span>
           </div>
 
-          <div className="flex justify-between">
-            <span className="text-gray-700">Service fee</span>
-            <span className="font-medium text-gray-900">
-              ${pricing.serviceFee.toLocaleString()}
-            </span>
+          <div className="row">
+            <span>Service fee</span>
+            <span className="bold">${pricing.serviceFee.toLocaleString()}</span>
           </div>
 
-          <div className="pt-2 border-t flex justify-between">
-            <span className="font-semibold text-gray-900">Total</span>
-            <span className="font-bold text-lg text-gray-900">
-              ${pricing.total.toLocaleString()}
-            </span>
+          <div className="row total">
+            <span>Total</span>
+            <span>${pricing.total.toLocaleString()}</span>
           </div>
         </div>
       )}
 
       {/* Info Footer */}
-      <div className="mt-6 pt-6 border-t text-xs text-gray-600 space-y-2">
+      <div className="info-footer">
         <p>✓ Free cancellation for 7 days</p>
         <p>✓ Self check-in with smart lock</p>
       </div>

@@ -3,20 +3,20 @@ import LoginModal from "../../modules/users/components/Login/LoginModal";
 import ListingsRoutes from "../../modules/listings/ListingsRoutes";
 import SignupModal from "../../modules/users/components/Signup/SignupModal";
 import UsersRoutes from "../../modules/users/UsersRoutes";
+import { AuthProvider } from "../../modules/users/contexts/AuthContext";
 
 export default function AppRouter() {
     const location = useLocation();
     const backgroundLocation = location.state?.backgroundLocation;
 
     return (
-        <>
+        <AuthProvider>
             {/* Rutas principales */}
             <Routes location={backgroundLocation || location}>
                 {/* Rutas por servicio (dominio) */}
                 <Route path="/*" element={<ListingsRoutes />} />
                 <Route path="/user/*" element= {<UsersRoutes/>}/>
                 {/* Rutas de globales */}
-                <Route path="/login" element={<LoginModal />} />
 
             </Routes>
 
@@ -27,6 +27,6 @@ export default function AppRouter() {
                     <Route path="/register" element={<SignupModal />} />
                 </Routes>
             )}
-        </>
+        </AuthProvider>
     );
 }

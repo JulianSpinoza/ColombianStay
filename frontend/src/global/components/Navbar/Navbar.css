@@ -1,7 +1,3 @@
-/* Navbar specific styles if needed */
-/* Most styling is handled by Tailwind CSS */
-
-/* Optional: Custom navbar animations */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -15,4 +11,182 @@
 
 .navbar {
   animation: slideDown 0.3s ease-in-out;
+}
+
+
+/* Layout */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  gap: 2rem;
+}
+
+/* Logo */
+.navbar-logo {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.2s;
+}
+
+.logo-wrapper:hover {
+  opacity: 0.8;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: #ef4444;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-emoji {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.logo-text {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+@media (max-width: 640px) {
+  .logo-text {
+    display: none;
+  }
+}
+
+/* Content in between */
+.content-in-between {
+  flex: 1;
+  max-width: 28rem;
+}
+
+@media (max-width: 640px) {
+  .content-in-between {
+    display: none;
+  }
+}
+
+/* Right actions */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-host {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  color: #374151;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.btn-host:hover {
+  background: #f3f4f6;
+}
+
+.btn-language {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  transition: background 0.2s;
+}
+
+.btn-language:hover {
+  background: #f3f4f6;
+}
+
+/* Icons */
+.icon-sm {
+  width: 20px;
+  height: 20px;
+  color: #374151;
+}
+
+.icon-md {
+  width: 24px;
+  height: 24px;
+  color: #4b5563;
+}
+
+/* Profile menu */
+.profile-menu {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  transition: box-shadow 0.2s;
+}
+
+.profile-button:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Dropdown */
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  width: 12rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  z-index: 50;
+}
+
+.dropdown-header {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+  color: #374151;
+  background: transparent;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-menu hr {
+  margin: 0.5rem 0;
 }

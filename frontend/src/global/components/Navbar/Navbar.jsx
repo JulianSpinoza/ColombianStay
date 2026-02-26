@@ -1,67 +1,25 @@
-import React, { useState } from "react";
-import SearchBarAutocomplete from "../SearchBarAutocomplete/SearchBarAutocomplete";
-import { useListingsContext } from "../../../modules/listings/contexts/ListingsContext.jsx";
+import { useState } from "react";
 import { useAuthContext } from "../../../modules/users/contexts/AuthContext.jsx";
 import { useLocation, useNavigate } from "react-router-dom";
+import './Navbar.css'
 
-const Navbar = () => {
+const Navbar = ({children}) => {
 
   const location = useLocation();
 
-  const [filterMunicipality, setFilterMunicipality] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const navigate = useNavigate()
 
   // Context about the active user
   const { state, dispatch } = useAuthContext();
 
-  const municipalities = [
-    'Barranquilla',
-    'Soledad',
-    'Puerto Colombia',
-    'Cartagena',
-    'Turbaco',
-    'Santa Marta',
-    'Montería',
-    'Sincelejo',
-    'Riohacha',
-    'Bogotá',
-    'Zipaquirá',
-    'La Calera',
-    'Medellín',
-    'Envigado',
-    'Guatapé',
-    'Bucaramanga',
-    'San Gil',
-    'Tunja',
-    'Villa de Leyva',
-    'Pereira',
-    'Armenia',
-    'Manizales',
-    'Cali',
-    'Buenaventura',
-    'Palmira',
-    'Quibdó',
-    'Villavicencio',
-    'Arauca',
-    'Florencia',
-    'Leticia',
-    'San Andrés',
-    'Providencia'
-  ]
-
-  const { fetchListings } = useListingsContext()
-
-  const handleSearch = () => {
-      const query = {};
-      if(filterMunicipality != ""){ 
-        query.municipality = filterMunicipality;
-      }
-      fetchListings(query);
-    };
-
   const handleLogout = () => {
     setIsProfileMenuOpen(false);
+
+    // Timeout 0 avoiding asynchrony for the Auth Reducer
+    setTimeout(() => {
+      navigate("/");
+    }, 0);
 
     // Removing JWT Auth from localStorage
     localStorage.removeItem("access");
@@ -71,11 +29,11 @@ const Navbar = () => {
     dispatch({
         type: "LOGOUT",
       })
-    navigate("/");
   };
 
   const handleLoginClick = () => {
     setIsProfileMenuOpen(false);
+    console.log(location.pathname);
     navigate("/login", { state: { backgroundLocation: location } });
   };
 
@@ -84,9 +42,9 @@ const Navbar = () => {
     navigate("/register", { state: { backgroundLocation: location } });
   };
 
-  const handleBecomeHost = () => {
+  const handlePublishListing = () => {
     setIsProfileMenuOpen(false);
-    navigate("/become-host");
+    navigate("/publish-listing");
   };
 
   const handleHostReservations = () => {
@@ -109,80 +67,47 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center h-16 gap-8">
+    <nav className="navbar">
+      <div className="navbar-container">
+        <div className="navbar-content">
+          
           {/* Logo */}
-          <div className="flex-shrink-0" onClick={handleHome}>
-            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🏠</span>
+          <div className="navbar-logo" onClick={handleHome}>
+            <div className="logo-wrapper">
+              <div className="logo-icon">
+                <span className="logo-emoji">🏠</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 hidden sm:inline">
-                ColombianStay
-              </span>
+              <span className="logo-text">ColombianStay</span>
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 hidden sm:block max-w-md">
-            <div className="relative">
-              <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow cursor-text">
-                <SearchBarAutocomplete 
-                  textSearch={filterMunicipality}
-                  setTextSearch={setFilterMunicipality}
-                  options={municipalities}
-                  handleSearch={handleSearch}
-                />
-              </div>
-            </div>
+          {/* Content in between */}
+          <div className="content-in-between">
+            {children}
           </div>
 
           {/* Right Menu */}
-          <div className="flex items-center gap-4">
-            {/* Become a Host Link */}
+          <div className="navbar-actions">
+
             {state.isAuthenticated && (
               <button
-                onClick={handleBecomeHost}
-                className="hidden sm:block text-gray-700 font-medium hover:bg-gray-100 px-4 py-2 rounded-full transition-colors"
+                onClick={handlePublishListing}
+                className="btn-host"
               >
                 Become a host
               </button>
             )}
 
-            {/* Language/Currency */}
-            <button className="hidden sm:block p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <svg
-                className="w-5 h-5 text-gray-700"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3 6a3 3 0 013-3h10a1 1 0 01.82 1.573l-7 10.666A1 1 0 018.903 16H5a3 3 0 01-3-3V6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-
             {/* Profile Menu */}
-            <div className="relative">
+            <div className="profile-menu">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 border border-none rounded-full hover:shadow-md transition-shadow"
+                className="profile-button"
               >
-                <svg
-                  className="w-5 h-5 text-gray-700"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="icon-sm" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.5 1.5H.5v2h10V1.5zM.5 6.5h10v2H.5v-2zm0 5h10v2H.5v-2z" />
                 </svg>
-                <svg
-                  className="w-6 h-6 text-gray-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="icon-md" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
@@ -191,79 +116,45 @@ const Navbar = () => {
                 </svg>
               </button>
 
-              {/* Dropdown Menu */}
               {isProfileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className="dropdown-menu">
                   {state.isAuthenticated ? (
                     <>
-                      <div className="px-4 py-2 text-sm border-b border-gray-200">
-                        <p className="font-semibold text-gray-900">{state.user.username}</p>
+                      <div className="dropdown-header">
+                        <p>{state.user.username}</p>
                       </div>
-                      <button
-                        onClick={handleProfileClick}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
+
+                      <button onClick={handleProfileClick} className="dropdown-item">
                         My Profile
                       </button>
-                      <button
-                        onClick={handleBecomeHost}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Publish property
-                      </button>
-                      <button
-                        onClick={handleHostReservations}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
+                      <button onClick={handleHostReservations} className="dropdown-item">
                         My Listings Reservations
                       </button>
-                      <button
-                        onClick={handleUserReservations}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
+                      <button onClick={handleUserReservations} className="dropdown-item">
                         My Guest Reservations
                       </button>
-                      <hr className="my-2" />
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
+
+                      <hr />
+
+                      <button onClick={handleLogout} className="dropdown-item">
                         Log out
                       </button>
                     </>
                   ) : (
                     <>
-                      <button
-                        onClick={handleLoginClick}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
+                      <button onClick={handleLoginClick} className="dropdown-item">
                         Log in
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleSignupClick}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
+                      <button onClick={handleSignupClick} className="dropdown-item">
                         Sign up
                       </button>
-                      <hr className="my-2" />
-                      <button
-                        onClick={handleBecomeHost}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Become a host
-                      </button>
-                      <button
-                        href="#"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Help
-                      </button>
+                      
                     </>
                   )}
                 </div>
               )}
             </div>
+
           </div>
         </div>
       </div>

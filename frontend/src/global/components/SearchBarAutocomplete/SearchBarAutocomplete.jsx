@@ -6,6 +6,7 @@ export default function SearchBarAutocomplete({
     setTextSearch, 
     options,
     handleSearch,
+    placeholder,
     //categoryname,
 }){
 
@@ -39,7 +40,7 @@ export default function SearchBarAutocomplete({
             <div className="input-wrapper">
                 <input
                 type="text"
-                placeholder="Where are you going?"
+                placeholder={placeholder}
                 value={textSearch}
                 onChange={handleInputSearch}
                 autoComplete="off"

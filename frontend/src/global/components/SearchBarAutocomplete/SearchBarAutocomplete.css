@@ -4,11 +4,21 @@
   gap: 10px;
   height: 50px;
   width: 100%;
+  border-radius: 9999px;
+  background: #f9fafb;
+  transition: box-shadow 0.2s;
+  border: 1px solid #d1d5db;
+}
+
+.search-bar-autocomplete:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .input-wrapper {
   position: relative;
   width: 90%;
+  border-radius: 9999px;
+  background: #f9fafb;
 }
 
 .input-wrapper input {

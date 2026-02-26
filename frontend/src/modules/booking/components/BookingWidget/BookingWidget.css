@@ -1,0 +1,200 @@
+.reservation-card {
+    position: sticky;
+    top: 5rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Alerts */
+.alert {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+}
+
+.alert-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    text-align: center;
+}
+
+.alert-title {
+    color: #047857;
+    font-weight: 600;
+}
+
+.alert-subtitle {
+    font-size: 0.875rem;
+    color: #059669;
+    margin-top: 0.25rem;
+}
+
+.alert-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.alert-error-text {
+    color: #b91c1c;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Price header */
+.price-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.price-amount {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.price-unit {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.rating-star {
+    color: #facc15;
+}
+
+.rating-value {
+    font-weight: 600;
+}
+
+.rating-reviews {
+    color: #6b7280;
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    font-weight: 500;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+/* Button */
+.reserve-button {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(to right, #4f46e5, #7c3aed);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.reserve-button:hover:not(:disabled) {
+    background: linear-gradient(to right, #4338ca, #6d28d9);
+}
+
+.reserve-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Loading */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Footer & breakdown */
+.disclaimer {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.price-breakdown {
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+}
+
+.price-breakdown .row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.price-breakdown .bold {
+    font-weight: 500;
+}
+
+.price-breakdown .total {
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5e7eb;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+/* Info footer */
+.info-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.75rem;
+    color: #6b7280;
+}

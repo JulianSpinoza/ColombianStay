@@ -24,9 +24,7 @@
   max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  /* match tailwind px-4 */
-  padding-right: 1rem;
+  padding: 1rem;
 }
 
 /* Ensure listings grid remains centered with sensible gaps */
@@ -34,6 +32,9 @@
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: 1.5rem;
+  /* Para que no se vuelva enorme en pantallas gigantes */
+  max-width: 1200px;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -72,15 +73,4 @@
   padding: 20px;
   display: flex;
   justify-content: center;
-}
-
-.listings-grid {
-  display: grid;
-  /* Máx 4, pero automático según el espacio */
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-
-  /* Para que no se vuelva enorme en pantallas gigantes */
-  max-width: 1200px;
-  width: 100%;
 }
