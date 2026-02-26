@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
-import Navbar from "../../global/components/Navbar/Navbar";
-import MainListingsSearch from "./components/MainListingsSearch/MainListingsSearch";
+import Navbar from "../../../global/components/Navbar/Navbar";
+import MainListingsSearch from "../components/MainListingsSearch/MainListingsSearch";
 
 export default function ListingsLayout () {
 

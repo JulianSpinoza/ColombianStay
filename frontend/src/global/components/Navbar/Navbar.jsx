@@ -54,12 +54,12 @@ const Navbar = ({children}) => {
 
   const handleProfileClick = () => {
     setIsProfileMenuOpen(false);
-    navigate("/user/my-profile");
+    navigate("/user/my-profile", { state : { selectedOption: "profile" }});
   };
 
   const handleUserReservations = () => {
     setIsProfileMenuOpen(false);
-    navigate("/user/my-reservations");
+    navigate("/user/my-reservations", { state : { selectedOption: "reservations" }});
   }
 
   const handleHome = () => {

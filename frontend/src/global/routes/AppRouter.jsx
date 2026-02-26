@@ -17,7 +17,7 @@ export default function AppRouter() {
                 <Route path="/*" element={<ListingsRoutes />} />
                 <Route path="/user/*" element= {<UsersRoutes/>}/>
                 {/* Rutas de globales */}
-
+                <Route path="/login" element={<LoginModal />} />
             </Routes>
 
             {/* Rutas modales */}

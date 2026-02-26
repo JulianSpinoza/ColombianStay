@@ -1,11 +1,11 @@
 import { Route, Routes } from "react-router-dom";
-import ListingsLayout from "./ListingsLayout";
 import ListingsPage from "./pages/ListingsPage/ListingsPage";
 import { ListingProvider } from "./contexts/ListingsContext";
 import PropertyDetailsPage from "./pages/PropertyDetailsPage/PropertyDetailsPage";
 import PrivateRoute from "../../global/routes/PrivateRoute";
 import PublishListing from "./pages/PublishListingPage/PublishListingPage";
 import ReservationConfirmation from "./pages/ReservationConfirmation/ReservationConfirmation";
+import ListingsLayout from "./layout/ListingsLayout";
 
 // Rutas del servicio Listing
 

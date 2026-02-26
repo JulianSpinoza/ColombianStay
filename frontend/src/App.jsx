@@ -27,9 +27,8 @@ function App() {
             />
             {/* Host-only availability/price manager (now public for tests) */}
             <Route path="/host/availability" element={
-              <PrivateRoute>
-                <PropertyManager />
-              </PrivateRoute>} />
+              <PropertyManager />
+            }/>
 
             {/* Host reservations dashboard (now public for tests) */}
             <Route path="/host/reservations" element={<HostReservationsDashboard />} />

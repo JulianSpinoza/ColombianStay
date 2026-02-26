@@ -4,6 +4,8 @@ import CancelReservationModal from "../../../listings/components/CancelReservati
 import { useAuthContext } from "../../contexts/AuthContext.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 
+import "./UserReservationsDashboard.css";
+
 /**
  * UserReservationsDashboard
  * User Story: 'Como usuario, quiero ver mis reservas y poder cancelarlas'
@@ -226,73 +228,53 @@ const UserReservationsDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
-      <div className="w-full max-w-6xl">
+    <div className="page">
+      <div className="container">
+
         {/* Encabezado */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Mis Reservas
-          </h1>
-          <p className="text-gray-600">
-            Aquí puedes ver y gestionar todas tus reservas
-          </p>
+        <div className="header">
+          <h1 className="title">Mis Reservas</h1>
         </div>
 
         {/* Tarjeta de información */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
-          <svg
-            className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
+        <div className="info-card">
+          <svg className="info-icon" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0z"
               clipRule="evenodd"
             />
           </svg>
-          <div>
-            <p className="text-sm text-blue-800">
-              <strong>Tip:</strong> Puedes cancelar una reserva hasta 7 días antes de la fecha de llegada sin penalización.
-            </p>
-          </div>
+          <p className="info-text">
+            <strong>Tip:</strong> Puedes cancelar una reserva hasta 7 días antes de la fecha de llegada sin penalización.
+          </p>
         </div>
 
         {/* Mensaje de éxito */}
         {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-            <svg
-              className="w-5 h-5 text-green-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
+          <div className="success-message">
+            <svg className="success-icon" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-green-800">{successMessage}</span>
+            <span>{successMessage}</span>
           </div>
         )}
 
         {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
+          <div className="error-message">
+            <p>{error}</p>
           </div>
         )}
 
-        {/* Buscador y Filtros */}
-        <div className="mb-6 space-y-4">
-          {/* Buscador */}
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-3 h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+        {/* Buscador y filtros */}
+        <div className="filters">
+          <div className="search">
+            <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -305,12 +287,11 @@ const UserReservationsDashboard = () => {
               placeholder="Buscar una propiedad..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="search-input"
             />
           </div>
 
-          {/* Filtros */}
-          <div className="flex flex-wrap gap-2">
+          <div className="filter-buttons">
             {[
               { key: "all", label: "Todas", icon: "📋" },
               { key: "upcoming", label: "Próximas", icon: "📅" },
@@ -320,10 +301,8 @@ const UserReservationsDashboard = () => {
               <button
                 key={filter.key}
                 onClick={() => setActiveFilter(filter.key)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  activeFilter === filter.key
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                className={`filter-button ${
+                  activeFilter === filter.key ? "active" : ""
                 }`}
               >
                 {filter.icon} {filter.label}
@@ -334,18 +313,16 @@ const UserReservationsDashboard = () => {
 
         {/* Lista de reservas */}
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
+          <div className="loader-container">
+            <div className="loader" />
           </div>
         ) : filteredReservations.length > 0 ? (
-          <div className="space-y-4">
-            {/* Contador */}
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="reservations">
+            <p className="counter">
               {filteredReservations.length}{" "}
               {filteredReservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
-            {/* Tarjetas de reserva */}
             {filteredReservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
@@ -357,39 +334,20 @@ const UserReservationsDashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400 mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">
-              No hay reservas
-            </h3>
-            <p className="text-gray-600 mb-4">
+          <div className="empty-state">
+            <h3>No hay reservas</h3>
+            <p>
               {searchTerm
                 ? "No hay reservas que coincidan con tu búsqueda"
                 : "Aún no has hecho ninguna reserva"}
             </p>
-            <a
-              href="/"
-              className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-            >
+            <a href="/" className="primary-button">
               Explorar propiedades
             </a>
           </div>
         )}
       </div>
 
-      {/* Modal de confirmación de cancelación */}
       <CancelReservationModal
         isOpen={isCancelModalOpen}
         reservationId={selectedReservationId}

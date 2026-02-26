@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
-import ProfilePage from "./components/Profile/ProfilePage";
-import UsersLayout from "./UsersLayout";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
+import PersonalUsersLayout from "./layout/PersonalUsersLayout";
 import PrivateRoute from "../../global/routes/PrivateRoute";
 import UserReservationsDashboard from "./pages/UserReservationsDashboard/UserReservationsDashboard";
 
@@ -9,11 +9,11 @@ import UserReservationsDashboard from "./pages/UserReservationsDashboard/UserRes
 export default function UsersRoutes () {
     return (
         <Routes>
-            <Route element={<UsersLayout/>}>
-                {/* Rutas publicas*/ }
+            {/* Rutas publicas*/ }
                 
-                {/* Rutas Privadas*/ }
-                <Route element={<PrivateRoute/>}>
+            {/* Rutas Privadas*/ }
+            <Route element={<PrivateRoute/>}>
+                <Route element={<PersonalUsersLayout/>}>
                     <Route path="my-profile" element={<ProfilePage/>}/>
                     <Route path="my-reservations" element={<UserReservationsDashboard/>} />
                 </Route>
