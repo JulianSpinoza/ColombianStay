@@ -39,7 +39,7 @@ const ProfilePage = () => {
               <div className="profile-card">
                 <div className="avatar-wrapper">
                   <div className="avatar">
-                    {(user.username || "U").charAt(0).toUpperCase()}
+                    {(user.username).charAt(0).toUpperCase()}
                   </div>
                 </div>
 

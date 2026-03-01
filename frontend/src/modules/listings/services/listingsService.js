@@ -21,9 +21,9 @@ export const getListings = async (query = {}) => {
   }
 };
 
-export const publishProperty = async (property, privateConnection) => {
+export const publishProperty = async (property) => {
   try {
-    const response = await privateConnection.post(LISTINGS_ENDPOINTS.PUBLISH, property);
+    const response = await httpClient.post(LISTINGS_ENDPOINTS.PUBLISH, property);
   } catch (error) {
     console.error("Error publishing property:", error);
     throw error;

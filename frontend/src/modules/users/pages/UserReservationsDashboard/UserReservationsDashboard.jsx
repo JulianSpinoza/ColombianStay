@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import ReservationCard from "../../../listings/components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../../listings/components/CancelReservationModal/CancelReservationModal.jsx";
-import { useAuthContext } from "../../contexts/AuthContext.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 
 import "./UserReservationsDashboard.css";
+import httpClient from "../../../../services/api/httpClient.js";
 
 /**
  * UserReservationsDashboard
@@ -105,20 +105,14 @@ const UserReservationsDashboard = () => {
     },
   ];
 
-  const { axiosInstance } = useAuthContext();
-
   // Cargar reservas desde el API
   useEffect(() => {
     const fetchReservations = async () => {
       setIsLoading(true);
       setError("");
       try {
-        if (!axiosInstance) {
-          setReservations(mockReservations);
-          return;
-        }
 
-        const res = await axiosInstance.get(BOOKINGS_ENDPOINTS.USER_RESERVATIONS);
+        const res = await httpClient.get(BOOKINGS_ENDPOINTS.USER_RESERVATIONS);
         const formatted = res.data.map((booking) => ({
           id: booking.bookingid,
           property: {
@@ -145,7 +139,7 @@ const UserReservationsDashboard = () => {
     };
 
     fetchReservations();
-  }, [axiosInstance]);
+  }, []);
 
   // Aplicar filtros y búsqueda
   useEffect(() => {
@@ -193,16 +187,13 @@ const UserReservationsDashboard = () => {
 
       // En producción: llamar al API para cancelar
       try {
-        if (axiosInstance) {
-          await axiosInstance.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), { status: 'cancelled' });
-        } else {
-          await new Promise((resolve) => setTimeout(resolve, 800));
-        }
+        
+        await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), { status: 'cancelled' });
+        
       } catch (apiErr) {
         console.error('API cancel error', apiErr);
         setError('Error al cancelar la reserva en el servidor');
-        // Revertir
-        setReservations(mockReservations);
+        
       }
 
       // Limpiar mensaje de éxito después de 3 segundos

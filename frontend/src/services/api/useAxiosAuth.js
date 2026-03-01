@@ -1,7 +1,7 @@
-import axios from "axios";
-import { BACKENDDJANGO } from "./endpoints";
-import { useEffect, useMemo, useReducer } from "react";
+import { USERS_ENDPOINTS } from "./endpoints";
+import { useEffect, useReducer } from "react";
 import { jwtDecode } from "jwt-decode";
+import httpClient from "./httpClient";
 
 export function useAxiosAuth () {
 
@@ -36,16 +36,6 @@ export function useAxiosAuth () {
     }
   }
 
-  const axiosInstance = useMemo(() => { 
-    return axios.create({
-      baseURL: BACKENDDJANGO,
-      timeout: 10000,
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-  }, []);
-
   // Initial charge of localStorage JWT
   const getLocalSession = () => {
     const access = localStorage.getItem("access");
@@ -67,17 +57,20 @@ export function useAxiosAuth () {
   const [state, dispatch] = useReducer(authReducer, null, getLocalSession);
 
   useEffect(() => {
-    const requestId = axiosInstance.interceptors.request.use(
-      config => {
+    const requestId = httpClient.interceptors.request.use(
+      (config) => {
         if (state.access) {
           config.headers.Authorization = `Bearer ${state.access}`;
         }
+        // Refresh reactive
+        //console.log(JSON.parse(atob(state.access.split(".")[1])).exp);
+        //console.log(Date.now() / 1000);
         return config;
       },
-      (err) => Promise.reject(err)
+      (err) => Promise.reject(err),
     );
 
-    const responseId = axiosInstance.interceptors.response.use(
+    const responseId = httpClient.interceptors.response.use(
       (res) => res,
       async (error) => {
         const original = error.config;
@@ -87,44 +80,43 @@ export function useAxiosAuth () {
           original._retry = true;
 
           try {
-            const refreshRes = await axios.post(`${BACKENDDJANGO}refresh/`, {
-              refresh: state?.refresh
-            });
+            const refreshRes = await httpClient.post(USERS_ENDPOINTS.REFRESH,
+              {
+                refresh: state?.refresh,
+              },
+            );
 
-            const newAccess = res.data.access;
+            const newAccess = refreshRes.data.access;
 
             // Update Access token
             dispatch({
               type: "REFRESH",
-              payload: { access: newAccess }
+              payload: { access: newAccess },
             });
-            
+
             localStorage.setItem("access", newAccess);
 
             // Retry petition with the new Access token
             original.headers.Authorization = `Bearer ${newAccess}`;
-            return axiosInstance(original);
-
+            return httpClient(original);
           } catch (e) {
-
             dispatch({ type: "LOGOUT" });
             return Promise.reject(e);
           }
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
-      axiosInstance.interceptors.request.eject(requestId);
-      axiosInstance.interceptors.response.eject(responseId);
+      httpClient.interceptors.request.eject(requestId);
+      httpClient.interceptors.response.eject(responseId);
     };
-  }, [axiosInstance, state?.access, state?.refresh, dispatch]);
+  }, [state?.access, state?.refresh, dispatch]);
 
   return {
     state,
     dispatch,
-    axiosInstance
   };
 }

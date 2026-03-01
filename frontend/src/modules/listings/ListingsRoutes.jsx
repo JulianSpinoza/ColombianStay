@@ -11,20 +11,20 @@ import ListingsLayout from "./layout/ListingsLayout";
 
 export default function ListingsRoutes () {
     return (
-        <ListingProvider>
-            <Routes>
-                <Route element={<ListingsLayout />}>
-                    {/* Rutas publicas*/ }
+        <Routes>
+            <Route element={<ListingsLayout />}>
+                {/* Rutas publicas*/ }
+                <ListingProvider>
                     <Route index element={<ListingsPage />} />
                     <Route path="listings/:id" element={<PropertyDetailsPage />} />
-                    {/* Rutas Privadas*/ }
-                    <Route element={<PrivateRoute/>}>
-                        <Route path="publish-listing" element={<PublishListing/>}/>
-                        {/* Creo que esta es global */}
-                        <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
-                    </Route>
+                </ListingProvider>
+                {/* Rutas Privadas*/ }
+                <Route element={<PrivateRoute/>}>
+                    <Route path="publish-listing" element={<PublishListing/>}/>
+                    {/* Creo que esta es global */}
+                    <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
                 </Route>
-            </Routes>
-        </ListingProvider>
+            </Route>
+        </Routes>
     );
 }
