@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getListings } from "../services/listingsService";
 import { useApiState } from "../../../services/api/useApiState";
 
-export function useListings() {
+export default function useListings() {
   const [listings, setListings] = useState([]);
   const [queryCached,setQueryCached] = useState(null)
   const {
@@ -37,7 +37,6 @@ export function useListings() {
   }
   return {
     listings,
-    fetchListings,
     loading,
     error
   };

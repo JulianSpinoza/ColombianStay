@@ -11,20 +11,22 @@ import ListingsLayout from "./layout/ListingsLayout";
 
 export default function ListingsRoutes () {
     return (
-        <Routes>
-            <Route element={<ListingsLayout />}>
-                {/* Rutas publicas*/ }
-                <ListingProvider>
+        <ListingProvider>
+            <Routes>
+                <Route element={<ListingsLayout />}>
+                    {/* Rutas publicas*/ }
                     <Route index element={<ListingsPage />} />
                     <Route path="listings/:id" element={<PropertyDetailsPage />} />
-                </ListingProvider>
-                {/* Rutas Privadas*/ }
-                <Route element={<PrivateRoute/>}>
-                    <Route path="publish-listing" element={<PublishListing/>}/>
-                    {/* Creo que esta es global */}
-                    <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
+                    {/* Rutas Privadas*/ }
+                    <Route element={<PrivateRoute/>}>
+                        <Route path="publish-listing" element={<PublishListing/>}/>
+                        {/* Creo que esta es global */}
+                        <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
+                    </Route>
                 </Route>
-            </Route>
-        </Routes>
+            </Routes>
+        </ListingProvider>
     );
 }
+
+// Cuestionar el scope del ListingProvider

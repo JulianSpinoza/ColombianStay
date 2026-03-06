@@ -23,4 +23,6 @@ urlpatterns = [
     # API services
     path('api/', include('users_service.urls')),
     path('api/', include('listings_service.urls')),
+    path('api/', include('booking_service.urls')),
+    path('api/', include('rating_service.urls')),
 ]

@@ -16,7 +16,7 @@ export const getListings = async (query = {}) => {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching listings:", error);
+    console.error("Error fetching listings: ", error);
     throw error;
   }
 };
@@ -25,7 +25,17 @@ export const publishProperty = async (property) => {
   try {
     const response = await httpClient.post(LISTINGS_ENDPOINTS.PUBLISH, property);
   } catch (error) {
-    console.error("Error publishing property:", error);
+    console.error("Error publishing property: ", error);
+    throw error;
+  }
+}
+
+export const getSpecificListing = async (id) => {
+  try {
+    const response = await httpClient.get(LISTINGS_ENDPOINTS.DETAIL(id));
+    return response.data;
+  } catch (error) {
+    console.error(`Error retrieving the listing with id ${id}: `, error);
     throw error;
   }
 }

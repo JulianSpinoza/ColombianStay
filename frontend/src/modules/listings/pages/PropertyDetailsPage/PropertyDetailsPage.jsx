@@ -1,70 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import BookingWidget from "../../../booking/components/BookingWidget/BookingWidget.jsx";
-import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
-import { LISTINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 import "./PropertyDetailsPage.css";
+import useSpecificListing from "../../hooks/useSpecificListing.js";
 
 /**
  * PropertyDetailsPage
- * Airbnb-style property details view with:
+ * Details view with:
  * - Hero image grid (1 large left + 4 small right)
  * - Property info and amenities
  * - Sticky booking widget placeholder
  */
 const PropertyDetailsPage = () => {
-  const { id } = useParams();
-  const [property, setProperty] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { axiosInstance } = useAuthContext();
 
-  // Fetch property from backend
-  useEffect(() => {
-    let mounted = true;
-    const fetchProperty = async () => {
-      setIsLoading(true);
-      try {
-        if (!axiosInstance) {
-          // fallback: mock for dev
-          setProperty({ id: parseInt(id) || 1, title: "Property not loaded", location: "", price: 0, rating: 0, reviews: 0, host: { name: "", avatar: "" }, description: "", images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop"], amenities: [], highlights: [] });
-          setIsLoading(false);
-          return;
-        }
-
-        const res = await axiosInstance.get(LISTINGS_ENDPOINTS.DETAIL(id));
-        if (!mounted) return;
-        // Map backend listing to frontend property shape
-        const listing = res.data;
-        const mapped = {
-          id: listing.accomodationid,
-          title: listing.title,
-          location: listing.locationdesc || listing.addresstext || "",
-          price: listing.pricepernight,
-          rating: listing.rating || 4.8,
-          reviews: listing.reviews || 0,
-          host: { name: listing.owner?.username || "Host", avatar: (listing.owner?.username || "H")[0] || "H", isSuperhost: false },
-          description: listing.description,
-          images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop"],
-          amenities: [],
-          highlights: [],
-        };
-        setProperty(mapped);
-      } catch (err) {
-        console.error("Error fetching property:", err);
-        setProperty(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProperty();
-
-    return () => {
-      mounted = false;
-    };
-  }, [id, axiosInstance]);
-
-  if (isLoading) {
+  const { listing, loading, error } = useSpecificListing()
+  
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-content">
@@ -75,7 +24,7 @@ const PropertyDetailsPage = () => {
     );
   }
 
-  if (!property) {
+  if (!listing) {
     return (
       <div className="loading-container">
         <div className="loading-content">
@@ -93,13 +42,13 @@ const PropertyDetailsPage = () => {
           <div className="image-grid">
             <div className="main-image">
               <img
-                src={property.images[0]}
-                alt={property.title}
+                src={listing.images[0]}
+                alt={listing.title}
                 className="property-image"
               />
             </div>
 
-            {property.images.slice(1, 5).map((image, idx) => (
+            {listing.images.slice(1, 5).map((image, idx) => (
               <div key={idx} className="secondary-image">
                 <img
                   src={image}
@@ -111,7 +60,7 @@ const PropertyDetailsPage = () => {
           </div>
 
           <div className="mobile-image-count">
-            📷 {property.images.length} photos
+            📷 {listing.images.length} photos
           </div>
         </div>
       </div>
@@ -121,23 +70,23 @@ const PropertyDetailsPage = () => {
         <div className="content-grid">
           <div className="left-column">
             <div className="section header-section">
-              <h1 className="property-title">{property.title}</h1>
+              <h1 className="property-title">{listing.title}</h1>
               <div className="property-meta">
-                <span>📍 {property.location}</span>
-                <span>⭐ {property.rating} · {property.reviews} reviews</span>
+                <span>📍 {listing.location}</span>
+                <span>⭐ {listing.rating} · {listing.reviews} reviews</span>
               </div>
             </div>
 
             <div className="section host-section">
               <div className="host-info">
                 <div className="host-avatar">
-                  {property.host.avatar}
+                  {listing.host.avatar}
                 </div>
                 <div>
                   <p className="host-name">
-                    Hosted by {property.host.name}
+                    Hosted by {listing.host.name}
                   </p>
-                  {property.host.isSuperhost && (
+                  {listing.host.isSuperhost && (
                     <p className="superhost">🏆 Superhost</p>
                   )}
                 </div>
@@ -150,7 +99,7 @@ const PropertyDetailsPage = () => {
             <div className="section">
               <h2>About this property</h2>
               <ul className="highlight-list">
-                {property.highlights.map((highlight, idx) => (
+                {listing.highlights.map((highlight, idx) => (
                   <li key={idx} className="highlight-item">
                     <span className="check">✓</span>
                     <span>{highlight}</span>
@@ -162,14 +111,14 @@ const PropertyDetailsPage = () => {
             <div className="section">
               <h2>Description</h2>
               <p className="description-text">
-                {property.description}
+                {listing.description}
               </p>
             </div>
 
             <div className="section">
               <h2>Amenities</h2>
               <div className="amenities-grid">
-                {property.amenities.map((amenity, idx) => (
+                {listing.amenities.map((amenity, idx) => (
                   <div key={idx} className="amenity-card">
                     <span className="amenity-icon">
                       {amenity.icon}
@@ -183,19 +132,19 @@ const PropertyDetailsPage = () => {
             </div>
 
             <div className="section">
-              <h2>Reviews ({property.reviews})</h2>
+              <h2>Reviews ({listing.reviews})</h2>
               <p className="reviews-placeholder">
-                Review section coming soon - {property.reviews} guests loved this property
+                Review section coming soon - {listing.reviews} guests loved this property
               </p>
             </div>
           </div>
 
           <div className="right-column">
             <BookingWidget
-              propertyId={property.id}
-              pricePerNight={property.price}
-              rating={property.rating}
-              reviews={property.reviews}
+              propertyId={listing.id}
+              pricePerNight={listing.price}
+              rating={listing.rating}
+              reviews={listing.reviews}
             />
           </div>
         </div>
