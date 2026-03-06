@@ -38,6 +38,7 @@ export default function useListings() {
   return {
     listings,
     loading,
-    error
+    error,
+    fetchListings
   };
 }
