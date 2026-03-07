@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import PersonalUsersLayout from "./layout/PersonalUsersLayout";
 import PrivateRoute from "../../global/routes/PrivateRoute";
-import UserReservationsDashboard from "./pages/UserReservationsDashboard/UserReservationsDashboard";
+import UserReservationsDashboard from "../booking/pages/UserReservationsDashboard/UserReservationsDashboard";
 
 // Rutas del servicio Users
 

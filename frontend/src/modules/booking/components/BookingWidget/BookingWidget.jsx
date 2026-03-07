@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
-import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 import "./BookingWidget.css"
+import { useApiState } from "../../../../services/api/useApiState.js";
+import { bookAProperty } from "../../services/bookingService.js";
 
 /**
  * BookingWidget
@@ -17,22 +17,23 @@ import "./BookingWidget.css"
 const BookingWidget = ({
   propertyId,
   pricePerNight,
+  // Really necesary?
   rating = 4.9,
   reviews = 128,
-  onReservationSuccess,
 }) => {
   const navigate = useNavigate();
-  const { axiosInstance } = useAuthContext();
 
   // Form state
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [guests, setGuests] = useState("1");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Constants
+  // Api state
+  const { loading, setLoading, error, setError, handleError } = useApiState();
+
+  // Constants to put on the backend
   const CLEANING_FEE = 50000; // COP
   const SERVICE_FEE_PERCENTAGE = 0.1; // 10%
 
@@ -77,22 +78,22 @@ const BookingWidget = ({
   // Validate form
   const validateForm = () => {
     if (!checkInDate) {
-      setError("Please select a check-in date");
+      setFormError("Please select a check-in date");
       return false;
     }
     if (!checkOutDate) {
-      setError("Please select a check-out date");
+      setFormError("Please select a check-out date");
       return false;
     }
     if (new Date(checkInDate) >= new Date(checkOutDate)) {
-      setError("Check-out date must be after check-in date");
+      setFormError("Check-out date must be after check-in date");
       return false;
     }
     if (pricing.nights < 1) {
-      setError("Minimum stay is 1 night");
+      setFormError("Minimum stay is 1 night");
       return false;
     }
-    setError("");
+    setFormError("");
     return true;
   };
 
@@ -100,8 +101,8 @@ const BookingWidget = ({
   const handleReservation = async () => {
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    setError("");
+    setError(null);
+    setLoading(true);
 
     try {
       // Prepare reservation data
@@ -117,26 +118,17 @@ const BookingWidget = ({
         nights: pricing.nights,
       };
 
-      console.log("📋 Reservation Data:", reservationData);
-
-      // Call real API
-      if (!axiosInstance) {
-        throw new Error("No axios instance available");
-      }
-
       const payload = {
         property_id: propertyId,
         start_date: checkInDate,
         end_date: checkOutDate,
-        guests: parseInt(guests),
         number_of_guests: parseInt(guests),
         total_price: pricing.total,
       };
 
-      const response = await axiosInstance.post(BOOKINGS_ENDPOINTS.CREATE, payload);
+      const serverBooking = await bookAProperty(payload);
 
       // Success - combine server response with client-side pricing details
-      const serverBooking = response.data;
       const combined = {
         ...serverBooking,
         // backend uses check_in_date/check_out_date, frontend components expect start_date/end_date
@@ -151,17 +143,13 @@ const BookingWidget = ({
       
       setSuccess(true);
 
-      if (onReservationSuccess) onReservationSuccess(combined);
-
       // Redirect immediately to confirmation page with combined data
       navigate("/reservation-confirmation", { state: { reservation: combined } });
     } catch (err) {
-      console.error("❌ Reservation Error:", err);
-      setError(
-        err.message || "Failed to complete reservation. Please try again."
-      );
+      handleError(err);
+      setFormError("Failed to complete reservation. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -184,9 +172,9 @@ const BookingWidget = ({
       )}
 
       {/* Error State */}
-      {error && (
+      {formError && (
         <div className="alert alert-error">
-          <p className="alert-error-text">{error}</p>
+          <p className="alert-error-text">{formError}</p>
         </div>
       )}
 
@@ -215,9 +203,9 @@ const BookingWidget = ({
           min={today}
           onChange={(e) => {
             setCheckInDate(e.target.value);
-            setError("");
+            setFormError("");
           }}
-          disabled={isLoading}
+          disabled={loading}
           className="form-input"
         />
       </div>
@@ -231,9 +219,9 @@ const BookingWidget = ({
           min={checkInDate || tomorrowStr}
           onChange={(e) => {
             setCheckOutDate(e.target.value);
-            setError("");
+            setFormError("");
           }}
-          disabled={isLoading}
+          disabled={loading}
           className="form-input"
         />
       </div>
@@ -244,7 +232,7 @@ const BookingWidget = ({
         <select
           value={guests}
           onChange={(e) => setGuests(e.target.value)}
-          disabled={isLoading}
+          disabled={loading}
           className="form-input"
         >
           <option value="1">1 Guest</option>
@@ -259,10 +247,10 @@ const BookingWidget = ({
       {/* Reserve Button */}
       <button
         onClick={handleReservation}
-        disabled={isLoading || !checkInDate || !checkOutDate || success}
+        disabled={loading || !checkInDate || !checkOutDate || success}
         className="reserve-button"
       >
-        {isLoading ? (
+        {loading ? (
           <span className="loading">
             <span className="spinner"></span>
             Processing...

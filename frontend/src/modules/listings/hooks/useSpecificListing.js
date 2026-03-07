@@ -17,7 +17,7 @@ export default function useSpecificListing() {
 
     useEffect(() => {
         fetchSpecificListing(id)
-    }, [id])
+    }, [id]);
 
     async function fetchSpecificListing(id) {
         setError(null);
@@ -52,6 +52,6 @@ export default function useSpecificListing() {
         listing,
         loading,
         error
-    }
+    };
 
 }

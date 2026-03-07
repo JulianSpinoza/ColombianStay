@@ -14,7 +14,7 @@ export const RATINGS_ENDPOINTS = {
 
 export const BOOKINGS_ENDPOINTS = {
   HOST_RESERVATIONS: "host-reservations/",
-  USER_RESERVATIONS: "user-reservations/",
+  GUEST_RESERVATIONS: "user-reservations/",
   CREATE: "bookings/",
   CANCEL: (id) => `reservations/${id}/cancel/`,
 };

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import ReservationCard from "../../../listings/components/ReservationCard/ReservationCard.jsx";
-import CancelReservationModal from "../../../listings/components/CancelReservationModal/CancelReservationModal.jsx";
+import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
+import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 
 import "./UserReservationsDashboard.css";
 import httpClient from "../../../../services/api/httpClient.js";
+import useReservations from "../../hooks/useReservations.js";
 
 /**
  * UserReservationsDashboard
@@ -20,10 +21,9 @@ import httpClient from "../../../../services/api/httpClient.js";
  * - Acceso a detalles de la propiedad
  */
 const UserReservationsDashboard = () => {
-  const [reservations, setReservations] = useState([]);
-  const [filteredReservations, setFilteredReservations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const { reservations, loading, error, fetchReservations } = useReservations("guest");
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all"); // all, upcoming, past, cancelled
   const [selectedReservationId, setSelectedReservationId] = useState(null);
@@ -105,71 +105,23 @@ const UserReservationsDashboard = () => {
     },
   ];
 
-  // Cargar reservas desde el API
-  useEffect(() => {
-    const fetchReservations = async () => {
-      setIsLoading(true);
-      setError("");
-      try {
-
-        const res = await httpClient.get(BOOKINGS_ENDPOINTS.USER_RESERVATIONS);
-        const formatted = res.data.map((booking) => ({
-          id: booking.bookingid,
-          property: {
-            id: booking.listing_id,
-            title: booking.listing_title,
-            location: booking.listing_location,
-            image: booking.listing_image,
-          },
-          start_date: booking.check_in_date,
-          end_date: booking.check_out_date,
-          status: booking.status,
-          total_price: booking.total_price,
-          created_at: booking.created_at,
-        }));
-
-        setReservations(formatted);
-      } catch (err) {
-        console.error(err);
-        setError("Error al cargar tus reservas");
-        setReservations([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchReservations();
-  }, []);
 
   // Aplicar filtros y búsqueda
-  useEffect(() => {
-    let filtered = reservations;
+  const handleSearch = () => {
+    const query = {};
 
     // Filtro por búsqueda
     if (searchTerm) {
-      filtered = filtered.filter((res) =>
-        res.property.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      query.nameOfProperty = searchTerm;
     }
 
     // Filtro por estado
-    const today = new Date();
-    if (activeFilter === "upcoming") {
-      filtered = filtered.filter(
-        (res) =>
-          new Date(res.start_date) > today && res.status === "confirmed"
-      );
-    } else if (activeFilter === "past") {
-      filtered = filtered.filter(
-        (res) =>
-          new Date(res.end_date) < today && res.status !== "cancelled"
-      );
-    } else if (activeFilter === "cancelled") {
-      filtered = filtered.filter((res) => res.status === "cancelled");
+    if (activeFilter) {
+      query.perspectiveStatus = activeFilter;
     }
 
-    setFilteredReservations(filtered);
-  }, [searchTerm, activeFilter, reservations]);
+    fetchReservations(query);
+  };
 
   // Manejar cancelación
   const handleCancelReservation = async (reservationId) => {
@@ -303,18 +255,18 @@ const UserReservationsDashboard = () => {
         </div>
 
         {/* Lista de reservas */}
-        {isLoading ? (
+        {loading ? (
           <div className="loader-container">
             <div className="loader" />
           </div>
-        ) : filteredReservations.length > 0 ? (
+        ) : reservations.length > 0 ? (
           <div className="reservations">
             <p className="counter">
-              {filteredReservations.length}{" "}
-              {filteredReservations.length === 1 ? "reserva" : "reservas"}
+              {reservations.length}{" "}
+              {reservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
-            {filteredReservations.map((reservation) => (
+            {reservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}

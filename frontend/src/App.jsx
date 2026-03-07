@@ -1,10 +1,9 @@
 import HostRatingsPage from "./modules/listings/pages/HostRatingsPage/HostRatingsPage.jsx";
 import PropertyManager from "./modules/listings/components/PropertyManager/PropertyManager.jsx";
-import HostReservationsDashboard from "./modules/listings/pages/HostReservationsDashboard/HostReservationsDashboard.jsx";
 import "./App.css"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PrivateRoute from "./global/routes/PrivateRoute.jsx";
 import AppRouter from "./global/routes/AppRouter.jsx";
+import HostReservationsDashboard from "./modules/booking/pages/HostReservationsDashboard/HostReservationsDashboard.jsx";
 
 function App() {
 

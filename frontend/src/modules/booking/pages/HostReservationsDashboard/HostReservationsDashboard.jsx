@@ -3,13 +3,13 @@ import ReservationCard from "../../components/ReservationCard/ReservationCard.js
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
 import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
+import httpClient from "../../../../services/api/httpClient.js";
+import useReservations from "../../hooks/useReservations.js";
 
 const HostReservationsDashboard = () => {
-  const { axiosInstance } = useAuthContext();
-  const [reservations, setReservations] = useState([]);
-  const [filteredReservations, setFilteredReservations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  
+  const { reservations, loading, error, fetchReservations } = useReservations("host");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all"); // all, upcoming, past, cancelled
   const [selectedReservationId, setSelectedReservationId] = useState(null);
@@ -17,62 +17,8 @@ const HostReservationsDashboard = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Cargar reservas desde el API
-  useEffect(() => {
-    const fetchReservations = async () => {
-      setIsLoading(true);
-      setError("");
-      try {
-        if (!axiosInstance) {
-          setError("No hay instancia de axios configurada");
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await axiosInstance.get(BOOKINGS_ENDPOINTS.HOST_RESERVATIONS);
-        console.log("Reservas obtenidas:", response.data);
-        
-        // Mapear respuesta del backend al formato esperado por el componente
-        const formattedReservations = response.data.map((booking) => ({
-          id: booking.bookingid,
-          property: {
-            id: booking.listing_id,
-            title: booking.listing_title,
-            location: booking.listing_location,
-            image: booking.listing_image,
-          },
-          guest: {
-            id: booking.guest,
-            name: booking.guest_name,
-            email: booking.guest_email,
-            avatar: booking.guest_avatar,
-          },
-          start_date: booking.check_in_date,
-          end_date: booking.check_out_date,
-          status: booking.status,
-          total_price: booking.total_price,
-          created_at: booking.created_at,
-        }));
-
-        setReservations(formattedReservations);
-      } catch (err) {
-        console.error("Error al cargar reservas:", err);
-        if (err.response?.status === 401) {
-          setError("Debes estar autenticado para ver tus reservas");
-        } else {
-          setError("Error al cargar las reservas");
-        }
-        setReservations([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchReservations();
-  }, [axiosInstance]);
-
   // Aplicar filtros y búsqueda
-  useEffect(() => {
+  const handleSearch = () => {
     let filtered = reservations;
 
     // Filtro por búsqueda
@@ -101,7 +47,7 @@ const HostReservationsDashboard = () => {
     }
 
     setFilteredReservations(filtered);
-  }, [searchTerm, activeFilter, reservations]);
+  };
 
   // Manejar cancelación
   const handleCancelReservation = async (reservationId) => {
@@ -119,7 +65,7 @@ const HostReservationsDashboard = () => {
 
       // Llamar al API para cancelar la reserva
       try {
-        await axiosInstance.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), {
+        await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), {
           status: "cancelled"
         });
       } catch (apiError) {
@@ -250,20 +196,20 @@ const HostReservationsDashboard = () => {
         </div>
 
         {/* Lista de reservas */}
-        {isLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
           </div>
-        ) : filteredReservations.length > 0 ? (
+        ) : reservations.length > 0 ? (
           <div className="space-y-4">
             {/* Contador */}
             <p className="text-sm text-gray-600 mb-4">
-              {filteredReservations.length}{" "}
-              {filteredReservations.length === 1 ? "reserva" : "reservas"}
+              {reservations.length}{" "}
+              {reservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
             {/* Tarjetas de reserva */}
-            {filteredReservations.map((reservation) => (
+            {reservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
