@@ -1,4 +1,4 @@
-import HostRatingsPage from "./modules/listings/pages/HostRatingsPage/HostRatingsPage.jsx";
+import HostRatingsPage from "./modules/ratings/pages/HostRatingsPage/HostRatingsPage.jsx";
 import PropertyManager from "./modules/listings/components/PropertyManager/PropertyManager.jsx";
 import "./App.css"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
