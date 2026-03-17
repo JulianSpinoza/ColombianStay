@@ -56,15 +56,48 @@ export function useAxiosAuth () {
 
   const [state, dispatch] = useReducer(authReducer, null, getLocalSession);
 
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const now = Date.now() / 1000;
+
+    return payload.exp < now + 30;
+  };
+
   useEffect(() => {
     const requestId = httpClient.interceptors.request.use(
-      (config) => {
-        if (state.access) {
+      async (config) => {
+        // Access token expired
+        if (state.access && isTokenExpired(state.access)) {
+          
+          // This refresh should be secured by an security cookie
+          refreshPromise = httpClient
+            .post(USERS_ENDPOINTS.REFRESH,
+              {
+                refresh: state?.refresh,
+              })
+            .then((res) => {
+              const newAccess = res.data.access;
+
+              dispatch({
+                type: "REFRESH",
+                payload: { access: newAccess },
+              });
+
+              localStorage.setItem("access", newAccess);
+              return newAccess;
+            })
+            .catch((e) => {
+              dispatch({ type: "LOGOUT" });
+              throw e;
+            });
+          
+            const newAccess = await refreshPromise;
+            config.headers.Authorization = `Bearer ${newAccess}`;
+        } else if (state.access) {
           config.headers.Authorization = `Bearer ${state.access}`;
-        }
-        // Refresh reactive
-        //console.log(JSON.parse(atob(state.access.split(".")[1])).exp);
-        //console.log(Date.now() / 1000);
+        } 
         return config;
       },
       (err) => Promise.reject(err),
@@ -72,40 +105,12 @@ export function useAxiosAuth () {
 
     const responseId = httpClient.interceptors.response.use(
       (res) => res,
-      async (error) => {
-        const original = error.config;
+      (error) => {
+        const status = error.response?.status;
 
-        // Access token expired
-        if (error.response?.status === 401 && !original._retry) {
-          original._retry = true;
-
-          try {
-            const refreshRes = await httpClient.post(USERS_ENDPOINTS.REFRESH,
-              {
-                refresh: state?.refresh,
-              },
-            );
-
-            const newAccess = refreshRes.data.access;
-
-            // Update Access token
-            dispatch({
-              type: "REFRESH",
-              payload: { access: newAccess },
-            });
-
-            localStorage.setItem("access", newAccess);
-
-            // Retry petition with the new Access token
-            original.headers.Authorization = `Bearer ${newAccess}`;
-            return httpClient(original);
-          } catch (e) {
-            dispatch({ type: "LOGOUT" });
-            return Promise.reject(e);
-          }
+        if (status === 401 || status === 403) {
+          dispatch({ type: "LOGOUT" });
         }
-
-        return Promise.reject(error);
       },
     );
 
