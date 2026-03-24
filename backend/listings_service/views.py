@@ -1,7 +1,9 @@
+from django.db import transaction, IntegrityError
 from users_service.serializers import UserRegisterSerializer
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Municipality, Listing
 from .serializers import ListingSerializer, PublishListingSerializer
@@ -39,26 +41,34 @@ class ListingDetailView(generics.RetrieveAPIView):
     queryset = Listing.objects.all()
     
 class PublishProperty(APIView):
-    def post(self, request):
-        property = request.data
-        try:
-            city = Municipality.objects.get(name=property.pop('city'))
-        except Municipality.DoesNotExist:
-            print("Error: Municipality could not be found")
-        except Municipality.MultipleObjectsReturned:
-            print("Error: Multiple municipalities found")
-        else:
-            print(f"Id ciudad:{city}")
-            serializer = PublishListingSerializer(data=property)
-            serializeruser = UserRegisterSerializer(data=request.user)
-            if serializer.is_valid():
+    permission_classes = [IsAuthenticated]
 
-                serializer.save(owner=request.user,municipality=city)
-                serializeruser.update_host_status(is_host=True, user=request.user)
-                return Response(
-                    {
-                        "message": "Property created successfully.",
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        serializer = PublishListingSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            with transaction.atomic():
+                serializer.save(owner=request.user)
+
+                if not request.user.is_host:
+                    request.user.is_host = True
+                    request.user.save(update_fields=['is_host'])
+
+        except IntegrityError:
+            return Response(
+                {
+                    'message': 'Ya existe una esta publicación para este usuario.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                "message": "Property created successfully.",
+            },
+            status=status.HTTP_201_CREATED
+        )
