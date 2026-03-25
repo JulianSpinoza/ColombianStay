@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Municipality, Listing
-from .serializers import ListingSerializer, PublishListingSerializer
+from .models import Region, Department, Municipality, Listing
+from .serializers import ListingSerializer, PublishListingSerializer, RegionSerializer, DepartmentSerializer, MunicipalitySerializer
     
 class ListingListView(generics.ListAPIView):
     
@@ -33,7 +33,36 @@ class ListingListView(generics.ListAPIView):
                 return qs.none()
 
         return qs
+    
+class RegionListView(generics.ListAPIView):
+    
+    serializer_class = RegionSerializer
 
+    def get_queryset(self):
+        qs = Region.objects.all()
+
+        return qs
+    
+class DepartmentListView(generics.ListAPIView):
+    
+    serializer_class = DepartmentSerializer
+
+    def get_queryset(self):
+        region_id = self.kwargs['region_id']
+        qs = Department.objects.filter(region_id=region_id)
+
+        return qs
+    
+class MunicipalityListView(generics.ListAPIView):
+    
+    serializer_class = MunicipalitySerializer
+
+    def get_queryset(self):
+        department_id = self.kwargs['department_id']
+        qs = Municipality.objects.filter(department_id=department_id)
+
+        return qs
+    
 class ListingDetailView(generics.RetrieveAPIView):
     """Detalle de un listing por pk (accomodationid)."""
     serializer_class = ListingSerializer

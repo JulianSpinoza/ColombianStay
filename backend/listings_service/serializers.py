@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Listing
+from .models import Listing, Region, Department, Municipality
 
 class ListingSerializer(serializers.ModelSerializer):
 
@@ -74,3 +74,23 @@ class PublishListingSerializer(serializers.ModelSerializer):
                 })
 
         return attrs
+    
+
+class RegionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Region
+        fields = '__all__'
+        
+class DepartmentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Department
+        fields = '__all__'
+        
+class MunicipalitySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Municipality
+        fields = '__all__'
+
