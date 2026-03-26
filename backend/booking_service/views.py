@@ -3,13 +3,16 @@ from rest_framework.decorators import action
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
 
-from .models import Booking
-from .serializers import BookingSerializer
 
-from django.shortcuts import get_object_or_404
 
 from listings_service.models import Listing
+from .models import Booking
+from .serializers import CreateBookingSerializer, BookingSerializer
+
+from django.shortcuts import get_object_or_404
 
 class HostReservationsView(generics.ListAPIView):
     """
@@ -39,46 +42,52 @@ class HostReservationsView(generics.ListAPIView):
         
         return super().list(request, *args, **kwargs)
 
-
 class CreateBookingView(APIView):
-    """Crear una nueva reserva (booking) por el usuario autenticado.
-    Validación manual de autenticación sin usar rest_framework.permissions.
-    """
-    def post(self, request):
-        if not request.user or not request.user.is_authenticated:
-            return Response({'error': 'Autenticación requerida.'}, status=status.HTTP_401_UNAUTHORIZED)
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
         data = request.data
 
-        # Aceptar 'property_id' o 'listing' en el payload
         listing_id = data.get('property_id') or data.get('listing')
         if not listing_id:
-            return Response({'error': 'Missing property_id/listing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'property_id': ['Este campo es obligatorio.']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Obtener el listing
         listing = get_object_or_404(Listing, pk=listing_id)
 
-        # Extraer campos mínimos
-        try:
-            check_in = data.get('start_date') or data.get('check_in_date')
-            check_out = data.get('end_date') or data.get('check_out_date')
-            guests = int(data.get('guests') or data.get('number_of_guests') or 1)
-            total_price = data.get('total_price')
-        except (ValueError, TypeError):
-            return Response({'error': 'Invalid payload'}, status=status.HTTP_400_BAD_REQUEST)
+        normalized_data = {
+            'check_in_date': data.get('check_in_date'),
+            'check_out_date': data.get('check_out_date'),
+            'number_of_guests': data.get('number_of_guests'),
+            'total_price': data.get('total_price'),
+        }
 
-        booking = Booking.objects.create(
-            listing=listing,
-            guest=request.user,
-            check_in_date=check_in,
-            check_out_date=check_out,
-            number_of_guests=guests,
-            total_price=total_price,
-            status=data.get('status', 'confirmed')
+        with transaction.atomic():
+            # Bloquea la fila del listing mientras se crea la reserva
+            listing = Listing.objects.select_for_update().filter(pk=listing_id).first()
+            if not listing:
+                return Response(
+                    {'detail': 'Propiedad no encontrada.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            serializer = CreateBookingSerializer(
+                data=normalized_data,
+                context={
+                    'request': request,
+                    'listing': listing,
+                }
+            )
+            serializer.is_valid(raise_exception=True)
+
+            booking = serializer.save()
+
+        return Response(
+            BookingSerializer(booking).data,
+            status=status.HTTP_201_CREATED
         )
-
-        serializer = BookingSerializer(booking)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class UserReservationsView(generics.ListAPIView):
