@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.db.models import Q
-from .models import Listing, Region, Department, Municipality
+from .models import Listing, ListingImage, Region, Department, Municipality
 
 class PublishListingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,12 +88,45 @@ class MunicipalitySerializer(serializers.ModelSerializer):
         model = Municipality
         fields = ['municipalityid', 'name', 'department']
 
+class ListingImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ListingImage
+        fields = ['id', 'image_url', 'thumbnail_url', 'is_main']
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.image.url)
+
+    def get_thumbnail_url(self, obj):
+        request = self.context.get('request')
+        if obj.thumbnail:
+            return request.build_absolute_uri(obj.thumbnail.url)
+        return None
+
 class ListingSerializer(serializers.ModelSerializer):
     municipality = MunicipalitySerializer(read_only=True)
 
+    images = ListingImageSerializer(many=True, read_only=True)
     class Meta:
         model = Listing
-        fields = '__all__'
+        fields = [
+            'accomodationid',
+            'owner', # Maybe add an UserSerializer type in this matter
+            'municipality',
+            'title',
+            'description',
+            'bedrooms',
+            'bathrooms',
+            'locationdesc',
+            'addresstext',
+            'propertytype',
+            'pricepernight',
+            'maxguests',
+            'images'
+        ]
         read_only_fields = ['accomodationid']
 
 

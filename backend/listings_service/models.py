@@ -1,7 +1,9 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MinLengthValidator
+from django.core.validators import MinValueValidator, MinLengthValidator, FileExtensionValidator
+
 from django.db.models import Q
 
+from .utils import create_thumbnail
 class Region(models.Model):
   
     regionid = models.AutoField(primary_key=True)
@@ -95,4 +97,40 @@ class Listing(models.Model):
                 fields=['owner', 'municipality', 'title', 'addresstext'],
                 name='listing_unique_owner_municipality_title_address'
             ),
+        ]
+
+class ListingImage(models.Model):
+
+    def upload_path(instance, filename):
+        return f'listings/accomodation_{instance.listing.accomodationid}/{filename}'
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super().save(*args, **kwargs)
+
+        if self.image and not self.thumbnail:
+            self.thumbnail = create_thumbnail(self.image)
+            super().save(update_fields=['thumbnail'])
+
+    id = models.AutoField(primary_key=True)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(
+        upload_to=upload_path,
+        validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
+    )
+    thumbnail = models.ImageField(
+        upload_to=upload_path,
+        validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])],
+        null=True, 
+        blank=True)
+    is_main = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'image_accomodation'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['listing'],
+                condition=Q(is_main=True),
+                name='unique_main_image_per_listing'
+            )
         ]
