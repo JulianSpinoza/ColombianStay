@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
@@ -25,4 +28,5 @@ urlpatterns = [
     path('api/', include('listings_service.urls')),
     path('api/', include('booking_service.urls')),
     path('api/', include('rating_service.urls')),
-]
+    
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
