@@ -1,13 +1,6 @@
 from rest_framework import serializers
 from .models import Listing, Region, Department, Municipality
 
-class ListingSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Listing
-        fields = '__all__'
-        read_only_fields = ['accomodationid']
-
 class PublishListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
@@ -75,22 +68,30 @@ class PublishListingSerializer(serializers.ModelSerializer):
 
         return attrs
     
-
 class RegionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Region
-        fields = '__all__'
-        
+        fields = ['regionid', 'name']
+
 class DepartmentSerializer(serializers.ModelSerializer):
+    region = RegionSerializer(read_only=True)
 
     class Meta:
         model = Department
-        fields = '__all__'
-        
+        fields = ['departmentid', 'name', 'region']
+
 class MunicipalitySerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
 
     class Meta:
         model = Municipality
+        fields = ['municipalityid', 'name', 'department']
+
+class ListingSerializer(serializers.ModelSerializer):
+    municipality = MunicipalitySerializer(read_only=True)
+
+    class Meta:
+        model = Listing
         fields = '__all__'
+        read_only_fields = ['accomodationid']
 
