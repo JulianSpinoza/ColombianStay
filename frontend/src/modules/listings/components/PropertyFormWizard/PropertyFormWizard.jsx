@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import ProgressBar from "./ProgressBar.jsx";
 import PropertyDetails from "./steps/PropertyDetails.jsx";
 import PricingLocation from "./steps/PricingLocation.jsx";
@@ -7,20 +7,19 @@ import "./PropertyFormWizard.css";
 
 const PropertyFormWizard = ({ onPublish }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const formRef = useRef(null);
+
   const [formData, setFormData] = useState({
-    // Step 1
     title: "",
     description: "",
     propertytype: "apartment",
     bedrooms: 1,
     bathrooms: 1,
     maxguests: 2,
-    // Step 2
     pricepernight: 0,
     locationdesc: "",
     addresstext: "",
     city: "",
-    // Step 3
     photos: [],
   });
 
@@ -41,24 +40,44 @@ const PropertyFormWizard = ({ onPublish }) => {
   };
 
   const handleNext = () => {
+    // valida solo los inputs visibles del paso actual
+    if (formRef.current && !formRef.current.reportValidity()) {
+      return;
+    }
+
+    // validación extra para fotos si tu uploader no usa input file nativo
+    if (currentStep === 3 && formData.photos.length === 0) {
+      alert("Debes subir al menos una foto.");
+      return;
+    }
+
     if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep((prev) => prev - 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Para probar sin fotos
-    delete formData.photos;
-    onPublish(formData);
+
+    if (formRef.current && !formRef.current.reportValidity()) {
+      return;
+    }
+
+    if (formData.photos.length === 0) {
+      alert("Debes subir al menos una foto.");
+      return;
+    }
+
+    const { photos, ...payload } = formData;
+    onPublish(payload);
   };
 
   return (
@@ -72,23 +91,28 @@ const PropertyFormWizard = ({ onPublish }) => {
 
       <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
 
-      <form onSubmit={handleSubmit} className="wizard-form">
-        {/* Step 1: Property Details */}
+      <form ref={formRef} onSubmit={handleSubmit} className="wizard-form">
         {currentStep === 1 && (
-          <PropertyDetails formData={formData} onInputChange={handleInputChange} />
+          <PropertyDetails
+            formData={formData}
+            onInputChange={handleInputChange}
+          />
         )}
 
-        {/* Step 2: Pricing and Location */}
         {currentStep === 2 && (
-          <PricingLocation formData={formData} onInputChange={handleInputChange} />
+          <PricingLocation
+            formData={formData}
+            onInputChange={handleInputChange}
+          />
         )}
 
-        {/* Step 3: Photo Upload */}
         {currentStep === 3 && (
-          <PhotoUpload formData={formData} onPhotosChange={handlePhotosChange} />
+          <PhotoUpload
+            formData={formData}
+            onPhotosChange={handlePhotosChange}
+          />
         )}
 
-        {/* Navigation Buttons */}
         <div className="wizard-navigation">
           <button
             type="button"
@@ -100,18 +124,21 @@ const PropertyFormWizard = ({ onPublish }) => {
           </button>
 
           {currentStep === totalSteps ? (
-            <button key="btn-submit" type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary">
               Publish Property ✓
             </button>
           ) : (
-            <button key="btn-next" type="button" onClick={handleNext} className="btn-primary">
+            <button
+              type="button"
+              onClick={handleNext}
+              className="btn-primary"
+            >
               Next →
             </button>
           )}
         </div>
       </form>
 
-      {/* Step Indicator Text */}
       <div className="wizard-step-info">
         <p>
           Step {currentStep} of {totalSteps}
