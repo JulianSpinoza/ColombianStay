@@ -89,6 +89,7 @@ const PricingLocation = ({ formData, onInputChange }) => {
           value={formData.locationdesc}
           onChange={(e) => onInputChange("locationdesc", e.target.value)}
           className="form-input"
+          required
         />
       </div>
 
