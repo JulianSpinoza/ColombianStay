@@ -60,8 +60,11 @@ const PropertyDetails = ({ formData, onInputChange }) => {
             min={1}
             max={10}
             value={formData.bedrooms}
-            onChange={(e) => onInputChange("bedrooms", parseInt(e.target.value))}
+            onChange={(e) =>
+              onInputChange("bedrooms", e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
             className="form-input"
+            required
           />
         </div>
 
@@ -72,8 +75,11 @@ const PropertyDetails = ({ formData, onInputChange }) => {
             min={1}
             max={10}
             value={formData.bathrooms}
-            onChange={(e) => onInputChange("bathrooms", parseInt(e.target.value))}
+            onChange={(e) =>
+              onInputChange("bathrooms", e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
             className="form-input"
+            required
           />
         </div>
 
@@ -84,8 +90,11 @@ const PropertyDetails = ({ formData, onInputChange }) => {
             min={1}
             max={20}
             value={formData.maxguests}
-            onChange={(e) => onInputChange("maxguests", parseInt(e.target.value))}
+            onChange={(e) =>
+              onInputChange("maxguests", e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
             className="form-input"
+            required
           />
         </div>
       </div>
