@@ -5,15 +5,16 @@ const ImageLoader = ({
   onChange,
   minImages = 3,
   maxImages = 10,
-  maxSizeMB = 5,
+  maxSizeMB = 10,
   acceptedTypes = ["image/jpeg", "image/png", "image/webp"],
   error = "",
 }) => {
   const [localErrors, setLocalErrors] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const previews = useMemo(() => {
     return images.map((file, index) => ({
-      id: `${file.name}-${index}`,
+      id: `${file.name}-${file.lastModified}-${index}`,
       name: file.name,
       url: URL.createObjectURL(file),
     }));
@@ -25,8 +26,8 @@ const ImageLoader = ({
     };
   }, [previews]);
 
-  const handleFilesChange = (event) => {
-    const selectedFiles = Array.from(event.target.files || []);
+  const processFiles = (incomingFiles) => {
+    const selectedFiles = Array.from(incomingFiles || []);
     const nextErrors = [];
     const validFiles = [];
 
@@ -34,7 +35,6 @@ const ImageLoader = ({
 
     if (availableSlots <= 0) {
       setLocalErrors([`You can only upload up to ${maxImages} images.`]);
-      event.target.value = "";
       return;
     }
 
@@ -55,6 +55,18 @@ const ImageLoader = ({
         return;
       }
 
+      const isDuplicate = images.some(
+        (existingFile) =>
+          existingFile.name === file.name &&
+          existingFile.size === file.size &&
+          existingFile.lastModified === file.lastModified
+      );
+
+      if (isDuplicate) {
+        nextErrors.push(`${file.name}: this image was already added.`);
+        return;
+      }
+
       validFiles.push(file);
     });
 
@@ -63,19 +75,55 @@ const ImageLoader = ({
     if (validFiles.length > 0) {
       onChange([...images, ...validFiles]);
     }
+  };
 
+  const handleFilesChange = (event) => {
+    processFiles(event.target.files);
     event.target.value = "";
   };
 
+  const handleDragEnter = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = event.dataTransfer.files;
+    processFiles(droppedFiles);
+  };
+
   const handleRemoveImage = (indexToRemove) => {
-     const updatedImages = images.filter((_, index) => index !== indexToRemove);
-     setLocalErrors([]);
-     onChange(updatedImages);
-     };
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+    setLocalErrors([]);
+    onChange(updatedImages);
+  };
 
   return (
     <div className="image-loader">
-      <label className="upload-box">
+      <label
+        className={`upload-box ${isDragging ? "drag-active" : ""}`}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <input
           type="file"
           accept={acceptedTypes.join(",")}
@@ -83,12 +131,17 @@ const ImageLoader = ({
           onChange={handleFilesChange}
           className="hidden-file-input"
         />
-        <span className="upload-box-title">Upload photos</span>
+
+        <span className="upload-box-title">＋</span>
+        <strong>Drag photos here</strong>
         <span className="upload-box-text">
-          PNG, JPG o WEBP · máximo {maxSizeMB} MB por imagen
+          or click to select from your computer
         </span>
         <span className="upload-box-text">
-          Debes subir al menos {minImages} fotos
+          PNG, JPG or WEBP · maximum {maxSizeMB} MB per image
+        </span>
+        <span className="upload-box-text">
+          Upload at least {minImages} photos
         </span>
       </label>
 
