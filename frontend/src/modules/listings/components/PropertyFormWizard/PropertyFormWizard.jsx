@@ -3,6 +3,7 @@ import ProgressBar from "./ProgressBar.jsx";
 import PropertyDetails from "./steps/PropertyDetails.jsx";
 import PricingLocation from "./steps/PricingLocation.jsx";
 import PhotoUpload from "./steps/PhotoUpload.jsx";
+import Availability from "./steps/Availability.jsx";
 import "./PropertyFormWizard.css";
 
 const PropertyFormWizard = ({ onPublish }) => {
@@ -26,9 +27,10 @@ const PropertyFormWizard = ({ onPublish }) => {
     addresstext: "",
     city: "",
     photos: [],
+    availability: [],
   });
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -107,8 +109,23 @@ const PropertyFormWizard = ({ onPublish }) => {
       return Object.keys(newErrors).length === 0;
     }
 
-        return true;
-      };
+    if (currentStep === 4) {
+      const newErrors = {};
+
+      if (!formData.availability || formData.availability.length === 0) {
+        newErrors.availability = "You must add at least one availability interval.";
+      }
+
+      setErrors((prev) => ({
+        ...prev,
+        ...newErrors,
+      }));
+
+      return Object.keys(newErrors).length === 0;
+    }
+
+    return true;
+};
   
   const handleNext = () => {
     if (formRef.current && !formRef.current.reportValidity()) {
@@ -206,6 +223,14 @@ return (
             onInputChange={handleInputChange}
             error={errors.photos}
           />
+        )}
+
+        {currentStep === 4 && (
+          <Availability
+            formData={formData}
+            onInputChange={handleInputChange}
+            error={errors.availability}
+         />
         )}
 
         <div className="wizard-navigation">

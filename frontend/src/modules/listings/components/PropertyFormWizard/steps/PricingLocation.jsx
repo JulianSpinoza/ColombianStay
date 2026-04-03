@@ -16,7 +16,7 @@ const PricingLocation = ({ formData, onInputChange }) => {
             <input
               type="number"
               placeholder={0}
-              min={0}
+              min={1}
               value={formData.pricepernight}
               onChange={(e) =>
                 onInputChange(
