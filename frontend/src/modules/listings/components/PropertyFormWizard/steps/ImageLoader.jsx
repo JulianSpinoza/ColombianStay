@@ -33,7 +33,7 @@ const ImageLoader = ({
     const availableSlots = maxImages - images.length;
 
     if (availableSlots <= 0) {
-      setLocalErrors([`Solo puedes subir hasta ${maxImages} imágenes.`]);
+      setLocalErrors([`You can only upload up to ${maxImages} images.`]);
       event.target.value = "";
       return;
     }
@@ -41,17 +41,17 @@ const ImageLoader = ({
     const filesToProcess = selectedFiles.slice(0, availableSlots);
 
     if (selectedFiles.length > availableSlots) {
-      nextErrors.push(`Solo puedes subir hasta ${maxImages} imágenes.`);
+      nextErrors.push(`You can only upload up to ${maxImages} images.`);
     }
 
     filesToProcess.forEach((file) => {
       if (!acceptedTypes.includes(file.type)) {
-        nextErrors.push(`${file.name}: formato no permitido.`);
+        nextErrors.push(`${file.name}: unsupported format.`);
         return;
       }
 
       if (file.size > maxSizeMB * 1024 * 1024) {
-        nextErrors.push(`${file.name}: supera el tamaño máximo de ${maxSizeMB} MB.`);
+        nextErrors.push(`${file.name}: exceeds the maximum size of ${maxSizeMB} MB.`);
         return;
       }
 
@@ -68,16 +68,17 @@ const ImageLoader = ({
   };
 
   const handleRemoveImage = (indexToRemove) => {
-    const updatedImages = images.filter((_, index) => index !== indexToRemove);
-    onChange(updatedImages);
-  };
+     const updatedImages = images.filter((_, index) => index !== indexToRemove);
+     setLocalErrors([]);
+     onChange(updatedImages);
+     };
 
   return (
     <div className="image-loader">
       <label className="upload-box">
         <input
           type="file"
-          accept="image/png,image/jpeg,image/webp"
+          accept={acceptedTypes.join(",")}
           multiple
           onChange={handleFilesChange}
           className="hidden-file-input"
@@ -128,7 +129,7 @@ const ImageLoader = ({
       )}
 
       <p className="helper-text">
-        {images.length} / {maxImages} imágenes cargadas
+        {images.length} / {maxImages} images uploaded
       </p>
     </div>
   );

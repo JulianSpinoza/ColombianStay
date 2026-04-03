@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+/*import React, { useState } from "react";
 
 const PhotoUpload = ({ formData, onPhotosChange }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -72,9 +72,10 @@ const PhotoUpload = ({ formData, onPhotosChange }) => {
         <h2>Add photos of your property</h2>
         <p>High-quality photos help guests imagine their stay. Upload at least 3 photos.</p>
       </div>
+      */
 
-      {/* Drag & Drop Zone */}
-      <div
+     /* {/* Drag & Drop Zone */
+      /*<div
         className={`drag-drop-zone ${dragActive ? "active" : ""}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -111,8 +112,8 @@ const PhotoUpload = ({ formData, onPhotosChange }) => {
         />
       </div>
 
-      {/* Photos Count */}
-      <div className="photos-count">
+      {/* Photos Count */
+     /* <div className="photos-count">
         <p>
           {formData.photos.length} / 10 photos uploaded
           {formData.photos.length < 3 && (
@@ -121,8 +122,8 @@ const PhotoUpload = ({ formData, onPhotosChange }) => {
         </p>
       </div>
 
-      {/* Photos Grid */}
-      {formData.photos.length > 0 && (
+      {/* Photos Grid */
+      /*{formData.photos.length > 0 && (
         <div className="photos-grid">
           {formData.photos.map((photo, index) => (
             <div key={photo.id} className="photo-item">
@@ -164,8 +165,8 @@ const PhotoUpload = ({ formData, onPhotosChange }) => {
         </div>
       )}
 
-      {/* Info Box */}
-      <div className="photos-info">
+      {/* Info Box */
+      /*<div className="photos-info">
         <div className="info-box">
           <h4>📸 Photo Tips</h4>
           <ul>
@@ -180,4 +181,31 @@ const PhotoUpload = ({ formData, onPhotosChange }) => {
   );
 };
 
-export default PhotoUpload; 
+export default PhotoUpload;*/
+
+import React from "react";
+import ImageLoader from "./ImageLoader.jsx";
+
+const PhotoUpload = ({ formData, onInputChange, error }) => {
+  return (
+    <div className="form-step">
+      <div className="form-step-header">
+        <h2>Add photos of your property</h2>
+        <p>
+          Show guests your space clearly. Use good quality images and upload at least 3.
+        </p>
+      </div>
+
+      <ImageLoader
+        images={formData.photos}
+        onChange={(files) => onInputChange("photos", files)}
+        minImages={3}
+        maxImages={10}
+        maxSizeMB={5}
+        error={error}
+      />
+    </div>
+  );
+};
+
+export default PhotoUpload;

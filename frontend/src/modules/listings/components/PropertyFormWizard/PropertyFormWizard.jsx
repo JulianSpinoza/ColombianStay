@@ -9,6 +9,7 @@ const PropertyFormWizard = ({ onPublish }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const formRef = useRef(null);
 
+  const [errors, setErrors] = useState({});
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
   const [published, setPublished] = useState(false);
@@ -17,10 +18,10 @@ const PropertyFormWizard = ({ onPublish }) => {
     title: "",
     description: "",
     propertytype: "apartment",
-    bedrooms: "",
-    bathrooms: "",
-    maxguests: "",
-    pricepernight: "",
+    bedrooms: 0,
+    bathrooms: 0,
+    maxguests: 0,
+    pricepernight: 0,
     locationdesc: "",
     addresstext: "",
     city: "",
@@ -34,12 +35,10 @@ const PropertyFormWizard = ({ onPublish }) => {
       ...prev,
       [field]: value,
     }));
-  };
 
-  const handlePhotosChange = (photos) => {
-    setFormData((prev) => ({
+    setErrors((prev) => ({
       ...prev,
-      photos,
+      [field]: "",
     }));
   };
   
@@ -94,14 +93,22 @@ const PropertyFormWizard = ({ onPublish }) => {
     }
 
     if (currentStep === 3) {
+      const newErrors = {};
+
       if (formData.photos.length < 3) {
-        alert("You must upload at least 3 photos.");
-        return false;
+        newErrors.photos = "You must upload at least 3 photos.";
       }
+
+      setErrors((prev) => ({
+        ...prev,
+        ...newErrors,
+      }));
+
+      return Object.keys(newErrors).length === 0;
     }
 
-    return true;
-  };
+        return true;
+      };
   
   const handleNext = () => {
     if (formRef.current && !formRef.current.reportValidity()) {
@@ -196,7 +203,8 @@ return (
         {currentStep === 3 && (
           <PhotoUpload
             formData={formData}
-            onPhotosChange={handlePhotosChange}
+            onInputChange={handleInputChange}
+            error={errors.photos}
           />
         )}
 
