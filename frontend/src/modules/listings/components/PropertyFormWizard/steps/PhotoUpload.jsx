@@ -180,4 +180,4 @@ const PhotoUpload = ({ formData, onPhotosChange }) => {
   );
 };
 
-export default PhotoUpload;
+export default PhotoUpload; 

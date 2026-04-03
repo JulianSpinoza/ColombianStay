@@ -82,6 +82,11 @@ const PropertyFormWizard = ({ onPublish }) => {
         return false;
       }
 
+      if (formData.locationdesc.trim() === "") {
+        alert("The location description cannot be empty.");
+        return false;
+      }
+
       if (formData.pricepernight === "" || Number(formData.pricepernight) < 1) {
         alert("You must enter a valid price.");
         return false;

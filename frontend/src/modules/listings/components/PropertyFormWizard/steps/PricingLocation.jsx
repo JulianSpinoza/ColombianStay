@@ -18,7 +18,12 @@ const PricingLocation = ({ formData, onInputChange }) => {
               placeholder={0}
               min={0}
               value={formData.pricepernight}
-              onChange={(e) => onInputChange("pricepernight", parseInt(e.target.value))}
+              onChange={(e) =>
+                onInputChange(
+                  "pricepernight",
+                  e.target.value === "" ? "" : parseInt(e.target.value, 10)
+                )
+              }
               className="form-input price-input"
               required
             />
