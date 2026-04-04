@@ -166,8 +166,10 @@ const handleSubmit = async (e) => {
   try {
     await Promise.resolve(onPublish(formData));
     setPublished(true);
-  } catch {
-    setPublishError("An error occurred while publishing your property. Please try again.");
+  } catch (error) {
+    setPublishError(
+      error?.message || "An error occurred while publishing your property. Please try again."
+    );
   } finally {
     setIsPublishing(false);
   }
