@@ -1,7 +1,13 @@
 import React from "react";
 
 const ProgressBar = ({ currentStep, totalSteps }) => {
-  const stepLabels = ["Details", "Pricing", "Photos", "Availability"];
+  const stepLabels = [
+    "Details",
+    "Pricing",
+    "Photos",
+    "Availability",
+    "Preview",
+  ];
 
   return (
     <div className="progress-wrapper">

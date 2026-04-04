@@ -4,6 +4,7 @@ import PropertyDetails from "./steps/PropertyDetails.jsx";
 import PricingLocation from "./steps/PricingLocation.jsx";
 import PhotoUpload from "./steps/PhotoUpload.jsx";
 import Availability from "./steps/Availability.jsx";
+import PreviewStep from "./steps/PreviewStep.jsx";
 import "./PropertyFormWizard.css";
 
 const PropertyFormWizard = ({ onPublish }) => {
@@ -30,7 +31,7 @@ const PropertyFormWizard = ({ onPublish }) => {
     availability: [],
   });
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -233,6 +234,12 @@ return (
             onInputChange={handleInputChange}
             error={errors.availability}
          />
+        )}
+
+        {currentStep === 5 && (
+          <PreviewStep
+            formData={formData}
+          />
         )}
 
         <div className="wizard-navigation">
