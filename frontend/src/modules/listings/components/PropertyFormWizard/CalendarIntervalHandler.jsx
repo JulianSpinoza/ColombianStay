@@ -58,11 +58,18 @@ const CalendarIntervalHandler = ({ value = [], onChange, error = "" }) => {
     setLocalError("");
   };
 
-  const handleRemoveInterval = (indexToRemove) => {
-    const updatedIntervals = value.filter((_, index) => index !== indexToRemove);
-    onChange(updatedIntervals);
-    setLocalError("");
-  };
+  const handleRemoveInterval = (intervalToRemove) => {
+     const updatedIntervals = value.filter(
+          (interval) =>
+               !(
+                 interval.startDate === intervalToRemove.startDate &&
+                 interval.endDate === intervalToRemove.endDate
+               )
+          );
+
+     onChange(updatedIntervals);
+     setLocalError("");
+     };
 
   return (
     <div className="availability-handler">
@@ -117,7 +124,7 @@ const CalendarIntervalHandler = ({ value = [], onChange, error = "" }) => {
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => handleRemoveInterval(index)}
+                onClick={() => handleRemoveInterval(interval)}
               >
                 Remove
               </button>
