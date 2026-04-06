@@ -1,3 +1,4 @@
+import AccommodationDetailsPage from "./pages/AccommodationDetailsPage/AccommodationDetailsPage";
 import { Route, Routes } from "react-router-dom";
 import ListingsPage from "./pages/ListingsPage/ListingsPage";
 import { ListingProvider } from "./contexts/ListingsContext";
@@ -12,19 +13,24 @@ import ListingsLayout from "./layout/ListingsLayout";
 export default function ListingsRoutes () {
     return (
         <ListingProvider>
-            <Routes>
+           <Routes>
                 <Route element={<ListingsLayout />}>
-                    {/* Rutas publicas*/ }
-                    <Route index element={<ListingsPage />} />
-                    <Route path="listings/:id" element={<PropertyDetailsPage />} />
-                    {/* Rutas Privadas*/ }
-                    <Route element={<PrivateRoute/>}>
-                        <Route path="publish-listing" element={<PublishListing/>}/>
-                        {/* Creo que esta es global */}
-                        <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
-                    </Route>
+                {/* Rutas públicas */}
+                <Route index element={<ListingsPage />} />
+                {/* NUEVA PÁGINA (HU41) */}
+                {/* Se coloca 'accommodation' para que no choque con las otras*/}
+                <Route path="accommodation/:id" element={<AccommodationDetailsPage />} />
+                
+                {/* Esta es la que ya estaba*/}
+                <Route path="listings/:id" element={<PropertyDetailsPage />} />
+
+                {/* Rutas Privadas */}
+                <Route element={<PrivateRoute/>}>
+                    <Route path="publish-listing" element={<PublishListing/>}/>
+                    <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
                 </Route>
-            </Routes>
+                </Route>
+           </Routes>
         </ListingProvider>
     );
 }
