@@ -53,12 +53,11 @@ class ListingImage(models.Model):
         return f'listings/accomodation_{instance.listing.accomodationid}/{filename}'
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs) 
 
-        if self.image and not self.thumbnail:
-            self.thumbnail = create_thumbnail(self.image)
-            super().save(update_fields=['thumbnail'])
+        if self.image and not self.thumbnail and self.is_main:
+           self.thumbnail = create_thumbnail(self.image)
+           super().save(update_fields=['thumbnail'])
 
     id = models.AutoField(primary_key=True)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
