@@ -1,5 +1,6 @@
+import { debounce, normalizeText } from "../../utils/general_utils";
 import "./SearchBarAutocomplete.css"
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export default function SearchBarAutocomplete({
     textSearch, 
@@ -7,10 +8,16 @@ export default function SearchBarAutocomplete({
     options,
     handleSearch,
     placeholder,
-    //categoryname,
 }){
 
     const [suggestions, setSuggestions] = useState([]);
+
+    const debouncedSearch = useCallback(
+        debounce(() => {
+            handleSearch();
+        }, 500), // 500 ms of wait time
+        [handleSearch]
+    );
 
     const handleInputSearch = (e) => {
         const value = e.target.value;
@@ -22,10 +29,15 @@ export default function SearchBarAutocomplete({
             return;
         }
 
-        const maxSuggestions = 7;
+        const MAXSUGGESTIONS = 7;
+
+        const normalizedInput = normalizeText(value);
 
         // Filtering searching options
-        const filtered = options.filter((m) => m.includes(value)).slice(0,maxSuggestions);
+        const filtered = options.filter((option) => {
+            const normalizedOption = normalizeText(option);
+            return normalizedOption.includes(normalizedInput);
+        }).slice(0,MAXSUGGESTIONS);
 
         setSuggestions(filtered);
     }
@@ -59,7 +71,7 @@ export default function SearchBarAutocomplete({
                     </ul>
                 )}
             </div>
-            <button onClick={handleSearch}>
+            <button onClick={debouncedSearch} type="button">
                 <svg
                 className="w-5 h-5 text-gray-400"
                 fill="currentColor"
