@@ -2,6 +2,7 @@ import "./ListingsPage.css";
 import ListingCard from "../../components/ListingCard/ListingCard";
 import { useListingsContext } from "../../contexts/ListingsContext.jsx";
 import {  useNavigate } from "react-router-dom";
+import ApiState from "../../../../global/components/ApiState/ApiState.jsx";
 
 export default function ListingsPage() {
   const navigate = useNavigate();
@@ -9,7 +10,8 @@ export default function ListingsPage() {
   const { 
     listings, 
     loading,
-    error 
+    error,
+    fetchListings
   } = useListingsContext();
 
 
@@ -17,47 +19,48 @@ export default function ListingsPage() {
     navigate(`/listings/${listing.accomodationid || listing.id}`);
   };
 
+
+  if (loading) {
+    return (
+      <ApiState type='loading'/>
+    );
+  }
+
+  if (error) {
+    return (
+      <ApiState type='error' onRetry={() => fetchListings()}/>
+    );
+  }
+
+  if(!loading && !error && listings.length === 0) {
+    return (
+      <ApiState 
+        type='empty'  
+        message="No encontramos alojamientos con esos filtros"
+      />
+    );
+  }
+
+
   return (
     <main className="home-hero">
       <div className="w-full">
         
         {/* Main Content */}
         <div className="home-main py-8">
-          {/* LOADING */}
-          {loading && (
-            <div className="flex justify-center items-center py-12">
-              <p className="text-gray-600">Loading properties...</p>
-            </div>
-          )}
 
-          {/* ERROR */}
-          {error && (
-            <div className="text-center py-12">
-              <p style={{ color: "red" }}>{error}</p>
-            </div>
-          )}
-
-          {/* EMPTY STATE */}
-          {!loading && !error && listings.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No properties available.</p>
-            </div>
-          )}
-          
           {/* Listings Grid */}
-          {!loading && !error && (
-            <div className="listings-grid">
-              {listings.map((listing) => (
-                <div
-                  key={listing.accomodationid || listing.id}
-                  onClick={() => handleListingClick(listing)}
-                  className="cursor-pointer"
-                >
-                  <ListingCard listing={listing} />
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="listings-grid">
+            {listings.map((listing) => (
+              <div
+                key={listing.accomodationid || listing.id}
+                onClick={() => handleListingClick(listing)}
+                className="cursor-pointer"
+              >
+                <ListingCard listing={listing} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>

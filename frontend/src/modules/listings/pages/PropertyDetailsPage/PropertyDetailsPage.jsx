@@ -1,6 +1,7 @@
 import BookingWidget from "../../../booking/components/BookingWidget/BookingWidget.jsx";
 import "./PropertyDetailsPage.css";
 import useSpecificListing from "../../hooks/useSpecificListing.js";
+import ApiState from "../../../../global/components/ApiState/ApiState.jsx";
 
 /**
  * PropertyDetailsPage
@@ -15,22 +16,22 @@ const PropertyDetailsPage = () => {
   
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-content">
-          <div className="spinner"></div>
-          <p className="loading-text">Loading property details...</p>
-        </div>
-      </div>
+      <ApiState type='loading'/>
     );
   }
 
-  if (!listing) {
+  if (error) {
     return (
-      <div className="loading-container">
-        <div className="loading-content">
-          <p className="not-found-text">Property not found</p>
-        </div>
-      </div>
+      <ApiState type='error'/>
+    );
+  }
+
+  if (!error && !listing) {
+    return (
+      <ApiState 
+        type='empty'  
+        message="La propiedad no fue encontrada."
+      />
     );
   }
 
