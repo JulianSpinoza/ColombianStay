@@ -10,6 +10,10 @@
   border: 1px solid #d1d5db;
 }
 
+.search-bar-autocomplete button {
+  margin-right: 20px;
+}
+
 .search-bar-autocomplete:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
