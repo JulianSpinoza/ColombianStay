@@ -1,11 +1,13 @@
 import BookingWidget from "../../../booking/components/BookingWidget/BookingWidget.jsx";
 import "./PropertyDetailsPage.css";
 import useSpecificListing from "../../hooks/useSpecificListing.js";
+// 1. Importamos tu componente de galería de la HU42 (Verifica que la ruta sea correcta según tus carpetas)
+import PhotosGallery from "../../components/PhotosGallery/PhotosGallery.jsx";
 
 /**
  * PropertyDetailsPage
  * Details view with:
- * - Hero image grid (1 large left + 4 small right)
+ * - Interactive Photos Gallery (HU42 integration)
  * - Property info and amenities
  * - Sticky booking widget placeholder
  */
@@ -36,36 +38,14 @@ const PropertyDetailsPage = () => {
 
   return (
     <div className="property-page">
-      {/* Hero Section */}
+      
+      {/* 2. HERO SECTION REEMPLAZADA POR TU GALERÍA (HU42) */}
       <div className="hero-section">
-        <div className="hero-container">
-          <div className="image-grid">
-            <div className="main-image">
-              <img
-                src={listing.images[0]}
-                alt={listing.title}
-                className="property-image"
-              />
-            </div>
-
-            {listing.images.slice(1, 5).map((image, idx) => (
-              <div key={idx} className="secondary-image">
-                <img
-                  src={image}
-                  alt={`${property.title} ${idx + 2}`}
-                  className="property-image clickable"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="mobile-image-count">
-            📷 {listing.images.length} photos
-          </div>
-        </div>
+         {/* Le pasamos las imágenes del backend, o un array vacío si no hay para que actúe tu fallback */}
+         <PhotosGallery images={listing.images || []} />
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Esto queda intacto para conservar el layout del equipo */}
       <div className="content-container">
         <div className="content-grid">
           <div className="left-column">
