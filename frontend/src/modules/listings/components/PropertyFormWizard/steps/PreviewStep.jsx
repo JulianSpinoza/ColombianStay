@@ -1,20 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React from "react";
 
 const PreviewStep = ({ formData }) => {
-  const photoPreviews = useMemo(() => {
-    return (formData.photos || []).map((file, index) => ({
-      id: `${file.name}-${file.lastModified}-${index}`,
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
-  }, [formData.photos]);
-
-  useEffect(() => {
-    return () => {
-      photoPreviews.forEach((photo) => URL.revokeObjectURL(photo.url));
-    };
-  }, [photoPreviews]);
-
   return (
     <div className="form-step">
       <div className="form-step-header">
@@ -73,12 +59,12 @@ const PreviewStep = ({ formData }) => {
 
       <div className="preview-section">
         <h4 className="preview-section-title">Photos</h4>
-        {photoPreviews.length > 0 ? (
+        {formData.photos.length > 0 ? (
           <div className="preview-photo-grid">
-            {photoPreviews.map((photo, index) => (
+            {formData.photos.map((photo, index) => (
               <div key={photo.id} className="preview-photo-card">
                 <img
-                  src={photo.url}
+                  src={photo.previewUrl}
                   alt={`Preview ${index + 1}`}
                   className="preview-photo"
                 />

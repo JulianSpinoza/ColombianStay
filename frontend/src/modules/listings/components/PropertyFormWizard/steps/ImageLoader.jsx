@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 
 const ImageLoader = ({
   images = [],
@@ -12,24 +12,10 @@ const ImageLoader = ({
   const [localErrors, setLocalErrors] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
-  const previews = useMemo(() => {
-    return images.map((file, index) => ({
-      id: `${file.name}-${file.lastModified}-${index}`,
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
-  }, [images]);
-
-  useEffect(() => {
-    return () => {
-      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
-    };
-  }, [previews]);
-
   const processFiles = (incomingFiles) => {
     const selectedFiles = Array.from(incomingFiles || []);
     const nextErrors = [];
-    const validFiles = [];
+    const validImages = [];
 
     const availableSlots = maxImages - images.length;
 
@@ -51,15 +37,17 @@ const ImageLoader = ({
       }
 
       if (file.size > maxSizeMB * 1024 * 1024) {
-        nextErrors.push(`${file.name}: exceeds the maximum size of ${maxSizeMB} MB.`);
+        nextErrors.push(
+          `${file.name}: exceeds the maximum size of ${maxSizeMB} MB.`
+        );
         return;
       }
 
       const isDuplicate = images.some(
-        (existingFile) =>
-          existingFile.name === file.name &&
-          existingFile.size === file.size &&
-          existingFile.lastModified === file.lastModified
+        (existingImage) =>
+          existingImage.file.name === file.name &&
+          existingImage.file.size === file.size &&
+          existingImage.file.lastModified === file.lastModified
       );
 
       if (isDuplicate) {
@@ -67,13 +55,18 @@ const ImageLoader = ({
         return;
       }
 
-      validFiles.push(file);
+      validImages.push({
+        id: `${file.name}-${file.lastModified}-${file.size}`,
+        file,
+        name: file.name,
+        previewUrl: URL.createObjectURL(file),
+      });
     });
 
     setLocalErrors(nextErrors);
 
-    if (validFiles.length > 0) {
-      onChange([...images, ...validFiles]);
+    if (validImages.length > 0) {
+      onChange([...images, ...validImages]);
     }
   };
 
@@ -104,12 +97,16 @@ const ImageLoader = ({
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
-
-    const droppedFiles = event.dataTransfer.files;
-    processFiles(droppedFiles);
+    processFiles(event.dataTransfer.files);
   };
 
   const handleRemoveImage = (indexToRemove) => {
+    const imageToRemove = images[indexToRemove];
+
+    if (imageToRemove?.previewUrl) {
+      URL.revokeObjectURL(imageToRemove.previewUrl);
+    }
+
     const updatedImages = images.filter((_, index) => index !== indexToRemove);
     setLocalErrors([]);
     onChange(updatedImages);
@@ -159,15 +156,15 @@ const ImageLoader = ({
 
       {images.length > 0 && (
         <div className="image-grid">
-          {previews.map((preview, index) => (
-            <div className="image-card" key={preview.id}>
+          {images.map((image, index) => (
+            <div className="image-card" key={image.id}>
               <img
-                src={preview.url}
+                src={image.previewUrl}
                 alt={`Preview ${index + 1}`}
                 className="image-preview"
               />
               <div className="image-card-footer">
-                <span className="image-name">{preview.name}</span>
+                <span className="image-name">{image.name}</span>
                 <button
                   type="button"
                   className="remove-image-button"
