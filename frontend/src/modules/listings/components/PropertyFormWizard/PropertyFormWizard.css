@@ -1,10 +1,41 @@
-/* PropertyFormWizard Styles */
+/* =========================
+   Tokens
+========================= */
+
+:root {
+  --primary: #667eea;
+  --primary-dark: #764ba2;
+  --primary-soft: rgba(102, 126, 234, 0.08);
+  --text-main: #222;
+  --text-body: #333;
+  --text-muted: #666;
+  --text-light: #6b7280;
+  --border: #ddd;
+  --border-soft: #e5e7eb;
+  --bg-white: #fff;
+  --bg-soft: #fafafa;
+  --danger: #dc2626;
+  --danger-btn: #ef4444;
+  --shadow-sm: 0 4px 15px rgba(102, 126, 234, 0.3);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --radius-lg: 16px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+}
+
+/* =========================
+   Layout
+========================= */
 
 .wizard-container {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem 1rem;
-  background: linear-gradient(180deg, rgba(102, 126, 234, 0.04), rgba(118, 75, 162, 0.02));
+  background: linear-gradient(
+    180deg,
+    rgba(102, 126, 234, 0.04),
+    rgba(118, 75, 162, 0.02)
+  );
   min-height: 100vh;
 }
 
@@ -16,16 +47,63 @@
 .wizard-title {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #222;
+  color: var(--text-main);
   margin-bottom: 0.5rem;
 }
 
 .wizard-subtitle {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
-/* Progress Bar */
+.wizard-form {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.wizard-step-info {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #999;
+  margin-top: 1rem;
+}
+
+.publish-error {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  color: var(--danger);
+}
+
+/* =========================
+   Animation
+========================= */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-step {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* =========================
+   Progress Bar
+========================= */
+
 .progress-wrapper {
   margin-bottom: 3rem;
 }
@@ -47,8 +125,8 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: white;
-  border: 2px solid #ddd;
+  background: var(--bg-white);
+  border: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,30 +137,30 @@
 }
 
 .progress-step.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-color: #667eea;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--bg-white);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
   transform: scale(1.05);
 }
 
 .progress-step.completed {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
+  background: var(--primary);
+  color: var(--bg-white);
+  border-color: var(--primary);
 }
 
 .progress-line {
   flex: 1;
   width: 100%;
   height: 2px;
-  background: #ddd;
+  background: var(--border);
   margin: 0 0.5rem;
   transition: background 0.3s ease;
 }
 
 .progress-line.completed {
-  background: #667eea;
+  background: var(--primary);
 }
 
 .progress-labels {
@@ -99,34 +177,12 @@
 .label-text {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #666;
+  color: var(--text-muted);
 }
 
-/* Form */
-.wizard-form {
-  background: white;
-  border-radius: 16px;
-  padding: 3rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  margin-bottom: 2rem;
-  animation: fadeInUp 0.4s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Form Step */
-.form-step {
-  animation: fadeInUp 0.4s ease-out;
-}
+/* =========================
+   Step Headers
+========================= */
 
 .form-step-header {
   margin-bottom: 2rem;
@@ -135,16 +191,19 @@
 .form-step-header h2 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #222;
+  color: var(--text-main);
   margin-bottom: 0.5rem;
 }
 
 .form-step-header p {
   font-size: 1rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
-/* Form Groups */
+/* =========================
+   Form Elements
+========================= */
+
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -159,7 +218,7 @@
   display: block;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-body);
   margin-bottom: 0.5rem;
 }
 
@@ -167,18 +226,18 @@
 .form-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   font-family: inherit;
   transition: all 0.3s ease;
-  background: white;
+  background: var(--bg-white);
 }
 
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -209,17 +268,36 @@
   position: absolute;
   left: 1rem;
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary);
 }
 
 .price-input {
   padding-left: 3.5rem !important;
 }
 
-/* Info Box */
+/* =========================
+   Shared Messages / Info
+========================= */
+
+.field-error {
+  color: var(--danger);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.error-box {
+  margin-top: 10px;
+}
+
+.helper-text {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
 .info-box {
-  background: rgba(102, 126, 234, 0.08);
-  border-left: 4px solid #667eea;
+  background: var(--primary-soft);
+  border-left: 4px solid var(--primary);
   padding: 1rem;
   border-radius: 8px;
   margin-top: 1.5rem;
@@ -228,14 +306,14 @@
 .info-box h4 {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text-body);
   margin-bottom: 0.5rem;
 }
 
 .info-box p,
 .info-box li {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -248,176 +326,10 @@
   margin-top: 2rem;
 }
 
-/* Drag & Drop */
-.drag-drop-zone {
-  border: 2px dashed #ddd;
-  border-radius: 16px;
-  padding: 3rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: #fafafa;
-  position: relative;
-}
+/* =========================
+   Buttons / Navigation
+========================= */
 
-.drag-drop-zone:hover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.04);
-}
-
-.drag-drop-zone.active {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.08);
-  transform: scale(1.01);
-}
-
-.drag-drop-content {
-  pointer-events: none;
-}
-
-.drag-drop-icon {
-  width: 3.5rem;
-  height: 3.5rem;
-  color: #667eea;
-  margin: 0 auto 1rem;
-}
-
-.drag-drop-zone h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.drag-drop-zone p {
-  font-size: 0.95rem;
-  color: #666;
-}
-
-.drag-drop-hint {
-  font-size: 0.85rem;
-  color: #999;
-  margin-top: 0.5rem;
-}
-
-.drag-drop-input {
-  display: none;
-}
-
-.drag-drop-zone::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  border-radius: 16px;
-}
-
-/* Photos Grid */
-.photos-count {
-  font-size: 0.95rem;
-  color: #666;
-  margin: 1.5rem 0;
-  font-weight: 500;
-}
-
-.count-warning {
-  color: #ff6b6b;
-  font-weight: 600;
-}
-
-.photos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-}
-
-.photo-item {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #ddd;
-  transition: transform 0.3s ease;
-}
-
-.photo-item:hover {
-  transform: scale(1.02);
-}
-
-.photo-image-wrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  overflow: hidden;
-}
-
-.photo-image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.photo-badge {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  background: #667eea;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-}
-
-.photo-actions {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: white;
-  border-top: 1px solid #eee;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.photo-item:hover .photo-actions {
-  opacity: 1;
-}
-
-.photo-btn {
-  flex: 1;
-  padding: 0.4rem;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.photo-btn:hover:not(:disabled) {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-}
-
-.photo-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.photo-btn-delete {
-  background: #ff6b6b;
-  color: white;
-  border-color: #ff6b6b;
-}
-
-.photo-btn-delete:hover {
-  background: #ff5252;
-  border-color: #ff5252;
-}
-
-/* Navigation Buttons */
 .wizard-navigation {
   display: flex;
   gap: 1rem;
@@ -430,7 +342,7 @@
 .btn-primary,
 .btn-secondary {
   padding: 0.875rem 2rem;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -441,10 +353,10 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--bg-white);
   flex: 1;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -458,16 +370,16 @@
 }
 
 .btn-secondary {
-  background: white;
-  color: #666;
-  border: 1px solid #ddd;
+  background: var(--bg-white);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   flex: 0.5;
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: #f5f5f5;
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .btn-secondary:disabled {
@@ -475,57 +387,17 @@
   cursor: not-allowed;
 }
 
-/* Step Info */
-.wizard-step-info {
-  text-align: center;
-  font-size: 0.95rem;
-  color: #999;
-  margin-top: 1rem;
-}
+/* =========================
+   Image Upload
+========================= */
 
-/* Responsive */
-@media (max-width: 768px) {
-  .wizard-container {
-    padding: 1rem;
-  }
-
-  .wizard-form {
-    padding: 1.5rem;
-  }
-
-  .wizard-title {
-    font-size: 1.75rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .wizard-navigation {
-    flex-direction: column-reverse;
-  }
-
-  .btn-secondary {
-    flex: 1;
-  }
-
-  .photos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  }
-
-  .drag-drop-zone {
-    padding: 2rem 1rem;
-  }
-}
-
-/* Image Upload */
 .hidden-file-input {
   display: none;
 }
 
 .upload-box {
   border: 2px dashed #d1d5db;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
@@ -533,7 +405,7 @@
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  background: #fafafa;
+  background: var(--bg-soft);
   text-align: center;
   min-height: 180px;
   transition: 0.2s ease;
@@ -544,6 +416,12 @@
   background: #f8f5ff;
 }
 
+.upload-box.drag-active {
+  border-color: #7c3aed;
+  background: #f3edff;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+}
+
 .upload-box-title {
   font-size: 28px;
   line-height: 1;
@@ -552,26 +430,35 @@
 .upload-box-text {
   display: block;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-light);
 }
 
-.image-grid {
+.image-grid,
+.preview-photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
 
-.image-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
+.image-card,
+.preview-photo-card,
+.preview-card,
+.availability-item {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--bg-white);
 }
 
-.image-preview {
+.image-card,
+.preview-photo-card {
+  overflow: hidden;
+}
+
+.image-preview,
+.preview-photo {
   width: 100%;
-  height: 150px;
+  height: 160px;
   object-fit: cover;
   display: block;
 }
@@ -594,38 +481,19 @@
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;
-  background: #ef4444;
-  color: white;
+  background: var(--danger-btn);
+  color: var(--bg-white);
   font-size: 13px;
 }
 
-.field-error {
-  color: #dc2626;
-  font-size: 14px;
-  margin-top: 8px;
-}
+/* =========================
+   Availability
+========================= */
 
-.error-box {
-  margin-top: 10px;
-}
-
-.helper-text {
-  margin-top: 14px;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.upload-box.drag-active {
-  border-color: #7c3aed;
-  background: #f3edff;
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
-}
-
-.availability-inputs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.availability-handler {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  margin-bottom: 16px;
 }
 
 .availability-list {
@@ -641,10 +509,11 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
 }
+
+/* =========================
+   Preview
+========================= */
 
 .preview-section {
   margin-top: 2rem;
@@ -653,19 +522,19 @@
 .preview-title {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #222;
+  color: var(--text-main);
   margin-bottom: 0.75rem;
 }
 
 .preview-description {
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.6;
 }
 
 .preview-section-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text-body);
   margin-bottom: 1rem;
 }
 
@@ -676,10 +545,7 @@
 }
 
 .preview-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
   padding: 1rem;
-  background: #fff;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -692,36 +558,259 @@
 .preview-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-light);
 }
 
 .preview-value {
   font-size: 1rem;
-  color: #222;
+  color: var(--text-main);
   word-break: break-word;
 }
 
-.preview-photo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-}
-
-.preview-photo-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.preview-photo {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  display: block;
-}
-
 .preview-empty {
-  color: #6b7280;
+  color: var(--text-light);
   font-size: 0.95rem;
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 768px) {
+  .wizard-container {
+    padding: 1rem;
+  }
+
+  .wizard-form {
+    padding: 1.5rem;
+  }
+
+  .wizard-title {
+    font-size: 1.75rem;
+  }
+
+  .form-row{
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-navigation {
+    flex-direction: column-reverse;
+  }
+
+  .btn-secondary {
+    flex: 1;
+  }
+
+  .availability-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .image-grid,
+  .preview-photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .upload-box {
+    padding: 2rem 1rem;
+  }
+}
+/* =========================
+   Visual Availability Calendar
+========================= */
+
+.calendar-shell {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-white);
+}
+
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.calendar-nav-button {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-body);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.calendar-nav-button:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekday {
+  text-align: center;
+  padding: 0.9rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-light);
+  background: #fafafa;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border: none;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  background: var(--bg-white);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-main);
+}
+
+.calendar-day:hover:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.day-available {
+  background: rgba(22, 163, 74, 0.16);
+  color: #166534;
+}
+
+.day-unavailable {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.day-selected {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--bg-white);
+  font-weight: 700;
+}
+
+.day-range-start,
+.day-range-end {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.day-outside {
+  background: #f8fafc;
+  color: #cbd5e1;
+}
+
+.day-past {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.calendar-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+}
+
+.legend-dot.available {
+  background: rgba(22, 163, 74, 0.7);
+}
+
+.legend-dot.unavailable {
+  background: rgba(220, 38, 38, 0.6);
+}
+
+.legend-dot.selected {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+.range-summary {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.add-interval-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .calendar-day {
+    font-size: 0.9rem;
+  }
+
+  .calendar-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.calendar-toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.calendar-select {
+  border: 1px solid var(--border-soft);
+  background: var(--bg-white);
+  color: var(--text-main);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calendar-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+}
+
+@media (max-width: 768px) {
+  .calendar-toolbar {
+    gap: 0.5rem;
+  }
+
+  .calendar-toolbar-center {
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .calendar-select {
+    width: 100%;
+  }
 }
