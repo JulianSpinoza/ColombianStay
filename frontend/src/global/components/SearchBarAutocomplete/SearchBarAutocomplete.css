@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: row;
   gap: 10px;
-  height: 50px;
+  min-height: 50px;
+  height: 100%;
   width: 100%;
   border-radius: 9999px;
   background: #f9fafb;
@@ -58,4 +59,32 @@
 
 .suggestions-list li:hover {
   background: orange;
+}
+
+/* Contenedor del item */
+.suggestion-item {
+  display: flex;
+  justify-content: space-between; /* Empuja el nombre a la izquierda y la clase a la derecha */
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0; /* Efecto hover opcional */
+}
+
+/* Estilo para el nombre principal */
+.suggestion-name {
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Estilo para la clasificación (gris y chiquito) */
+.suggestion-classification {
+  font-size: 0.6rem; /* Tamaño más pequeño */
+  color: #888;       /* Color gris */
+  margin-left: 10px;  /* Espacio mínimo por si el nombre es muy largo */
+  font-weight: 400;
 }

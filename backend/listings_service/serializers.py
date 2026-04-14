@@ -88,6 +88,11 @@ class MunicipalitySerializer(serializers.ModelSerializer):
         model = Municipality
         fields = ['municipalityid', 'name', 'department']
 
+class LocationTermsUnifiedSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    type = serializers.CharField()
+
 class ListingImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()

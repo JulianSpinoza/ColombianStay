@@ -4,7 +4,8 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
+from django.db.models import Q, F
+from itertools import chain
 
 from .models import Region, Department, Municipality, Listing
 from .serializers import ListingSerializer, PublishListingSerializer, RegionSerializer, DepartmentSerializer, MunicipalitySerializer, ListingFilterSerializer
@@ -19,11 +20,6 @@ class ListingListView(generics.ListAPIView):
             'municipality__department__region',
             'owner',
         ).all()
-
-        name_municipality = self.request.query_params.get('municipality')
-
-        if name_municipality:
-            qs = qs.filter(municipality__name__iexact=name_municipality)
 
         return qs
     
@@ -55,6 +51,35 @@ class MunicipalityListView(generics.ListAPIView):
         qs = Municipality.objects.filter(department_id=department_id)
 
         return qs
+    
+class LocationUnifiedView(APIView):
+
+    def get(self, request):
+
+        regions = Region.objects.values(
+            id=F('regionid'),
+            name_of_location=F('name')
+        )
+        for r in regions:
+            r["type"] = "Region"
+
+        departments = Department.objects.values(
+            id=F('departmentid'),
+            name_of_location=F('name')
+        )
+        for d in departments:
+            d["type"] = "Departamento"
+
+        municipalities = Municipality.objects.values(
+            id=F('municipalityid'),
+            name_of_location=F('name')
+        )
+        for m in municipalities:
+            m["type"] = "Municipio"
+
+        data = list(chain(regions, departments, municipalities))
+
+        return Response(data)
     
 class ListingDetailView(generics.RetrieveAPIView):
     """Detalle de un listing por pk (accomodationid)."""
@@ -123,7 +148,7 @@ class ListingSearchView(generics.ListAPIView):
         bathrooms = filters_data.get('bathrooms')
         maxguests = filters_data.get('maxguests')
 
-        print(str(filters_data.get('municipality')))
+        print(str(filters_data.get('region')))
 
         if keyword:
             queryset = queryset.filter(
@@ -147,7 +172,7 @@ class ListingSearchView(generics.ListAPIView):
             )
 
         if propertytype:
-            queryset = queryset.filter(propertytype=propertytype)
+            queryset = queryset.filter(propertytype__iexact=propertytype)
 
         if min_price is not None:
             queryset = queryset.filter(pricepernight__gte=min_price)

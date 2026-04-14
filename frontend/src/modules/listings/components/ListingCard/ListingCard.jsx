@@ -14,7 +14,7 @@ const ListingCard = ({ listing, onCardClick }) => {
     currency: "COP",
     rating: 4.88,
     reviewCount: 125,
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=500&fit=crop",
+    image: listing.images[0].thumbnail_url,
     isSuperhost: true,
   };
 

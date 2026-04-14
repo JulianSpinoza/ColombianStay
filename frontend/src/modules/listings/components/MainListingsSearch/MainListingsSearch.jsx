@@ -4,53 +4,27 @@ import SearchBarAutocomplete from "../../../../global/components/SearchBarAutoco
 import RangeSlider from "../../../../global/components/RangeSlider/RangeSlider";
 import './MainListingsSearch.css'
 import { clamp, parseNumber, formatNumber } from "../../../../global/utils/general_utils";
+import useAutoCompleteSearch from "../../hooks/useAutoCompleteSearch";
 
 const DEFAULT_FILTERS = {
+  keyword: "",
+  location: null,
   price: [50000, 2000000],
   quantities: {
     guests: 1,
-    rooms: 1,
-    beds: 1,
+    bedrooms: 1,
+    bathrooms: 1,
   },
-  services: [],
+  property_type:null,
 };
 
 export default function MainListingsSearch () {
 
-    const municipalities = [
-        'Barranquilla',
-        'Soledad',
-        'Puerto Colombia',
-        'Cartagena',
-        'Turbaco',
-        'Santa Marta',
-        'Montería',
-        'Sincelejo',
-        'Riohacha',
-        'Bogotá',
-        'Zipaquirá',
-        'La Calera',
-        'Medellín',
-        'Envigado',
-        'Guatapé',
-        'Bucaramanga',
-        'San Gil',
-        'Tunja',
-        'Villa de Leyva',
-        'Pereira',
-        'Armenia',
-        'Manizales',
-        'Cali',
-        'Buenaventura',
-        'Palmira',
-        'Quibdó',
-        'Villavicencio',
-        'Arauca',
-        'Florencia',
-        'Leticia',
-        'San Andrés',
-        'Providencia'
-    ]
+    const {
+      options:locations,
+      loading,
+      error
+    } = useAutoCompleteSearch();
 
     const { fetchListings } = useListingsContext();
 
@@ -58,14 +32,40 @@ export default function MainListingsSearch () {
 
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
-    const [filterMunicipality, setFilterMunicipality] = useState("");
-
     const handleSearch = () => {
-      const query = {};
-      if(filterMunicipality != ""){ 
-        query.municipality = filterMunicipality;
+      if(JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS)) {
+        fetchListings();
+      } else {
+        const formattedFilters = {
+          propertytype: filters.property_type,
+          bedrooms: filters.quantities.bedrooms,
+          bathrooms: filters.quantities.bathrooms,
+          maxguests: filters.quantities.guests,
+        }
+        if(filters.price[0] !== DEFAULT_FILTERS.price[0]){
+          formattedFilters.min_price = filters.price[0];
+        }
+        if(filters.price[1] !== DEFAULT_FILTERS.price[1]){
+          formattedFilters.max_price = filters.price[1];
+        }
+        if(filters.keyword !== DEFAULT_FILTERS.keyword){
+          formattedFilters.keyword = filters.keyword;
+        }
+        if(filters.location) {
+          switch (filters.location.option_classification) {
+            case "Region":
+              formattedFilters.region_id = filters.location.id
+              break;
+            case "Departamento":
+              formattedFilters.department_id = filters.location.id
+              break;
+            case "Municipio":
+              formattedFilters.municipality_id = filters.location.id
+              break;
+          }
+        }
+        fetchListings(formattedFilters);
       }
-      fetchListings(query);
     };
 
     const handleClearAll = () => {
@@ -74,10 +74,32 @@ export default function MainListingsSearch () {
 
     return (
       <div className="search-container">
+
+        {filters.location && (
+          <div className="location-selected-container">
+            <span className="location-selected-type">
+              {filters.location?.option_classification}
+            </span>
+            <span className="location-selected-name">
+              {filters.location?.name_option}
+            </span>
+          </div>
+        )}
         <SearchBarAutocomplete 
-          textSearch={filterMunicipality}
-          setTextSearch={setFilterMunicipality}
-          options={municipalities}
+          textSearch={filters.keyword}
+          setTextSearch={(newValue) => {
+            setFilters((prev) => ({
+              ...prev,
+              keyword: newValue,
+            }));
+          }}
+          setSelection= {(selectedLocation) => {
+            setFilters((prev) => ({
+              ...prev,
+              location: selectedLocation,
+            }));
+          }}
+          options={locations}
           handleSearch={handleSearch}
           placeholder="Where are you going?"
         />
@@ -127,7 +149,7 @@ export default function MainListingsSearch () {
               <QuantityFilter filters={filters} setFilters={setFilters}/>
             </div>
             <div className="filter-option">
-              <ServicesFilter filters={filters} setFilters={setFilters}/>
+              <PropertyTypeFilter filters={filters} setFilters={setFilters}/>
             </div>
           </div>
         )}
@@ -281,8 +303,8 @@ const QuantityFilter = ({ filters, setFilters }) => {
 
   const isActive =
     values.guests !== DEFAULT.guests ||
-    values.rooms !== DEFAULT.rooms ||
-    values.beds !== DEFAULT.beds;
+    values.bedrooms !== DEFAULT.bedrooms ||
+    values.bathrooms !== DEFAULT.bathrooms;
 
   return (
     <Filter
@@ -347,6 +369,45 @@ const ServicesFilter = ({ filters, setFilters }) => {
           key={option}
           onClick={() => toggle(option)}
           className={active.includes(option) ? "active" : ""}
+        >
+          {option}
+        </button>
+      ))}
+    </Filter>
+  );
+};
+
+const PropertyTypeFilter = ({ filters, setFilters }) => {
+  
+  const OPTIONS = ["apartment", "cabin", "house", "loft", "room", "studio"];
+
+  const DEFAULT = DEFAULT_FILTERS.property_type;
+
+  const active = filters.property_type;
+  const isActive = active !== null;
+
+  const setValue = (newValue) => {
+    setFilters((prev) => ({
+      ...prev,
+      property_type: newValue,
+    }));
+  };
+
+  const handleSelect = (option) => {
+    setValue(option);
+  };
+
+  return (
+    <Filter
+      title={"Property Type Filter"}
+      handleResetFilter={() => setValue(DEFAULT)}
+      isActive={isActive}
+    >
+      {OPTIONS.map(option => (
+        <button
+          key={option}
+          onClick={() => handleSelect(option)}
+          className={active === option ? "active" : ""}
         >
           {option}
         </button>

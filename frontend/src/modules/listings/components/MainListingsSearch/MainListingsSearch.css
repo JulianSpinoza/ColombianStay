@@ -4,6 +4,7 @@
     align-items: center;
     width: 100%;
     justify-content: space-between;
+    height: 50px;
 }
 
 .show-filters-button {
@@ -290,6 +291,7 @@ button {
   color: white;
   border-radius: 20px;
   padding: 6px 10px;
+  text-transform: capitalize;
 }
 
 .filter-container button:not(.active) {
@@ -297,4 +299,27 @@ button {
   border: 1px solid #ffd6cc;
   border-radius: 20px;
   padding: 6px 10px;
+  text-transform: capitalize;
+}
+
+.location-selected-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: lightgray;
+  height: 100%;
+  margin-inline: 10px;
+  padding-inline: 15px;
+}
+
+.location-selected-name {
+  font-size: 1rem;
+  color: #666; 
+}
+
+.location-selected-type {
+  font-size: 0.5rem;
+  color: #777; 
 }

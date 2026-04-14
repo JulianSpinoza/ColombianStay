@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ListingDetailView, ListingListView, RegionListView, DepartmentListView, MunicipalityListView, PublishProperty, ListingSearchView
+from .views import ListingDetailView, ListingListView, LocationUnifiedView, RegionListView, DepartmentListView, MunicipalityListView, PublishProperty, ListingSearchView
 
 urlpatterns = [
     path('listings/', ListingListView.as_view(), name='listing-list'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('listings/region/<int:region_id>/', DepartmentListView.as_view(), name='department-list'),
     path('listings/department/<int:department_id>/', MunicipalityListView.as_view(), name='municipality-list'),
     path('listings/search/', ListingSearchView.as_view(), name='listing-search'),
+    path('location-terms/', LocationUnifiedView.as_view(), name='all_locations_list')
 ]

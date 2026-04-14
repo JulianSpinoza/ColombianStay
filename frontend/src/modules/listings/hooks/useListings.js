@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getListings } from "../services/listingsService";
+import { getFilteredListings, getListings } from "../services/listingsService";
 import { useApiState } from "../../../services/api/useApiState";
 
 export default function useListings() {
@@ -15,7 +15,7 @@ export default function useListings() {
 
   // Initial set up
   useEffect(() => {
-    fetchListings({})
+    fetchListings()
   }, [])
 
   async function fetchListings(searchQuery) {
@@ -24,8 +24,13 @@ export default function useListings() {
       setLoading(true);
       setListings([]);
       try {
-        const data = await getListings(searchQuery);
-        setListings(data);
+        if(searchQuery) {
+          const data = await getFilteredListings(searchQuery);
+          setListings(data.results);
+        } else {
+          const data = await getListings();
+          setListings(data);
+        }
       } catch (err) {
         handleError(err)
       } finally {

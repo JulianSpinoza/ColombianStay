@@ -4,7 +4,8 @@ import { useCallback, useState } from "react";
 
 export default function SearchBarAutocomplete({
     textSearch, 
-    setTextSearch, 
+    setTextSearch,
+    setSelection, 
     options,
     handleSearch,
     placeholder,
@@ -34,16 +35,19 @@ export default function SearchBarAutocomplete({
         const normalizedInput = normalizeText(value);
 
         // Filtering searching options
-        const filtered = options.filter((option) => {
-            const normalizedOption = normalizeText(option);
-            return normalizedOption.includes(normalizedInput);
-        }).slice(0,MAXSUGGESTIONS);
+        const filtered = options
+            .filter((option) => {
+                const normalizedOption = normalizeText(option?.name_option ?? '');
+                return normalizedOption.includes(normalizedInput);
+            })
+        .slice(0, MAXSUGGESTIONS);
 
         setSuggestions(filtered);
     }
 
     const handleSelectOption = (option) => {
-        setTextSearch(option);
+        setTextSearch('');
+        setSelection(option)
         setSuggestions([]);
     }
 
@@ -61,11 +65,18 @@ export default function SearchBarAutocomplete({
                     <ul className="suggestions-list">
                         {suggestions.map((suggestion) => (
                             <li 
-                                key= {suggestion}
-                                onClick={() => handleSelectOption(suggestion)}
-                                onMouseDown={(e) => e.preventDefault()}
+                            key={suggestion.name_option}
+                            onClick={() => handleSelectOption(suggestion)}
+                            onMouseDown={(e) => e.preventDefault()}
+                            className="suggestion-item"
                             >
-                                {suggestion}
+                                <span className="suggestion-name">
+                                    {suggestion.name_option}
+                                </span>
+                                
+                                <span className="suggestion-classification">
+                                    {suggestion.option_classification}
+                                </span>
                             </li>
                         ))}
                     </ul>
