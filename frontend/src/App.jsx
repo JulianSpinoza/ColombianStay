@@ -15,7 +15,7 @@ function App() {
         
           <Routes>
 
-            {/* Rutas protegidas */}
+            {/* Rutas protegidas  */}
             <Route
               path="/host-ratings"
               element={

@@ -1,33 +1,20 @@
 from unittest.mock import patch
-from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.files.storage import default_storage
 from rest_framework import status
-from rest_framework.test import APITestCase, APITransactionTestCase, APIRequestFactory
+from rest_framework.test import APITestCase, APITransactionTestCase
 
-from PIL import Image
+from listings_service.models import Listing, Municipality
+from listings_service.serializers import PublishListingSerializer
 
-from listings_service.models import Listing, ListingImage, Municipality
-from listings_service.serializers import PublishListingSerializer, ListingImageSerializer
-
-import tempfile
-import io
 
 User = get_user_model()
 
-def generate_test_image():
-    file = io.BytesIO()
-    image = Image.new('RGB', (100, 100))
-    image.save(file, 'jpeg')
-    file.seek(0)
-    return file
 
-class DummySignedRequest():
+class DummyRequest:
     def __init__(self, user):
         self.user = user
 
@@ -72,7 +59,7 @@ class PublishListingSerializerTests(BaseListingTestMixin, TestCase):
     def test_serializer_accepts_valid_payload(self):
         serializer = PublishListingSerializer(
             data=self.get_valid_payload(),
-            context={"request": DummySignedRequest(self.user)},
+            context={"request": DummyRequest(self.user)},
         )
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
@@ -84,7 +71,7 @@ class PublishListingSerializerTests(BaseListingTestMixin, TestCase):
 
         serializer = PublishListingSerializer(
             data=data,
-            context={"request": DummySignedRequest(self.user)},
+            context={"request": DummyRequest(self.user)},
         )
 
         self.assertFalse(serializer.is_valid())
@@ -97,7 +84,7 @@ class PublishListingSerializerTests(BaseListingTestMixin, TestCase):
 
         serializer = PublishListingSerializer(
             data=data,
-            context={"request": DummySignedRequest(self.user)},
+            context={"request": DummyRequest(self.user)},
         )
 
         self.assertFalse(serializer.is_valid())
@@ -120,7 +107,7 @@ class PublishListingSerializerTests(BaseListingTestMixin, TestCase):
 
         serializer = PublishListingSerializer(
             data=self.get_valid_payload(),
-            context={"request": DummySignedRequest(self.user)},
+            context={"request": DummyRequest(self.user)},
         )
 
         self.assertFalse(serializer.is_valid())
@@ -150,7 +137,7 @@ class PublishListingSerializerTests(BaseListingTestMixin, TestCase):
 
         serializer = PublishListingSerializer(
             data=self.get_valid_payload(),
-            context={"request": DummySignedRequest(self.user)},
+            context={"request": DummyRequest(self.user)},
         )
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
@@ -318,164 +305,3 @@ class PublishPropertyTransactionTests(BaseListingTestMixin, APITransactionTestCa
                 pricepernight=130000,
                 maxguests=3,
             )
-
-@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
-class ListingImageModelTest(BaseListingTestMixin,TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.municipality = cls.get_existing_municipality()
-        
-        cls.user = User.objects.create_user(
-            username="serializer_user",
-            email="serializer@test.com",
-            password="secret123",
-            is_host=False,
-        )
-
-        cls.listing = Listing.objects.create(
-            owner=cls.user,
-            municipality=cls.municipality,
-            title="Apartamento amplio",
-            description="Descripción suficientemente larga para el registro.",
-            bedrooms=2,
-            bathrooms=1,
-            locationdesc="Ubicación válida con longitud suficiente.",
-            addresstext="Calle 123 #45-67",
-            propertytype="apartment",
-            pricepernight=120000,
-            maxguests=3,
-        )
-
-    def test_create_listing_image_and_thumbnail(self):
-
-        image = SimpleUploadedFile(
-            name='test_image.jpg',
-            content=generate_test_image().read(),
-            content_type='image/jpeg'
-        )
-
-        listing_image = ListingImage.objects.create(
-            listing=self.listing,
-            image=image,
-            is_main=True
-        )
-
-        self.assertIsNotNone(listing_image.id)
-        self.assertTrue(listing_image.image)
-        self.assertTrue(listing_image.thumbnail)
-    
-    def test_unique_main_image(self):
-        image1 = SimpleUploadedFile("img1.jpg", generate_test_image().read(), content_type="image/jpeg")
-        image2 = SimpleUploadedFile("img2.jpg", generate_test_image().read(), content_type="image/jpeg")
-
-        ListingImage.objects.create(
-            listing=self.listing,
-            image=image1,
-            is_main=True
-        )
-
-        with self.assertRaises(IntegrityError):
-            ListingImage.objects.create(
-                listing=self.listing,
-                image=image2,
-                is_main=True
-            )
-
-    def test_image_url_returns_file(self):
-
-        image = SimpleUploadedFile(
-            name='test_image.jpg',
-            content=generate_test_image().read(),
-            content_type='image/jpeg'
-        )
-
-        listing_image = ListingImage.objects.create(
-            listing=self.listing,
-            image=image
-        )
-
-        self.assertTrue(default_storage.exists(listing_image.image.name))
-
-        listing_image_is_main = ListingImage.objects.create(
-            listing=self.listing,
-            image=image,
-            is_main=True
-        )
-        
-        self.assertTrue(default_storage.exists(listing_image_is_main.image.name))
-        self.assertTrue(default_storage.exists(listing_image_is_main.thumbnail.name))
-
-@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
-class ListingImageSerializerTest(BaseListingTestMixin,APITestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.municipality = cls.get_existing_municipality()
-        cls.imageInstance = SimpleUploadedFile("test.jpg", generate_test_image().read(), content_type="image/jpeg")
-
-        cls.user = User.objects.create_user(
-            username="serializer_user",
-            email="serializer@test.com",
-            password="secret123",
-            is_host=False,
-        )
-
-        cls.listing = Listing.objects.create(
-            owner=cls.user,
-            municipality=cls.municipality,
-            title="Apartamento amplio",
-            description="Descripción suficientemente larga para el registro.",
-            bedrooms=2,
-            bathrooms=1,
-            locationdesc="Ubicación válida con longitud suficiente.",
-            addresstext="Calle 123 #45-67",
-            propertytype="apartment",
-            pricepernight=120000,
-            maxguests=3,
-        )
-
-        cls.image = ListingImage.objects.create(
-            listing=cls.listing,
-            image=cls.imageInstance
-        )
-
-        cls.image.save()
-    
-    def test_serializer_fields(self):
-
-        factory = APIRequestFactory()
-        request = factory.get('/')
-        
-        serializer = ListingImageSerializer(
-            self.image,
-            context={'request': request}
-        )
-
-        data = serializer.data
-
-        self.assertIn('image_url', data)
-        self.assertIn('thumbnail_url', data)
-        self.assertEqual(data['is_main'], False)
-        self.assertNotIn('accomodationid', data)
-
-    def test_serializer_url_is_accessible(self):
-
-        factory = APIRequestFactory()
-        request = factory.get('/')
-
-        serializer = ListingImageSerializer(
-            self.image,
-            context={'request': request}
-        )
-
-        path_image = urlparse(serializer.data['image_url']).path
-
-        self.assertTrue(path_image.startswith('/media/'))
-        self.assertTrue(default_storage.exists(self.image.image.name))
-
-        if(serializer.data['is_main']):
-            path_thumbnail = urlparse(serializer.data['thumbnail_url']).path
-            
-            self.assertTrue(path_thumbnail.startswith('/media/'))
-            self.assertTrue(default_storage.exists(self.image.thumbnail.name))

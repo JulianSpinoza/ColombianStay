@@ -1,6 +1,14 @@
 import React from "react";
 
 const ProgressBar = ({ currentStep, totalSteps }) => {
+  const stepLabels = [
+    "Details",
+    "Pricing",
+    "Photos",
+    "Availability",
+    "Preview",
+  ];
+
   return (
     <div className="progress-wrapper">
       <div className="progress-bar-container">
@@ -18,6 +26,7 @@ const ProgressBar = ({ currentStep, totalSteps }) => {
               >
                 {isCompleted ? <span>✓</span> : <span>{stepNumber}</span>}
               </div>
+
               {stepNumber < totalSteps && (
                 <div
                   className={`progress-line ${
@@ -31,15 +40,11 @@ const ProgressBar = ({ currentStep, totalSteps }) => {
       </div>
 
       <div className="progress-labels">
-        <div className="progress-label">
-          <p className="label-text">Details</p>
-        </div>
-        <div className="progress-label">
-          <p className="label-text">Pricing</p>
-        </div>
-        <div className="progress-label">
-          <p className="label-text">Photos</p>
-        </div>
+        {stepLabels.slice(0, totalSteps).map((label) => (
+          <div key={label} className="progress-label">
+            <p className="label-text">{label}</p>
+          </div>
+        ))}
       </div>
     </div>
   );

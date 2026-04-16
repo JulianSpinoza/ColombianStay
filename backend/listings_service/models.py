@@ -1,8 +1,7 @@
 from django.db import models
-from django.core.validators import FileExtensionValidator
+from django.core.validators import MinValueValidator, MinLengthValidator
 from django.db.models import Q
 
-from .utils import create_thumbnail
 class Region(models.Model):
   
     regionid = models.AutoField(primary_key=True)
@@ -30,54 +29,70 @@ class Municipality(models.Model):
         db_table = 'municipality'
 
 class Listing(models.Model):
+    class PropertyType(models.TextChoices):
+        APARTMENT = 'apartment', 'Apartment'
+        CABIN = 'cabin', 'Cabin'
+        HOUSE = 'house', 'House'
+        LOFT = 'loft', 'Loft'
+        ROOM = 'room', 'Room'
+        STUDIO = 'studio', 'Studio'
 
     accomodationid = models.AutoField(primary_key=True)
     owner = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE)
-    municipality = models.ForeignKey(Municipality, on_delete=models.CASCADE )
-    title = models.CharField(max_length=50)
-    description = models.TextField()
-    bedrooms = models.IntegerField()
-    bathrooms = models.IntegerField()
-    locationdesc = models.TextField()
-    addresstext = models.CharField(max_length=50)
-    propertytype = models.CharField(max_length=20)
-    pricepernight = models.IntegerField()
-    maxguests = models.IntegerField()
+    municipality = models.ForeignKey(Municipality, on_delete=models.CASCADE)
+
+    title = models.CharField(
+        max_length=50,
+        validators=[MinLengthValidator(5)]
+    )
+    description = models.TextField(
+        validators=[MinLengthValidator(20)]
+    )
+    bedrooms = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    bathrooms = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    locationdesc = models.TextField(
+        validators=[MinLengthValidator(10)]
+    )
+    addresstext = models.CharField(
+        max_length=50,
+        validators=[MinLengthValidator(5)]
+    )
+    propertytype = models.CharField(
+        max_length=20,
+        choices=PropertyType.choices
+    )
+    pricepernight = models.IntegerField(
+        validators=[MinValueValidator(0)]
+    )
+    maxguests = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
 
     class Meta:
         db_table = 'accomodation'
-
-class ListingImage(models.Model):
-
-    def upload_path(instance, filename):
-        return f'listings/accomodation_{instance.listing.accomodationid}/{filename}'
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs) 
-
-        if self.image and not self.thumbnail and self.is_main:
-           self.thumbnail = create_thumbnail(self.image)
-           super().save(update_fields=['thumbnail'])
-
-    id = models.AutoField(primary_key=True)
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(
-        upload_to=upload_path,
-        validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
-    )
-    thumbnail = models.ImageField(
-        upload_to=upload_path,
-        validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])],
-        null=True, 
-        blank=True)
-    is_main = models.BooleanField(default=False)
-
-    class Meta:
-        db_table = 'image_accomodation'
         constraints = [
+            models.CheckConstraint(
+                condition=Q(bedrooms__gte=1),
+                name='listing_bedrooms_gte_1'
+            ),
+            models.CheckConstraint(
+                condition=Q(bathrooms__gte=1),
+                name='listing_bathrooms_gte_1'
+            ),
+            models.CheckConstraint(
+                condition=Q(maxguests__gte=1),
+                name='listing_maxguests_gte_1'
+            ),
+            models.CheckConstraint(
+                condition=Q(pricepernight__gte=0),
+                name='listing_pricepernight_gte_0'
+            ),
             models.UniqueConstraint(
-                fields=['listing'],
-                condition=Q(is_main=True),
-                name='unique_main_image_per_listing'
-            )
+                fields=['owner', 'municipality', 'title', 'addresstext'],
+                name='listing_unique_owner_municipality_title_address'
+            ),
         ]

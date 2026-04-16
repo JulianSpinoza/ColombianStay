@@ -1,32 +1,11 @@
 from rest_framework import serializers
-from .models import Listing, ListingImage
+from .models import Listing, Region, Department, Municipality
 
-class ListingImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-    thumbnail_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ListingImage
-        fields = ['id', 'image_url', 'thumbnail_url', 'is_main']
-
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(obj.image.url)
-
-    def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
-        if obj.thumbnail:
-            return request.build_absolute_uri(obj.thumbnail.url)
-        return None
-
-class ListingSerializer(serializers.ModelSerializer):
-
-    images = ListingImageSerializer(many=True, read_only=True)
+class PublishListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
             'accomodationid',
-            'owner', # Maybe add an UserSerializer type in this matter
             'municipality',
             'title',
             'description',
@@ -37,18 +16,82 @@ class ListingSerializer(serializers.ModelSerializer):
             'propertytype',
             'pricepernight',
             'maxguests',
-            'images'
         ]
-        read_only_fields = ['accomodationid']
-
-class PublishListingSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Listing
-        exclude = ['owner','municipality']
         read_only_fields = ['accomodationid']
         extra_kwargs = {
             'pricepernight': {'min_value': 0},
             'bedrooms': {'min_value': 1},
             'bathrooms': {'min_value': 1},
+            'maxguests': {'min_value': 1},
         }
+
+    def validate_title(self, value):
+        return value.strip()
+
+    def validate_description(self, value):
+        return value.strip()
+
+    def validate_locationdesc(self, value):
+        return value.strip()
+
+    def validate_addresstext(self, value):
+        return value.strip()
+
+    def validate(self, attrs):
+        if attrs['maxguests'] < attrs['bedrooms']:
+            raise serializers.ValidationError({
+                'maxguests': 'El máximo de huéspedes no puede ser menor que la cantidad de habitaciones.'
+            })
+
+        if attrs['title'].lower() == attrs['description'].lower():
+            raise serializers.ValidationError({
+                'description': 'La descripción no debe ser igual al título.'
+            })
+
+        request = self.context.get('request')
+        owner = getattr(request, 'user', None)
+
+        if owner and owner.is_authenticated:
+            duplicated = Listing.objects.filter(
+                owner=owner,
+                municipality=attrs['municipality'],
+                title__iexact=attrs['title'].strip(),
+                addresstext__iexact=attrs['addresstext'].strip(),
+            ).exists()
+
+            if duplicated:
+                raise serializers.ValidationError({
+                    'non_field_errors': [
+                        'Ya existe una publicación con el mismo usuario, municipio, título y dirección.'
+                    ]
+                })
+
+        return attrs
+    
+class RegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = ['regionid', 'name']
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    region = RegionSerializer(read_only=True)
+
+    class Meta:
+        model = Department
+        fields = ['departmentid', 'name', 'region']
+
+class MunicipalitySerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
+
+    class Meta:
+        model = Municipality
+        fields = ['municipalityid', 'name', 'department']
+
+class ListingSerializer(serializers.ModelSerializer):
+    municipality = MunicipalitySerializer(read_only=True)
+
+    class Meta:
+        model = Listing
+        fields = '__all__'
+        read_only_fields = ['accomodationid']
+

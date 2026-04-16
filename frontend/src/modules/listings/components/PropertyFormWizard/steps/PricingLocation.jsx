@@ -14,11 +14,14 @@ const PricingLocation = ({ formData, onInputChange }) => {
           <div className="price-input-wrapper">
             <span className="price-currency">COP</span>
             <input
-              type="number"
-              placeholder={0}
-              min={0}
+              type="text"
+              inputMode="numeric"
+              placeholder="Enter nightly price"
               value={formData.pricepernight}
-              onChange={(e) => onInputChange("pricepernight", parseInt(e.target.value))}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                onInputChange("pricepernight", value === "" ? "" : parseInt(value, 10));
+              }}
               className="form-input price-input"
               required
             />
@@ -89,6 +92,7 @@ const PricingLocation = ({ formData, onInputChange }) => {
           value={formData.locationdesc}
           onChange={(e) => onInputChange("locationdesc", e.target.value)}
           className="form-input"
+          required
         />
       </div>
 
