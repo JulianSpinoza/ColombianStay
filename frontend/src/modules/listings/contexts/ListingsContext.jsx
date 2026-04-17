@@ -3,15 +3,14 @@ import useListings from "../hooks/useListings";
 
 const ListingContext = createContext();
 
-export const ListingProvider = ({children}) => {
+export const ListingProvider = ({ children }) => {
+  const contextValue = useListings();
 
-    const contextValue = useListings();
-
-    return(
-        <ListingContext.Provider value={contextValue}>
-            {children}
-        </ListingContext.Provider>
-    );
+  return (
+    <ListingContext.Provider value={contextValue}>
+      {children}
+    </ListingContext.Provider>
+  );
 };
 
 export function useListingsContext() {

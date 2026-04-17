@@ -1,64 +1,86 @@
-from users_service.serializers import UserRegisterSerializer
 from rest_framework import generics, status
-from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from users_service.serializers import UserRegisterSerializer
 from .models import Municipality, Listing
 from .serializers import ListingSerializer, PublishListingSerializer
-    
+
+
 class ListingListView(generics.ListAPIView):
-    
     serializer_class = ListingSerializer
 
-    # select_related to INNER JOIN the user model
-    #queryset = Listing.objects.select_related('user').all()
-
     def get_queryset(self):
-        qs = Listing.objects.all()
-        nameMunicipality = self.request.query_params.get('municipality', None)
-        
-        if nameMunicipality is not None:
+        qs = (
+            Listing.objects
+            .select_related("owner", "municipality")
+            .prefetch_related("images", "ratings__guest")
+            .all()
+        )
 
-            m = Municipality.objects.get(name=nameMunicipality)
-            
+        municipality_name = self.request.query_params.get("municipality")
+
+        if municipality_name:
             try:
-                qs = qs.filter(
-                    municipality=m.municipalityid
-                )
-            except ValueError:
-                # Left to insert some log
-                print('Error!!!!')
-                return qs.none()
+                municipality = Municipality.objects.get(name=municipality_name)
+                qs = qs.filter(municipality=municipality.municipalityid)
+            except Municipality.DoesNotExist:
+                return Listing.objects.none()
+            except Municipality.MultipleObjectsReturned:
+                return Listing.objects.none()
 
         return qs
 
+
 class ListingDetailView(generics.RetrieveAPIView):
-    """Detalle de un listing por pk (accomodationid)."""
     serializer_class = ListingSerializer
-    lookup_field = 'pk'
-    queryset = Listing.objects.all()
-    
+    lookup_field = "pk"
+
+    def get_queryset(self):
+        return (
+            Listing.objects
+            .select_related("owner", "municipality")
+            .prefetch_related("images", "ratings__guest")
+            .all()
+        )
+
+
 class PublishProperty(APIView):
     def post(self, request):
-        property = request.data
-        try:
-            city = Municipality.objects.get(name=property.pop('city'))
-        except Municipality.DoesNotExist:
-            print("Error: Municipality could not be found")
-        except Municipality.MultipleObjectsReturned:
-            print("Error: Multiple municipalities found")
-        else:
-            print(f"Id ciudad:{city}")
-            serializer = PublishListingSerializer(data=property)
-            serializeruser = UserRegisterSerializer(data=request.user)
-            if serializer.is_valid():
+        property_data = request.data.copy()
 
-                serializer.save(owner=request.user,municipality=city)
-                serializeruser.update_host_status(is_host=True, user=request.user)
-                return Response(
-                    {
-                        "message": "Property created successfully.",
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        city_name = property_data.pop("city", None)
+
+        if not city_name:
+            return Response(
+                {"city": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            city = Municipality.objects.get(name=city_name)
+        except Municipality.DoesNotExist:
+            return Response(
+                {"city": ["Municipality could not be found."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Municipality.MultipleObjectsReturned:
+            return Response(
+                {"city": ["Multiple municipalities found with this name."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = PublishListingSerializer(data=property_data)
+
+        if serializer.is_valid():
+            serializer.save(owner=request.user, municipality=city)
+
+            serializeruser = UserRegisterSerializer()
+            serializeruser.update_host_status(is_host=True, user=request.user)
+
+            return Response(
+                {"message": "Property created successfully."},
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
