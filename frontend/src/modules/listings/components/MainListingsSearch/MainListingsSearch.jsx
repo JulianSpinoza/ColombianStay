@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useListingsContext } from "../../contexts/ListingsContext";
 import SearchBarAutocomplete from "../../../../global/components/SearchBarAutocomplete/SearchBarAutocomplete";
 import RangeSlider from "../../../../global/components/RangeSlider/RangeSlider";
@@ -20,6 +21,8 @@ const DEFAULT_FILTERS = {
 
 export default function MainListingsSearch () {
 
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const {
       options:locations,
       loading,
@@ -32,15 +35,64 @@ export default function MainListingsSearch () {
 
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
+    useEffect(() => {
+
+      const getLocation = () => {
+        let option_classification;
+        let id;
+        if (id = searchParams.get("region_id")) {
+          option_classification = "Region";
+        } else if (id = searchParams.get("department_id")) {
+          option_classification = "Departamento";
+        } else if (id = searchParams.get("municipality_id")) {
+          option_classification = "Municipio";
+        } else {
+          return null;
+        }
+
+        const locationFilter = locations.find(
+          location => (location.id === id && location.option_classification == option_classification)
+        )
+        return locationFilter;
+      }
+
+      const getNum = (key, defaultIdx) => {
+        const val = searchParams.get(key);
+        return val !== null ? Number(val) : DEFAULT_FILTERS.price[defaultIdx];
+      };
+
+      const formattedFilters = {
+        keyword: searchParams.get("keyword") || DEFAULT_FILTERS.keyword,
+        location: getLocation() || DEFAULT_FILTERS.location,
+        price: [getNum("min_price", 0), getNum("max_price", 1)],
+        quantities: {
+          guests: Number(searchParams.get("maxguests")) || DEFAULT_FILTERS.quantities.guests,
+          bedrooms: Number(searchParams.get("bedrooms")) || DEFAULT_FILTERS.quantities.bedrooms,
+          bathrooms: Number(searchParams.get("bathrooms")) || DEFAULT_FILTERS.quantities.bathrooms,
+        },
+        property_type: searchParams.get("propertytype") || DEFAULT_FILTERS.property_type,
+      };
+
+      setFilters(formattedFilters);
+
+    }, [searchParams.toString()]);
+
     const handleSearch = () => {
       if(JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS)) {
         fetchListings();
       } else {
-        const formattedFilters = {
-          propertytype: filters.property_type,
-          bedrooms: filters.quantities.bedrooms,
-          bathrooms: filters.quantities.bathrooms,
-          maxguests: filters.quantities.guests,
+        const formattedFilters = {};
+        if (filters.quantities.bedrooms !== DEFAULT_FILTERS.quantities.bedrooms){
+          formattedFilters.bedrooms = filters.quantities.bedrooms;
+        }
+        if (filters.quantities.bathrooms !== DEFAULT_FILTERS.quantities.bathrooms){
+          formattedFilters.bathrooms = filters.quantities.bathrooms;
+        }
+        if (filters.quantities.guests !== DEFAULT_FILTERS.quantities.guests){
+          formattedFilters.maxguests = filters.quantities.guests;
+        }
+        if (filters.property_type !== DEFAULT_FILTERS.property_type) {
+          formattedFilters.propertytype = filters.property_type;
         }
         if(filters.price[0] !== DEFAULT_FILTERS.price[0]){
           formattedFilters.min_price = filters.price[0];
@@ -64,7 +116,10 @@ export default function MainListingsSearch () {
               break;
           }
         }
+
         fetchListings(formattedFilters);
+        setSearchParams(formattedFilters);
+
       }
     };
 

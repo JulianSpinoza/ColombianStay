@@ -219,7 +219,8 @@ class ListingSearchView(generics.ListAPIView):
             'applied_filters': applied_filters,
             'clear_one_filter_urls': clear_one_examples,
             'clear_all_filters_url': clear_all_url,
-            'results': serializer.data
+            'results': serializer.data,
+            'suggestions': self._get_suggestions_data(),
         })
 
     def _build_url_without_param(self, request, param_to_remove):
@@ -232,3 +233,14 @@ class ListingSearchView(generics.ListAPIView):
         if query_string:
             return f'{base_url}?{query_string}'
         return base_url
+    
+    def _get_suggestions_data(self):
+        suggestions_qs = Listing.objects.select_related(
+            'owner', 
+            'municipality', 
+            'municipality__department', 
+            'municipality__department__region'
+        ).all().order_by('-accomodationid')[:4]
+        
+        serializer = self.get_serializer(suggestions_qs, many=True)
+        return serializer.data

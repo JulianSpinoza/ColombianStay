@@ -51,6 +51,14 @@ export default function SearchBarAutocomplete({
         setSuggestions([]);
     }
 
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+        e.preventDefault();
+        setSuggestions([]);
+        handleSearch();
+    }
+  };
+
     return (
         <div className="search-bar-autocomplete">
             <div className="input-wrapper">
@@ -59,6 +67,7 @@ export default function SearchBarAutocomplete({
                 placeholder={placeholder}
                 value={textSearch}
                 onChange={handleInputSearch}
+                onKeyDown={handleKeyDown}
                 autoComplete="off"
                 />
                 {suggestions.length > 0 && (
