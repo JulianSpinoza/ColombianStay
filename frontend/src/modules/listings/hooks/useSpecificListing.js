@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApiState } from "../../../services/api/useApiState";
-import { getSpecificListing } from "../services/listingsService";
+import { getContactHost, getSpecificListing } from "../services/listingsService";
 
 export default function useSpecificListing() {
   const { id } = useParams();
@@ -25,6 +25,7 @@ export default function useSpecificListing() {
 
     try {
       const data = await getSpecificListing(listingId);
+      const contactHostData = await getContactHost(data.owner);
 
       if (!data) {
         setError("NOT_AVAILABLE");
@@ -80,6 +81,7 @@ export default function useSpecificListing() {
           name: data.owner_name || "Host",
           avatar: (data.owner_name || "H")[0].toUpperCase(),
           isSuperhost: data.is_superhost ?? false,
+          contact: contactHostData.email,
         },
         description: data.description || "No description available.",
         images: mappedImages,

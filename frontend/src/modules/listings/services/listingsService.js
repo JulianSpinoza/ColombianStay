@@ -1,4 +1,4 @@
-import { LISTINGS_ENDPOINTS } from "../../../services/api/endpoints.js";
+import { LISTINGS_ENDPOINTS, USERS_ENDPOINTS } from "../../../services/api/endpoints.js";
 import httpClient from "../../../services/api/httpClient.js";
 
 /**
@@ -58,3 +58,13 @@ export const getSpecificListing = async (id) => {
     throw error;
   }
 };
+
+export const getContactHost = async (id) => {
+  try {
+    const response = await httpClient.get(USERS_ENDPOINTS.CONTACT_HOST(id));
+    return response.data;
+  } catch (error) {
+    console.error(`Error retrieving the contact of the host with id ${id}: `, error);
+    throw error;
+  }
+}

@@ -35,3 +35,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['username'] = user.username
 
         return token
+    
+
+class ContactHostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name','email','email_as_contact']
+        read_only_fields = ['first_name','email', 'email_as_contact']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not instance.email_as_contact:
+            data["email"] = None
+
+        return data

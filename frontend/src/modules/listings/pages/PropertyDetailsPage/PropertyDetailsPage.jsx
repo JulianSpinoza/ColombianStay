@@ -5,11 +5,13 @@ import BackToResultsButton from "../../components/BackToResultsButton/BackToResu
 import MapSection from "../../components/MapSection/MapSection.jsx";
 import useSpecificListing from "../../hooks/useSpecificListing.js";
 import "./PropertyDetailsPage.css";
+import HostContactModal from "../../components/ContactHostModal/HostContactModal.jsx";
 
 const PropertyDetailsPage = () => {
   const { listing, loading, error, retry } = useSpecificListing();
   const [copied, setCopied] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [openContactModal, setOpenContactModal] = useState(false);
 
   if (loading) {
     return (
@@ -124,6 +126,10 @@ const PropertyDetailsPage = () => {
       console.error("Could not copy the shareable link:", copyError);
     }
   };
+
+  const handleContactHost = () => {
+    setOpenContactModal(true);
+  }
 
   const goPrev = () => {
     if (images.length <= 1) return;
@@ -247,10 +253,16 @@ const PropertyDetailsPage = () => {
                   )}
                 </div>
               </div>
-
-              <button className="contact-button" type="button">
-                Contact Host
-              </button>
+                
+              {listing.host.contact && (
+                <button 
+                  className="contact-button" 
+                  type="button"
+                  onClick={handleContactHost}
+                >
+                  Contact Host
+                </button>
+              )}
             </div>
 
             {listing.highlights.length > 0 && (
@@ -348,6 +360,14 @@ const PropertyDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      <HostContactModal
+        isOpen={openContactModal}
+        onClose={() => setOpenContactModal(false)}
+        hostName={listing.host.name}
+        email={listing.host.contact}
+        avatarUrl={null}
+      />
 
       <Outlet />
     </div>
