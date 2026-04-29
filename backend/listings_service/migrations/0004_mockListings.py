@@ -46,7 +46,7 @@ def create_mock_listings(apps, schema_editor):
     property_types = ["house", "apartment", "cabin", "loft", "studio"]
 
     # Crear 12 listings
-    for i in range(12):
+    for i in range(1200):
         Listing.objects.create(
             owner=random.choice(hosts),
             municipality=random.choice(municipalities),

@@ -1,5 +1,104 @@
 from rest_framework import serializers
 from .models import Listing, Region, Department, Municipality
+from django.db.models import Avg
+from rating_service.models import Rating
+from rest_framework import serializers
+
+from .models import Listing, ListingImage
+from rating_service.serializers import RatingSerializer
+
+
+class ListingImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ListingImage
+        fields = ["id", "image_url", "thumbnail_url", "is_main"]
+
+    def get_image_url(self, obj):
+        request = self.context.get("request")
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+    def get_thumbnail_url(self, obj):
+        request = self.context.get("request")
+        if obj.thumbnail:
+            return request.build_absolute_uri(obj.thumbnail.url)
+        return None
+    
+
+class ListingSerializer(serializers.ModelSerializer):
+    images = ListingImageSerializer(many=True, read_only=True)
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = Listing
+        fields = [
+            "accomodationid",
+            "owner",
+            "municipality",
+            "title",
+            "description",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "images",
+            "reviews_count",
+            "average_rating",
+        ]
+        read_only_fields = ["accomodationid"]
+
+class ListingDetailSerializer(serializers.ModelSerializer):
+    images = ListingImageSerializer(many=True, read_only=True)
+    owner_name = serializers.CharField(source="owner.username", read_only=True)
+    reviews = serializers.SerializerMethodField()
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+    share_path = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Listing
+        fields = [
+            "accomodationid",
+            "owner",
+            "owner_name",
+            "municipality",
+            "title",
+            "description",
+            "bedrooms",
+            "bathrooms",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "maxguests",
+            "images",
+            "reviews",
+            "reviews_count",
+            "average_rating",
+            "share_path",
+        ]
+        read_only_fields = ["accomodationid"]
+
+    def get_reviews(self, obj):
+        ratings = Rating.objects.filter(
+            booking__listing=obj
+        ).select_related(
+            'booking__guest'
+        )
+
+        return RatingSerializer(
+            ratings,
+            many=True
+        ).data
+
+    def get_share_path(self, obj):
+        return f"/listings/{obj.accomodationid}"
+
 
 class PublishListingSerializer(serializers.ModelSerializer):
     class Meta:
@@ -86,12 +185,4 @@ class MunicipalitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Municipality
         fields = ['municipalityid', 'name', 'department']
-
-class ListingSerializer(serializers.ModelSerializer):
-    municipality = MunicipalitySerializer(read_only=True)
-
-    class Meta:
-        model = Listing
-        fields = '__all__'
-        read_only_fields = ['accomodationid']
 
