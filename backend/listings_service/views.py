@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 
 from users_service.serializers import UserRegisterSerializer
 from .models import Municipality, Listing
-from .serializers import ListingSerializer, PublishListingSerializer
+from .serializers import ListingSerializer, ListingDetailSerializer, PublishListingSerializer
 
+from django.db.models import Avg, Count
 
 class ListingListView(generics.ListAPIView):
     serializer_class = ListingSerializer
@@ -14,7 +15,7 @@ class ListingListView(generics.ListAPIView):
         qs = (
             Listing.objects
             .select_related("owner", "municipality")
-            .prefetch_related("images", "ratings__guest")
+            .prefetch_related("images", "bookings__guest")
             .all()
         )
 
@@ -33,15 +34,30 @@ class ListingListView(generics.ListAPIView):
 
 
 class ListingDetailView(generics.RetrieveAPIView):
-    serializer_class = ListingSerializer
+    serializer_class = ListingDetailSerializer
     lookup_field = "pk"
 
     def get_queryset(self):
         return (
             Listing.objects
-            .select_related("owner", "municipality")
-            .prefetch_related("images", "ratings__guest")
-            .all()
+            .select_related(
+                "owner",
+                "municipality"
+            )
+            .prefetch_related(
+                "images",
+                "bookings__review",
+                "bookings__guest"
+            )
+            .annotate(
+                reviews_count=Count(
+                    "bookings__review",
+                    distinct=True
+                ),
+                average_rating=Avg(
+                    "bookings__review__rating"
+                )
+            )
         )
 
 

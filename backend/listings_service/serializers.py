@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from rating_service.models import Rating
 from rest_framework import serializers
 
 from .models import Listing, ListingImage
@@ -24,14 +25,37 @@ class ListingImageSerializer(serializers.ModelSerializer):
         if obj.thumbnail:
             return request.build_absolute_uri(obj.thumbnail.url)
         return None
-
+    
 
 class ListingSerializer(serializers.ModelSerializer):
     images = ListingImageSerializer(many=True, read_only=True)
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = Listing
+        fields = [
+            "accomodationid",
+            "owner",
+            "municipality",
+            "title",
+            "description",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "images",
+            "reviews_count",
+            "average_rating",
+        ]
+        read_only_fields = ["accomodationid"]
+
+class ListingDetailSerializer(serializers.ModelSerializer):
+    images = ListingImageSerializer(many=True, read_only=True)
     owner_name = serializers.CharField(source="owner.username", read_only=True)
-    reviews = RatingSerializer(source="ratings", many=True, read_only=True)
-    reviews_count = serializers.SerializerMethodField()
-    average_rating = serializers.SerializerMethodField()
+    reviews = serializers.SerializerMethodField()
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
     share_path = serializers.SerializerMethodField()
 
     class Meta:
@@ -58,12 +82,17 @@ class ListingSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["accomodationid"]
 
-    def get_reviews_count(self, obj):
-        return obj.ratings.count()
+    def get_reviews(self, obj):
+        ratings = Rating.objects.filter(
+            booking__listing=obj
+        ).select_related(
+            'booking__guest'
+        )
 
-    def get_average_rating(self, obj):
-        avg = obj.ratings.aggregate(avg=Avg("rating"))["avg"]
-        return round(avg, 1) if avg is not None else None
+        return RatingSerializer(
+            ratings,
+            many=True
+        ).data
 
     def get_share_path(self, obj):
         return f"/listings/{obj.accomodationid}"
