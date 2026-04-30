@@ -4,6 +4,7 @@ import { useListingsContext } from "../../contexts/ListingsContext.jsx";
 import {  useNavigate, useSearchParams } from "react-router-dom";
 import ApiState from "../../../../global/components/ApiState/ApiState.jsx";
 import { useEffect } from "react";
+import Pagination from "../../components/PaginationComponent/Pagination.jsx";
 
 export default function ListingsPage() {
   const navigate = useNavigate();
@@ -14,7 +15,10 @@ export default function ListingsPage() {
     suggestions, 
     loading,
     error,
-    fetchListings
+    fetchListings,
+    page,
+    totalPages,
+    changePage,
   } = useListingsContext();
 
   useEffect(()=> {
@@ -72,15 +76,6 @@ export default function ListingsPage() {
   return (
     <div className="listings-page">
       <div className="listings-page-container">
-        
-        {!hasMainResults && hasSuggestions && (
-          <div className="results-message">
-            <h2 className="section-title">No exact matches found</h2>
-            <p className="section-subtitle">
-              Here are some suggested properties you may like.
-            </p>
-          </div>
-        )}
           <section className="results-section">
 
             {/* Listings Grid */}
@@ -95,6 +90,13 @@ export default function ListingsPage() {
                 </div>
               ))}
             </div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={(newPage) => {
+                changePage(newPage);
+              }}
+            />
           </section>
         </div>
       </div>

@@ -29,7 +29,7 @@ export default function MainListingsSearch () {
       error
     } = useAutoCompleteSearch();
 
-    const { fetchListings } = useListingsContext();
+    const { fetchListings, changePage } = useListingsContext();
 
     const [showFilters, setShowFilters] = useState(false);
 
@@ -117,8 +117,10 @@ export default function MainListingsSearch () {
           }
         }
 
-        fetchListings(formattedFilters);
         setSearchParams(formattedFilters);
+        changePage(1);
+        setShowFilters(false);
+        fetchListings(formattedFilters);
 
       }
     };

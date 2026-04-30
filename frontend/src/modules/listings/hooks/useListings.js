@@ -1,11 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { getFilteredListings, getListings } from "../services/listingsService";
 import { useApiState } from "../../../services/api/useApiState";
+import usePagination from "./usePagination";
 
 export default function useListings() {
   const [listings, setListings] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const lastQueryRef = useRef(null);
+
+  const {
+    page,
+    totalPages,
+    setTotalPages,
+    changePage,
+  } = usePagination();
 
   const {
     loading,
@@ -19,6 +27,10 @@ export default function useListings() {
     async (searchQuery) => {
       const currentQuery = JSON.stringify(searchQuery);
       const previousQuery = JSON.stringify(lastQueryRef.current);
+
+      if(searchQuery) {
+        delete currentQuery.page;
+      }
 
       if (currentQuery === previousQuery) {
         return;
@@ -34,9 +46,11 @@ export default function useListings() {
           const data = await getFilteredListings(searchQuery);
           setListings(data.results);
           setSuggestions(data.suggestions);
+          setTotalPages(data.total_pages);
         } else {
           const data = await getListings();
           setListings(data);
+          setTotalPages(data.total_pages);
           lastQueryRef.current = null;
         }
       } catch (err) {
@@ -55,5 +69,8 @@ export default function useListings() {
     loading,
     error,
     fetchListings,
+    page,
+    totalPages,
+    changePage,
   };
 }

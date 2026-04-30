@@ -1,4 +1,5 @@
 from django.db import transaction, IntegrityError
+from core.pagination import ListingPagination
 from users_service.serializers import UserRegisterSerializer
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -12,6 +13,7 @@ from .serializers import ListingSerializer, PublishListingSerializer, RegionSeri
     
 class ListingListView(generics.ListAPIView):
     serializer_class = ListingSerializer
+    pagination_class = ListingPagination
 
     def get_queryset(self):
         qs = Listing.objects.select_related(
@@ -122,6 +124,7 @@ class PublishProperty(APIView):
     
 class ListingSearchView(generics.ListAPIView):
     serializer_class = ListingSerializer
+    pagination_class = ListingPagination
 
     def get_queryset(self):
         queryset = Listing.objects.select_related(
@@ -147,8 +150,6 @@ class ListingSearchView(generics.ListAPIView):
         bedrooms = filters_data.get('bedrooms')
         bathrooms = filters_data.get('bathrooms')
         maxguests = filters_data.get('maxguests')
-
-        print(str(filters_data.get('region')))
 
         if keyword:
             queryset = queryset.filter(
@@ -192,17 +193,19 @@ class ListingSearchView(generics.ListAPIView):
             queryset = queryset.filter(maxguests__gte=maxguests)    # Mayor o igual a 
             # queryset = queryset.filter(maxguests=maxguests)       # Igual a 
 
-        print(str(queryset.query))
+        #print(str(queryset.query))
 
         return queryset.order_by('-accomodationid')
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+        page_queryset = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page_queryset, many=True)
 
         applied_filters = {}
+
         for key, value in request.query_params.items():
-            if value not in [None, '']:
+            if value not in [None, ''] and key not in ['page']:
                 applied_filters[key] = value
 
         base_url = request.build_absolute_uri(request.path)
@@ -214,14 +217,17 @@ class ListingSearchView(generics.ListAPIView):
 
         clear_all_url = base_url
 
-        return Response({
-            'count': queryset.count(),
+        paginated_response = self.get_paginated_response(serializer.data)
+
+        paginated_response.data.update({
+            'total_pages': self.paginator.page.paginator.num_pages,
             'applied_filters': applied_filters,
             'clear_one_filter_urls': clear_one_examples,
             'clear_all_filters_url': clear_all_url,
-            'results': serializer.data,
             'suggestions': self._get_suggestions_data(),
         })
+
+        return paginated_response
 
     def _build_url_without_param(self, request, param_to_remove):
         querydict = request.query_params.copy()
