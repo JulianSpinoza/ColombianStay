@@ -2,7 +2,7 @@ from django.db.models import Avg
 from rating_service.models import Rating
 from rest_framework import serializers
 
-from .models import Listing, ListingImage
+from .models import Listing, ListingImage, Municipality
 from rating_service.serializers import RatingSerializer
 
 
@@ -12,7 +12,7 @@ class ListingImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ListingImage
-        fields = ["id", "image_url", "thumbnail_url", "is_main"]
+        fields = ["image_url", "thumbnail_url", "is_main"]
 
     def get_image_url(self, obj):
         request = self.context.get("request")
@@ -31,18 +31,16 @@ class ListingSerializer(serializers.ModelSerializer):
     images = ListingImageSerializer(many=True, read_only=True)
     reviews_count = serializers.IntegerField(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
+    municipality_name = serializers.CharField(source='municipality.name', read_only=True)
 
     class Meta:
         model = Listing
         fields = [
             "accomodationid",
-            "owner",
-            "municipality",
+            "municipality_name",
             "title",
-            "description",
             "locationdesc",
             "addresstext",
-            "propertytype",
             "pricepernight",
             "images",
             "reviews_count",
