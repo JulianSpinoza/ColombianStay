@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useListingsContext } from "../../contexts/ListingsContext";
 import SearchBarAutocomplete from "../../../../global/components/SearchBarAutocomplete/SearchBarAutocomplete";
 import RangeSlider from "../../../../global/components/RangeSlider/RangeSlider";
 import './MainListingsSearch.css'
 import { clamp, parseNumber, formatNumber } from "../../../../global/utils/general_utils";
 import useAutoCompleteSearch from "../../hooks/useAutoCompleteSearch";
+import ApiState from "../../../../global/components/ApiState/ApiState";
 
 const DEFAULT_FILTERS = {
   keyword: "",
@@ -21,21 +21,21 @@ const DEFAULT_FILTERS = {
 
 export default function MainListingsSearch () {
 
-    const [searchParams, setSearchParams] = useSearchParams();
-
     const {
       options:locations,
-      loading,
+      loading:locations_loading,
       error
     } = useAutoCompleteSearch();
 
-    const { fetchListings, changePage } = useListingsContext();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [showFilters, setShowFilters] = useState(false);
 
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
     useEffect(() => {
+
+      if(locations_loading) return;
 
       const getLocation = () => {
         let option_classification;
@@ -50,9 +50,12 @@ export default function MainListingsSearch () {
           return null;
         }
 
+        const idLocation = parseInt(id, 10)
+
         const locationFilter = locations.find(
-          location => (location.id === id && location.option_classification == option_classification)
+          location => (location.id === idLocation && location.option_classification == option_classification)
         )
+
         return locationFilter;
       }
 
@@ -75,13 +78,13 @@ export default function MainListingsSearch () {
 
       setFilters(formattedFilters);
 
-    }, [searchParams.toString()]);
+    }, [searchParams.toString(), locations_loading]);
 
     const handleSearch = () => {
-      if(JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS)) {
-        fetchListings();
-      } else {
-        const formattedFilters = {};
+
+      const formattedFilters = {};
+
+      if(JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS)) {
         if (filters.quantities.bedrooms !== DEFAULT_FILTERS.quantities.bedrooms){
           formattedFilters.bedrooms = filters.quantities.bedrooms;
         }
@@ -116,13 +119,11 @@ export default function MainListingsSearch () {
               break;
           }
         }
-
-        setSearchParams(formattedFilters);
-        changePage(1);
-        setShowFilters(false);
-        fetchListings(formattedFilters);
-
       }
+
+      setShowFilters(false);
+      setSearchParams(formattedFilters);
+
     };
 
     const handleClearAll = () => {
@@ -134,12 +135,18 @@ export default function MainListingsSearch () {
 
         {filters.location && (
           <div className="location-selected-container">
-            <span className="location-selected-type">
-              {filters.location?.option_classification}
-            </span>
-            <span className="location-selected-name">
-              {filters.location?.name_option}
-            </span>
+            {locations_loading ? (
+              <ApiState type='loading'/>
+            ) : (
+              <>
+                <span className="location-selected-type">
+                  {filters.location.option_classification}
+                </span>
+                <span className="location-selected-name">
+                  {filters.location.name_option}
+                </span>
+              </>
+            )}
           </div>
         )}
         <SearchBarAutocomplete 

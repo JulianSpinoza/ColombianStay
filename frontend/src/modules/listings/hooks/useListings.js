@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { getFilteredListings, getListings } from "../services/listingsService";
 import { useApiState } from "../../../services/api/useApiState";
 import usePagination from "./usePagination";
@@ -23,23 +23,14 @@ export default function useListings() {
     handleError,
   } = useApiState();
 
-  const fetchListings = useCallback(
+  const fetchListings =
     async (searchQuery) => {
+
       const currentQuery = JSON.stringify(searchQuery);
-      const previousQuery = JSON.stringify(lastQueryRef.current);
-
-      if(searchQuery) {
-        delete currentQuery.page;
-      }
-
-      if (currentQuery === previousQuery) {
-        return;
-      }
+      const previousQuery = lastQueryRef.current;
   
       setError(null);
       setLoading(true);
-      setListings([]);
-      setSuggestions([]);
 
       try {
         if(searchQuery) {
@@ -49,19 +40,18 @@ export default function useListings() {
           setTotalPages(data.total_pages);
         } else {
           const data = await getListings();
-          setListings(data);
+          setListings(data.results);
           setTotalPages(data.total_pages);
           lastQueryRef.current = null;
         }
       } catch (err) {
         handleError(err)
       } finally {
-        lastQueryRef.current = searchQuery;
+        lastQueryRef.current = currentQuery;
         setLoading(false);
       }
-    },
-    [handleError, setError, setLoading]
-  );
+    }
+  ;
  
   return {
     listings,

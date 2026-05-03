@@ -1,10 +1,10 @@
 import "./ListingsPage.css";
 import ListingCard from "../../components/ListingCard/ListingCard";
-import { useListingsContext } from "../../contexts/ListingsContext.jsx";
 import {  useNavigate, useSearchParams } from "react-router-dom";
 import ApiState from "../../../../global/components/ApiState/ApiState.jsx";
 import { useEffect } from "react";
 import Pagination from "../../components/PaginationComponent/Pagination.jsx";
+import useListings from "../../hooks/useListings.js";
 
 export default function ListingsPage() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function ListingsPage() {
     page,
     totalPages,
     changePage,
-  } = useListingsContext();
+  } = useListings();
 
   useEffect(()=> {
     fetchListings(Object.fromEntries(searchParams));

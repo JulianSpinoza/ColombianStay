@@ -9,19 +9,18 @@ export default function usePagination() {
     useEffect(() => {
         const pageParam = searchParams.get('page');
         const pageNumber = pageParam ? parseInt(pageParam, 10) : 1;
-        setPage(pageNumber);
-    },[searchParams])
+        changePage(pageNumber);
+    },[searchParams.toString()])
 
-    const changePage = useCallback (
+    const changePage = 
         (newPage) => {
-          setPage(newPage);
-          setSearchParams(prev => {
-            prev.set("page", newPage);
-            return prev;
-          });
-        },
-        []
-    );
+            setPage(newPage);
+            setSearchParams((prev) => {
+                const params = new URLSearchParams(prev);
+                params.set("page", newPage);
+                return params;
+            },);
+        }
 
     return {
         page,
