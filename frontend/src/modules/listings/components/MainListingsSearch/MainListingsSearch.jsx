@@ -1,65 +1,76 @@
-import { useState } from "react";
-import { useListingsContext } from "../../contexts/ListingsContext";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import SearchBarAutocomplete from "../../../../global/components/SearchBarAutocomplete/SearchBarAutocomplete";
 
-export default function MainListingsSearch () {
+export default function MainListingsSearch() {
+  const municipalities = useMemo(
+    () => [
+      "Barranquilla",
+      "Soledad",
+      "Puerto Colombia",
+      "Cartagena",
+      "Turbaco",
+      "Santa Marta",
+      "Montería",
+      "Sincelejo",
+      "Riohacha",
+      "Bogotá",
+      "Zipaquirá",
+      "La Calera",
+      "Medellín",
+      "Envigado",
+      "Guatapé",
+      "Bucaramanga",
+      "San Gil",
+      "Tunja",
+      "Villa de Leyva",
+      "Pereira",
+      "Armenia",
+      "Manizales",
+      "Cali",
+      "Buenaventura",
+      "Palmira",
+      "Quibdó",
+      "Villavicencio",
+      "Arauca",
+      "Florencia",
+      "Leticia",
+      "San Andrés",
+      "Providencia",
+    ],
+    []
+  );
 
-    const municipalities = [
-        'Barranquilla',
-        'Soledad',
-        'Puerto Colombia',
-        'Cartagena',
-        'Turbaco',
-        'Santa Marta',
-        'Montería',
-        'Sincelejo',
-        'Riohacha',
-        'Bogotá',
-        'Zipaquirá',
-        'La Calera',
-        'Medellín',
-        'Envigado',
-        'Guatapé',
-        'Bucaramanga',
-        'San Gil',
-        'Tunja',
-        'Villa de Leyva',
-        'Pereira',
-        'Armenia',
-        'Manizales',
-        'Cali',
-        'Buenaventura',
-        'Palmira',
-        'Quibdó',
-        'Villavicencio',
-        'Arauca',
-        'Florencia',
-        'Leticia',
-        'San Andrés',
-        'Providencia'
-    ]
+  const [searchParams, setSearchParams] = useSearchParams();
+  const municipalityFromUrl = searchParams.get("municipality") || "";
 
-    const { fetchListings } = useListingsContext();
+  const [filterMunicipality, setFilterMunicipality] = useState(municipalityFromUrl);
 
-    const [filterMunicipality, setFilterMunicipality] = useState("");
+  useEffect(() => {
+    setFilterMunicipality(municipalityFromUrl);
+  }, [municipalityFromUrl]);
 
-    const handleSearch = () => {
-      const query = {};
-      if(filterMunicipality != ""){ 
-        query.municipality = filterMunicipality;
-      }
-      fetchListings(query);
-    };
+  const handleSearch = () => {
+    const trimmedMunicipality = filterMunicipality.trim();
+    const params = new URLSearchParams(searchParams);
 
-    return (
-      <SearchBarAutocomplete 
-        textSearch={filterMunicipality}
-        setTextSearch={setFilterMunicipality}
-        options={municipalities}
-        handleSearch={handleSearch}
-        placeholder="Where are you going?"
-      />
-    );
+    if (trimmedMunicipality) {
+      params.set("municipality", trimmedMunicipality);
+    } else {
+      params.delete("municipality");
+    }
 
+    params.set("page", "1");
+    setSearchParams(params);
+  };
 
-};
+  return (
+    <SearchBarAutocomplete
+      textSearch={filterMunicipality}
+      setTextSearch={setFilterMunicipality}
+      options={municipalities}
+      handleSearch={handleSearch}
+      placeholder="Where are you going?"
+    />
+  );
+}

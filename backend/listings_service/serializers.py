@@ -1,5 +1,10 @@
+from django.db.models import Avg
+from rating_service.models import Rating
 from rest_framework import serializers
-from .models import Listing, ListingImage
+
+from .models import Listing, ListingImage, Municipality
+from rating_service.serializers import RatingSerializer
+
 
 class ListingImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
@@ -7,48 +12,97 @@ class ListingImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ListingImage
-        fields = ['id', 'image_url', 'thumbnail_url', 'is_main']
+        fields = ["image_url", "thumbnail_url", "is_main"]
 
     def get_image_url(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(obj.image.url)
+        request = self.context.get("request")
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
     def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
+        request = self.context.get("request")
         if obj.thumbnail:
             return request.build_absolute_uri(obj.thumbnail.url)
         return None
+    
 
 class ListingSerializer(serializers.ModelSerializer):
-
     images = ListingImageSerializer(many=True, read_only=True)
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+    municipality_name = serializers.CharField(source='municipality.name', read_only=True)
+
     class Meta:
         model = Listing
         fields = [
-            'accomodationid',
-            'owner', # Maybe add an UserSerializer type in this matter
-            'municipality',
-            'title',
-            'description',
-            'bedrooms',
-            'bathrooms',
-            'locationdesc',
-            'addresstext',
-            'propertytype',
-            'pricepernight',
-            'maxguests',
-            'images'
+            "accomodationid",
+            "municipality_name",
+            "title",
+            "locationdesc",
+            "addresstext",
+            "pricepernight",
+            "images",
+            "reviews_count",
+            "average_rating",
         ]
-        read_only_fields = ['accomodationid']
+        read_only_fields = ["accomodationid"]
 
-class PublishListingSerializer(serializers.ModelSerializer):
+class ListingDetailSerializer(serializers.ModelSerializer):
+    images = ListingImageSerializer(many=True, read_only=True)
+    owner_name = serializers.CharField(source="owner.username", read_only=True)
+    reviews = serializers.SerializerMethodField()
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+    share_path = serializers.SerializerMethodField()
 
     class Meta:
         model = Listing
-        exclude = ['owner','municipality']
-        read_only_fields = ['accomodationid']
+        fields = [
+            "accomodationid",
+            "owner",
+            "owner_name",
+            "municipality",
+            "title",
+            "description",
+            "bedrooms",
+            "bathrooms",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "maxguests",
+            "images",
+            "reviews",
+            "reviews_count",
+            "average_rating",
+            "share_path",
+        ]
+        read_only_fields = ["accomodationid"]
+
+    def get_reviews(self, obj):
+        ratings = Rating.objects.filter(
+            booking__listing=obj
+        ).select_related(
+            'booking__guest'
+        )
+
+        return RatingSerializer(
+            ratings,
+            many=True
+        ).data
+
+    def get_share_path(self, obj):
+        return f"/listings/{obj.accomodationid}"
+
+
+class PublishListingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Listing
+        exclude = ["owner", "municipality"]
+        read_only_fields = ["accomodationid"]
         extra_kwargs = {
-            'pricepernight': {'min_value': 0},
-            'bedrooms': {'min_value': 1},
-            'bathrooms': {'min_value': 1},
+            "pricepernight": {"min_value": 0},
+            "bedrooms": {"min_value": 1},
+            "bathrooms": {"min_value": 1},
         }

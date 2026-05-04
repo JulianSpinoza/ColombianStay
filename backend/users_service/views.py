@@ -1,9 +1,13 @@
+from .models import CustomUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import UserRegisterSerializer
+from .serializers import ContactHostSerializer, UserRegisterSerializer
 from .serializers import CustomTokenObtainPairSerializer
+
+from django.http import Http404
+from rest_framework.exceptions import ValidationError
 
 class RegisterView(APIView):
     def post(self, request):
@@ -25,3 +29,19 @@ class RegisterView(APIView):
     
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class ContactHostView(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.filter(is_host=True)
+    serializer_class = ContactHostSerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'host_id'
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except Http404:
+            raise ValidationError(
+                detail={
+                    "detail": "El usuario no existe o no corresponde a un host."
+                }
+            )
