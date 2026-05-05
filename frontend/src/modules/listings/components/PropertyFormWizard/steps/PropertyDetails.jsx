@@ -1,5 +1,11 @@
 import React from "react";
 
+const blockInvalidNumberKeys = (e) => {
+  if (["e", "E", "+", "-", "."].includes(e.key)) {
+    e.preventDefault();
+  }
+};
+
 const PropertyDetails = ({ formData, onInputChange }) => {
   return (
     <div className="form-step">
@@ -50,6 +56,7 @@ const PropertyDetails = ({ formData, onInputChange }) => {
           required
         />
         <p className="form-helper">{formData.description.length}/500 characters</p>
+
       </div>
 
       <div className="form-row">
@@ -58,10 +65,14 @@ const PropertyDetails = ({ formData, onInputChange }) => {
           <input
             type="number"
             min={1}
-            max={10}
+            max={15}
             value={formData.bedrooms}
-            onChange={(e) => onInputChange("bedrooms", parseInt(e.target.value))}
+            onKeyDown={blockInvalidNumberKeys}
+            onChange={(e) =>
+              onInputChange("bedrooms", e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
             className="form-input"
+            required
           />
         </div>
 
@@ -72,8 +83,12 @@ const PropertyDetails = ({ formData, onInputChange }) => {
             min={1}
             max={10}
             value={formData.bathrooms}
-            onChange={(e) => onInputChange("bathrooms", parseInt(e.target.value))}
+            onKeyDown={blockInvalidNumberKeys}
+            onChange={(e) =>
+              onInputChange("bathrooms", e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
             className="form-input"
+            required
           />
         </div>
 
@@ -84,8 +99,12 @@ const PropertyDetails = ({ formData, onInputChange }) => {
             min={1}
             max={20}
             value={formData.maxguests}
-            onChange={(e) => onInputChange("maxguests", parseInt(e.target.value))}
+            onKeyDown={blockInvalidNumberKeys}
+            onChange={(e) =>
+              onInputChange("maxguests", e.target.value === "" ? "" : parseInt(e.target.value, 10))
+            }
             className="form-input"
+            required
           />
         </div>
       </div>
