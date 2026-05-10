@@ -5,6 +5,8 @@
 from django.db import migrations
 import random
 
+from listings_service.utils import random_point_in_multipolygon
+
 def create_mock_listings(apps, schema_editor):
     Listing = apps.get_model('listings_service', 'Listing')
     User = apps.get_model('users_service', 'CustomUser')
@@ -46,10 +48,15 @@ def create_mock_listings(apps, schema_editor):
     property_types = ["house", "apartment", "cabin", "loft", "studio"]
 
     # Crear 12 listings
-    for i in range(1200):
+    for i in range(12):
+
+        municipality_chosen=random.choice(municipalities)
+
+        random_location=random_point_in_multipolygon(municipality_chosen.boundary)
+        
         Listing.objects.create(
             owner=random.choice(hosts),
-            municipality=random.choice(municipalities),
+            municipality=municipality_chosen,
             title=titles[i],
             description=random.choice(descriptions),
             bedrooms=random.randint(1, 5),
@@ -59,6 +66,7 @@ def create_mock_listings(apps, schema_editor):
             propertytype=random.choice(property_types),
             pricepernight=random.randint(80000, 500000),
             maxguests=random.randint(2, 10),
+            exactlocation=random_location,
         )
 
 

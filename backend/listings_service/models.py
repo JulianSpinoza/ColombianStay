@@ -1,5 +1,7 @@
 from django.db import models
+from django.contrib.gis.db import models as geomodels
 from django.core.validators import MinValueValidator, MinLengthValidator, FileExtensionValidator
+from django.core.exceptions import ValidationError
 
 from django.db.models import Q
 
@@ -26,6 +28,7 @@ class Municipality(models.Model):
     municipalityid = models.AutoField(primary_key=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     name = models.CharField(max_length=40, db_column= 'namemunicipal')
+    boundary = geomodels.MultiPolygonField(geography=False, null=False)
 
     class Meta:
         db_table = 'municipality'
@@ -42,6 +45,11 @@ class Listing(models.Model):
     accomodationid = models.AutoField(primary_key=True)
     owner = models.ForeignKey('users_service.CustomUser', on_delete=models.CASCADE)
     municipality = models.ForeignKey(Municipality, on_delete=models.CASCADE)
+    exactlocation = geomodels.PointField(
+        geography=True,
+        null=False,
+        #spatial_index=True (An index for a better performance on spatial searchs)
+    )
 
     title = models.CharField(
         max_length=50,
@@ -73,6 +81,20 @@ class Listing(models.Model):
     maxguests = models.IntegerField(
         validators=[MinValueValidator(1)]
     )
+
+    def clean(self):
+        super().clean()
+
+        if self.exactlocation and self.municipality:
+
+            municipality_space = self.municipality.boundary
+
+            if not municipality_space.contains(self.exactlocation):
+                raise ValidationError({
+                    "exactlocation": (
+                        "La ubicación no pertenece al municipio seleccionado."
+                    )
+                })
 
     class Meta:
         db_table = 'accomodation'

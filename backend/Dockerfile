@@ -12,6 +12,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     libpq-dev \
     netcat-openbsd \
+    gdal-bin \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir poetry

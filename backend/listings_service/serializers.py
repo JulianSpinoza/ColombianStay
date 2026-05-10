@@ -1,9 +1,45 @@
 from rest_framework import serializers
 from .models import Listing, ListingImage, Region, Department, Municipality
 from django.db.models import Avg, Q
+from django.contrib.gis.geos import Point
 from rating_service.models import Rating
-from rest_framework import serializers
 from rating_service.serializers import RatingSerializer
+
+class LocationField(serializers.Field):
+
+    def to_representation(self, value):
+
+        if not value:
+            return None
+
+        return {
+            "lat": value.y,
+            "lng": value.x
+        }
+
+    def to_internal_value(self, data):
+
+        try:
+            lat = float(data["lat"])
+            lng = float(data["lng"])
+
+        except (KeyError, TypeError, ValueError):
+
+            raise serializers.ValidationError(
+                "Formato inválido de localización."
+            )
+
+        if not (-90 <= lat <= 90):
+            raise serializers.ValidationError(
+                "Latitud inválida."
+            )
+
+        if not (-180 <= lng <= 180):
+            raise serializers.ValidationError(
+                "Longitud inválida."
+            )
+
+        return Point(lng, lat, srid=4326)
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
@@ -57,6 +93,7 @@ class ListingDetailSerializer(serializers.ModelSerializer):
     reviews_count = serializers.IntegerField(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     share_path = serializers.SerializerMethodField()
+    exactlocation = LocationField()
 
     class Meta:
         model = Listing
@@ -79,6 +116,7 @@ class ListingDetailSerializer(serializers.ModelSerializer):
             "reviews_count",
             "average_rating",
             "share_path",
+            "exactlocation"
         ]
         read_only_fields = ["accomodationid"]
 
@@ -183,24 +221,6 @@ class MunicipalitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Municipality
         fields = ['municipalityid', 'name', 'department']
-
-class ListingImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-    thumbnail_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ListingImage
-        fields = ['id', 'image_url', 'thumbnail_url', 'is_main']
-
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(obj.image.url)
-
-    def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
-        if obj.thumbnail:
-            return request.build_absolute_uri(obj.thumbnail.url)
-        return None
 
 class ListingFilterSerializer(serializers.Serializer):
     keyword = serializers.CharField(required=False, allow_blank=False)
