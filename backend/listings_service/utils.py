@@ -11,6 +11,10 @@ def create_thumbnail(image_field, size=(300, 300)):
     image_field.file.seek(0)
 
     img = Image.open(image_field.file)
+
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+        
     img.thumbnail(size)
 
     thumb_io = BytesIO()

@@ -20,13 +20,13 @@ const PropertyFormWizard = ({ onPublish }) => {
     title: "",
     description: "",
     propertytype: "apartment",
-    bedrooms: 0,
-    bathrooms: 0,
-    maxguests: 0,
+    bedrooms: 1,
+    bathrooms: 1,
+    maxguests: 1,
     pricepernight: 0,
     locationdesc: "",
     addresstext: "",
-    city: "",
+    city: undefined,
     photos: [],
     availability: [],
   });
@@ -74,7 +74,7 @@ const PropertyFormWizard = ({ onPublish }) => {
     }
 
     if (currentStep === 2) {
-      if (formData.city.trim() === "") {
+      if (formData.city === undefined) {
         alert("You must select a city.");
         return false;
       }

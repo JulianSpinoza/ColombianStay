@@ -48,6 +48,7 @@ const PropertyDetails = ({ formData, onInputChange }) => {
         <label className="form-label">Description *</label>
         <textarea
           placeholder="Describe your property, what makes it special, nearby attractions, etc."
+          minLength={20}
           maxLength={500}
           value={formData.description}
           onChange={(e) => onInputChange("description", e.target.value)}

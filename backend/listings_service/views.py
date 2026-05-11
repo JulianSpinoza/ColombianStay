@@ -4,8 +4,9 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Region, Department, Municipality, Listing
-from .serializers import ListingSerializer, ListingDetailSerializer, PublishListingSerializer
+from .serializers import ListingImageSerializer, ListingSerializer, ListingDetailSerializer, PublishListingSerializer
 from .serializers import RegionSerializer, DepartmentSerializer, MunicipalitySerializer
 
 from django.db.models import Avg, Count
@@ -86,6 +87,8 @@ class MunicipalityListView(generics.ListAPIView):
         return qs
     
 class PublishProperty(APIView):
+
+    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

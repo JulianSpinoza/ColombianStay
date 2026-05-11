@@ -5,6 +5,8 @@ from django.contrib.gis.geos import Point
 from rating_service.models import Rating
 from rating_service.serializers import RatingSerializer
 
+import json
+
 class LocationField(serializers.Field):
 
     def to_representation(self, value):
@@ -18,6 +20,14 @@ class LocationField(serializers.Field):
         }
 
     def to_internal_value(self, data):
+
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    "Formato inválido de localización."
+                )
 
         try:
             lat = float(data["lat"])
@@ -137,6 +147,13 @@ class ListingDetailSerializer(serializers.ModelSerializer):
 
 
 class PublishListingSerializer(serializers.ModelSerializer):
+
+    exactlocation = LocationField()
+    images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True
+    )
+
     class Meta:
         model = Listing
         fields = [
@@ -151,6 +168,8 @@ class PublishListingSerializer(serializers.ModelSerializer):
             'propertytype',
             'pricepernight',
             'maxguests',
+            'exactlocation',
+            'images'
         ]
         read_only_fields = ['accomodationid']
         extra_kwargs = {
@@ -190,6 +209,7 @@ class PublishListingSerializer(serializers.ModelSerializer):
             duplicated = Listing.objects.filter(
                 owner=owner,
                 municipality=attrs['municipality'],
+                exactlocation=attrs['exactlocation'],
                 title__iexact=attrs['title'].strip(),
                 addresstext__iexact=attrs['addresstext'].strip(),
             ).exists()
@@ -200,27 +220,53 @@ class PublishListingSerializer(serializers.ModelSerializer):
                         'Ya existe una publicación con el mismo usuario, municipio, título y dirección.'
                     ]
                 })
+            
+            municipality = attrs.get("municipality")
+            exactlocation = attrs.get("exactlocation")
+
+            if municipality and exactlocation: 
+
+                if not municipality.boundary.contains(exactlocation):
+                    raise serializers.ValidationError({
+                        "exactlocation": (
+                            "La ubicación no pertenece al municipio."
+                        )
+                    })
+
 
         return attrs
     
+    def create(self, validated_data):
+
+        images_data = validated_data.pop("images")
+
+        listing = Listing.objects.create(
+            **validated_data
+        )
+
+        for image_data in images_data:
+
+            ListingImage.objects.create(
+                listing=listing,
+                image=image_data
+            )
+
+        return listing
+
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
         fields = ['regionid', 'name']
 
 class DepartmentSerializer(serializers.ModelSerializer):
-    region = RegionSerializer(read_only=True)
-
     class Meta:
         model = Department
-        fields = ['departmentid', 'name', 'region']
+        fields = ['departmentid', 'name']
 
 class MunicipalitySerializer(serializers.ModelSerializer):
-    department = DepartmentSerializer(read_only=True)
-
     class Meta:
         model = Municipality
-        fields = ['municipalityid', 'name', 'department']
+        fields = ['municipalityid', 'name']
 
 class ListingFilterSerializer(serializers.Serializer):
     keyword = serializers.CharField(required=False, allow_blank=False)

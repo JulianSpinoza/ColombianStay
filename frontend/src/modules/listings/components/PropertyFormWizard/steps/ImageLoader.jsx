@@ -12,6 +12,8 @@ const ImageLoader = ({
   const [localErrors, setLocalErrors] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Como saber cual es el main
+
   const processFiles = (incomingFiles) => {
     const selectedFiles = Array.from(incomingFiles || []);
     const nextErrors = [];
@@ -57,7 +59,7 @@ const ImageLoader = ({
 
       validImages.push({
         id: `${file.name}-${file.lastModified}-${file.size}`,
-        file,
+        image: file,
         name: file.name,
         previewUrl: URL.createObjectURL(file),
       });
