@@ -18,13 +18,13 @@ export default function PublishListing() {
       pricepernight: property.pricepernight,
       locationdesc: property.locationdesc,
       addresstext: property.addresstext,
-      municipality: property.city,
+      municipality: property.city.id,
       images: property.photos,
       main_image_index: 0,
       // availability: property.availability,
       exactlocation: {
-        lat:9.255320827572543,
-        lng:-75.35241130726925,
+        lat:property.location_lat,
+        lng:property.location_lng,
       }
     }
 

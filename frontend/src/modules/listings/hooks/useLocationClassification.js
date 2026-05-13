@@ -19,7 +19,7 @@ export default function useLocationClassification() {
             setLoading(true);
             try {
                 const data = await getRegionList();
-                const formattedData = data.map(({regionid, name, type}) => ({
+                const formattedData = data.map(({regionid, name}) => ({
                     id: regionid,
                     name_option: name,
                 }));
@@ -57,9 +57,10 @@ export default function useLocationClassification() {
             setLoading(true);
             try {
                 const data = await getMunicipalityList(id);
-                const formattedData = data.map(({municipalityid, name}) => ({
+                const formattedData = data.map(({municipalityid, name, boundary=undefined}) => ({
                     id: municipalityid,
                     name_option: name,
+                    boundary: boundary
                 }));
                 setOptions(formattedData);
             } catch (err) {

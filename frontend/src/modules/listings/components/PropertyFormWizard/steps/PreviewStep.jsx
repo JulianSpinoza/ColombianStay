@@ -44,7 +44,7 @@ const PreviewStep = ({ formData }) => {
           </div>
           <div className="preview-card">
             <span className="preview-label">City</span>
-            <span className="preview-value">{formData.city}</span>
+            <span className="preview-value">{formData.city.name_option}</span>
           </div>
           <div className="preview-card preview-card-wide">
             <span className="preview-label">Full address</span>

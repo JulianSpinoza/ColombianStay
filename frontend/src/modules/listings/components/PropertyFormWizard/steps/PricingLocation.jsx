@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import useLocationClassification from "../../../hooks/useLocationClassification";
+import MapPointSelection from "../../MapSection/MapPointSelection";
 
 const PricingLocation = ({ formData, onInputChange }) => {
-
-  const [regionId, setRegionId] = useState();
-  const [departmentId, setDepartmentId] = useState();
 
   const {
     options: regionOptions,
@@ -33,17 +31,17 @@ const PricingLocation = ({ formData, onInputChange }) => {
 
   useEffect(() => {
 
-    if(!regionId) return
+    if(!formData.region) return
 
-    fetchDepartmentOptions(regionId);
-  },[regionId])
+    fetchDepartmentOptions(formData.region.id);
+  },[formData.region])
 
   useEffect(() => {
 
-    if(!departmentId) return
-
-    fetchMunicipalityOptions(departmentId);
-  },[departmentId])
+    if(!formData.department) return
+    
+    fetchMunicipalityOptions(formData.department.id);
+  },[formData.department])
 
   return (
     <div className="form-step">
@@ -77,8 +75,17 @@ const PricingLocation = ({ formData, onInputChange }) => {
         <div className="form-group">
           <label className="form-label">Region *</label>
           <select
-            value={regionId || ""}
-            onChange={(e) => setRegionId(e.target.value)}
+            value={formData.region?.id || ""}
+            onChange={(e) => {
+              onInputChange(
+                "region",  
+                regionOptions.find(
+                  region => region.id == parseInt(e.target.value,10)
+                )
+              )
+              onInputChange("department",undefined)
+              onInputChange("city",undefined)
+            }}
             className="form-input"
             required
           >
@@ -90,12 +97,20 @@ const PricingLocation = ({ formData, onInputChange }) => {
         </div>
       )}
 
-      {!departmentLoading && !departmentError && regionId &&  (
+      {!departmentLoading && !departmentError && formData.region &&  (
         <div className="form-group">
           <label className="form-label">Department *</label>
           <select
-            value={departmentId || ""}
-            onChange={(e) => setDepartmentId(e.target.value)}
+            value={formData.department?.id || ""}
+            onChange={(e) => {
+              onInputChange(
+                "department",  
+                departmentOptions.find(
+                  department => department.id == parseInt(e.target.value,10)
+                )
+              )
+              onInputChange("city",undefined)
+            }}
             className="form-input"
             required
           >
@@ -107,12 +122,21 @@ const PricingLocation = ({ formData, onInputChange }) => {
         </div>
       )}
 
-      {!municipalityError && !municipalityLoading && departmentId &&  (
+      {!municipalityError && !municipalityLoading && formData.department &&  (
         <div className="form-group">
           <label className="form-label">Municipality *</label>
           <select
-            value={formData.city || ""}
-            onChange={(e) => onInputChange("city", parseInt(e.target.value,10))}
+            value={formData.city?.id || ""}
+            onChange={(e) => {
+              onInputChange(
+                "city",  
+                municipalityOptions.find(
+                  municipality => municipality.id == parseInt(e.target.value,10)
+                )
+              )
+              onInputChange("location_lat",undefined)
+              onInputChange("location_lng",undefined)
+            }}
             className="form-input"
             required
           >
@@ -123,6 +147,18 @@ const PricingLocation = ({ formData, onInputChange }) => {
           </select>
         </div>
       )}
+
+      {formData.city && (
+        <div className="form-group">
+          <label className="form-label">Select location</label>
+          <MapPointSelection 
+            value={(formData.location_lat && formData.location_lng) ? [formData.location_lat,formData.location_lng] : undefined}
+            onChange={onInputChange}
+            boundary={formData.city?.boundary}
+            />
+        </div>
+      )}
+      
 
       <div className="form-group">
         <label className="form-label">Full Address *</label>

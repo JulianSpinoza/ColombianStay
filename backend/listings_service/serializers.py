@@ -264,9 +264,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ['departmentid', 'name']
 
 class MunicipalitySerializer(serializers.ModelSerializer):
+
+    boundary = serializers.SerializerMethodField()
     class Meta:
         model = Municipality
-        fields = ['municipalityid', 'name']
+        fields = ['municipalityid', 'name', 'boundary']
+
+    def get_boundary(self, obj):
+        return json.loads(obj.boundary.geojson)
 
 class ListingFilterSerializer(serializers.Serializer):
     keyword = serializers.CharField(required=False, allow_blank=False)

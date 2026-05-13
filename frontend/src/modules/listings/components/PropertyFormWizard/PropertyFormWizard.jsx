@@ -26,9 +26,13 @@ const PropertyFormWizard = ({ onPublish }) => {
     pricepernight: 0,
     locationdesc: "",
     addresstext: "",
+    region: undefined,
+    department: undefined,
     city: undefined,
     photos: [],
     availability: [],
+    location_lat:undefined,
+    location_lng:undefined,
   });
 
   const totalSteps = 5;
