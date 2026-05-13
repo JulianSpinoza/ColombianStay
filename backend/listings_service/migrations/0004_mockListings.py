@@ -43,7 +43,7 @@ def create_mock_listings(apps, schema_editor):
         "Amplios espacios, luz natural y ubicación estratégica.",
     ]
 
-    property_types = ["House", "Apartment", "Cabin", "Loft", "Studio"]
+    property_types = ["house", "apartment", "cabin", "loft", "studio"]
 
     # Crear 12 listings
     for i in range(12):

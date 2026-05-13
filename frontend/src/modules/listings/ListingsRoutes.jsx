@@ -1,6 +1,5 @@
 import { Route, Routes } from "react-router-dom";
 import ListingsPage from "./pages/ListingsPage/ListingsPage";
-import { ListingProvider } from "./contexts/ListingsContext";
 import PropertyDetailsPage from "./pages/PropertyDetailsPage/PropertyDetailsPage";
 import PrivateRoute from "../../global/routes/PrivateRoute";
 import PublishListing from "./pages/PublishListingPage/PublishListingPage";
@@ -11,22 +10,20 @@ import ListingsLayout from "./layout/ListingsLayout";
 
 export default function ListingsRoutes () {
     return (
-        <ListingProvider>
-            <Routes>
-                <Route element={<ListingsLayout />}>
-                    {/* Rutas publicas*/ }
-                    <Route index element={<ListingsPage />} />
-                    <Route path="listings/:id" element={<PropertyDetailsPage />} />
-                    {/* Rutas Privadas*/ }
-                    <Route element={<PrivateRoute/>}>
-                        <Route path="publish-listing" element={<PublishListing/>}/>
-                        {/* Creo que esta es global */}
-                        <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
-                    </Route>
+        <Routes>
+            <Route element={<ListingsLayout />}>
+                {/* Rutas publicas*/ }
+                <Route index element={<ListingsPage />} />
+                <Route path="listings/:id" element={<PropertyDetailsPage />} />
+                {/* Rutas Privadas*/ }
+                <Route element={<PrivateRoute/>}>
+                    <Route path="publish-listing" element={<PublishListing/>}/>
+                    {/* Creo que esta es global */}
+                    <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
                 </Route>
-            </Routes>
-        </ListingProvider>
-    );
+            </Route>
+        </Routes>
+);
 }
 
 // Cuestionar el scope del ListingProvider

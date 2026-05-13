@@ -65,37 +65,53 @@ export function useAxiosAuth () {
     return payload.exp < now + 30;
   };
 
+  let isRefreshing = false;
+  let refreshPromise = null;
+
   useEffect(() => {
     const requestId = httpClient.interceptors.request.use(
       async (config) => {
+
+        // Avoid the same refresh request
+        if (config.url.includes("refresh")) return config;
+
         // Access token expired
         if (state.access && isTokenExpired(state.access)) {
+
+          if (!isRefreshing) {
+
+            isRefreshing = true;
           
-          // This refresh should be secured by an security cookie
-          refreshPromise = httpClient
-            .post(USERS_ENDPOINTS.REFRESH,
-              {
-                refresh: state?.refresh,
+            // This refresh should be secured by an security cookie
+            refreshPromise = httpClient
+              .post(USERS_ENDPOINTS.REFRESH,
+                {
+                  refresh: state?.refresh,
+                })
+              .then((res) => {
+                const newAccess = res.data.access;
+
+                dispatch({
+                  type: "REFRESH",
+                  payload: { access: newAccess },
+                });
+
+                localStorage.setItem("access", newAccess);
+                isRefreshing = false;
+                return newAccess;
               })
-            .then((res) => {
-              const newAccess = res.data.access;
-
-              dispatch({
-                type: "REFRESH",
-                payload: { access: newAccess },
+              .catch((e) => {
+                isRefreshing = false;
+                dispatch({ type: "LOGOUT" });
+                throw e;
               });
-
-              localStorage.setItem("access", newAccess);
-              return newAccess;
-            })
-            .catch((e) => {
-              dispatch({ type: "LOGOUT" });
-              throw e;
-            });
+            }
           
             const newAccess = await refreshPromise;
             config.headers.Authorization = `Bearer ${newAccess}`;
-        } else if (state.access) {
+        } else 
+          
+          if (state.access) {
           config.headers.Authorization = `Bearer ${state.access}`;
         } 
         return config;
@@ -111,6 +127,8 @@ export function useAxiosAuth () {
         if (status === 401 || status === 403) {
           dispatch({ type: "LOGOUT" });
         }
+
+        Promise.reject(error);
       },
     );
 
