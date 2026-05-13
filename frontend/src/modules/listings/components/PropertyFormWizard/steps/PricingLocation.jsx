@@ -1,6 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import useLocationClassification from "../../../hooks/useLocationClassification";
+import MapPointSelection from "../../MapSection/MapPointSelection";
 
 const PricingLocation = ({ formData, onInputChange }) => {
+
+  const {
+    options: regionOptions,
+    loading: regionLoading,
+    error: regionError,
+    fetchRegionOptions,
+  } = useLocationClassification();
+
+  const {
+    options: departmentOptions,
+    loading: departmentLoading,
+    error: departmentError,
+    fetchDepartmentOptions,
+  } = useLocationClassification();
+
+  const {
+    options: municipalityOptions,
+    loading: municipalityLoading,
+    error: municipalityError,
+    fetchMunicipalityOptions,
+  } = useLocationClassification();
+
+  useEffect(() => {
+    fetchRegionOptions();
+  },[])
+
+  useEffect(() => {
+
+    if(!formData.region) return
+
+    fetchDepartmentOptions(formData.region.id);
+  },[formData.region])
+
+  useEffect(() => {
+
+    if(!formData.department) return
+    
+    fetchMunicipalityOptions(formData.department.id);
+  },[formData.department])
+
   return (
     <div className="form-step">
       <div className="form-step-header">
@@ -14,11 +56,14 @@ const PricingLocation = ({ formData, onInputChange }) => {
           <div className="price-input-wrapper">
             <span className="price-currency">COP</span>
             <input
-              type="number"
-              placeholder={0}
-              min={0}
+              type="text"
+              inputMode="numeric"
+              placeholder="Enter nightly price"
               value={formData.pricepernight}
-              onChange={(e) => onInputChange("pricepernight", parseInt(e.target.value))}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                onInputChange("pricepernight", value === "" ? "" : parseInt(value, 10));
+              }}
               className="form-input price-input"
               required
             />
@@ -26,48 +71,94 @@ const PricingLocation = ({ formData, onInputChange }) => {
         </div>
       </div>
 
-      <div className="form-group">
-        <label className="form-label">City *</label>
-        <select
-          value={formData.city}
-          onChange={(e) => onInputChange("city", e.target.value)}
-          className="form-input"
-          required
-        >
-          <option value="" disabled hidden>Select a city</option>
-          <option value="Bogotá">Bogotá</option>
-          <option value="Medellín">Medellín</option>
-          <option value="Cali">Cali</option>
-          <option value="Cartagena">Cartagena</option>
-          <option value="Santa Marta">Santa Marta</option>
-          <option value="Barranquilla">Barranquilla</option>
-          <option value="Soledad">Soledad</option>
-          <option value="Puerto Colombia">Puerto Colombia</option>
-          <option value="Montería">Montería</option>
-          <option value="Sincelejo">Sincelejo</option>
-          <option value="Riohacha">Riohacha</option>
-          <option value="Zipaquirá">Zipaquirá</option>
-          <option value="La Calera">La Calera</option>
-          <option value="Envigado">Envigado</option>
-          <option value="Guatapé">Guatapé</option>
-          <option value="Bucaramanga">Bucaramanga</option>
-          <option value="San Gil">San Gil</option>
-          <option value="Tunja">Tunja</option>
-          <option value="Villa de Leyva">Villa de Leyva</option>
-          <option value="Pereira">Pereira</option>
-          <option value="Armenia">Armenia</option>
-          <option value="Manizales">Manizales</option>
-          <option value="Buenaventura">Buenaventura</option>
-          <option value="Palmira">Palmira</option>
-          <option value="Quibdó">Quibdó</option>
-          <option value="Villavicencio">Villavicencio</option>
-          <option value="Arauca">Arauca</option>
-          <option value="Florencia">Florencia</option>
-          <option value="Leticia">Leticia</option>
-          <option value="San Andrés">San Andrés</option>
-          <option value="Providencia">Providencia</option>
-        </select>
-      </div>
+      {!regionLoading && !regionError &&  (
+        <div className="form-group">
+          <label className="form-label">Region *</label>
+          <select
+            value={formData.region?.id || ""}
+            onChange={(e) => {
+              onInputChange(
+                "region",  
+                regionOptions.find(
+                  region => region.id == parseInt(e.target.value,10)
+                )
+              )
+              onInputChange("department",undefined)
+              onInputChange("city",undefined)
+            }}
+            className="form-input"
+            required
+          >
+            <option value="" disabled hidden>Select a region</option>
+            {regionOptions?.map((option) => (
+              <option key={option.id} value={option.id}>{option.name_option}</option>
+            ))}   
+          </select>
+        </div>
+      )}
+
+      {!departmentLoading && !departmentError && formData.region &&  (
+        <div className="form-group">
+          <label className="form-label">Department *</label>
+          <select
+            value={formData.department?.id || ""}
+            onChange={(e) => {
+              onInputChange(
+                "department",  
+                departmentOptions.find(
+                  department => department.id == parseInt(e.target.value,10)
+                )
+              )
+              onInputChange("city",undefined)
+            }}
+            className="form-input"
+            required
+          >
+            <option value="" disabled hidden>Select a department</option>
+            {departmentOptions?.map((option) => (
+              <option key={option.id} value={option.id}>{option.name_option}</option>
+            ))}   
+          </select>
+        </div>
+      )}
+
+      {!municipalityError && !municipalityLoading && formData.department &&  (
+        <div className="form-group">
+          <label className="form-label">Municipality *</label>
+          <select
+            value={formData.city?.id || ""}
+            onChange={(e) => {
+              onInputChange(
+                "city",  
+                municipalityOptions.find(
+                  municipality => municipality.id == parseInt(e.target.value,10)
+                )
+              )
+              onInputChange("location_lat",undefined)
+              onInputChange("location_lng",undefined)
+            }}
+            className="form-input"
+            required
+          >
+            <option value="" disabled hidden>Select a city</option>
+            {municipalityOptions?.map((option) => (
+              <option key={option.id} value={option.id}>{option.name_option}</option>
+            ))} 
+          </select>
+        </div>
+      )}
+
+      {formData.city && (
+        <div className="form-group">
+          <label className="form-label">Select location</label>
+          <MapPointSelection 
+            value={(formData.location_lat && formData.location_lng) ? [formData.location_lat,formData.location_lng] : undefined}
+            onChange={onInputChange}
+            boundary={formData.city?.boundary}
+            />
+        </div>
+      )}
+      
 
       <div className="form-group">
         <label className="form-label">Full Address *</label>
@@ -89,6 +180,7 @@ const PricingLocation = ({ formData, onInputChange }) => {
           value={formData.locationdesc}
           onChange={(e) => onInputChange("locationdesc", e.target.value)}
           className="form-input"
+          required
         />
       </div>
 

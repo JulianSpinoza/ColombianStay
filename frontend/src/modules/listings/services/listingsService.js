@@ -51,6 +51,36 @@ export const getSpecificListing = async (id) => {
   }
 }
 
+export const getRegionList = async () => {
+  try {
+    const response = await httpClient.get(LISTINGS_ENDPOINTS.REGION_LIST);
+    return response.data;
+  } catch (error) {
+    console.error(`Error retrieving the region list: `, error);
+    throw error;
+  }
+}
+
+export const getDepartmentList = async (id) => {
+  try {
+    const response = await httpClient.get(LISTINGS_ENDPOINTS.DEPARTMENT_LIST(id));
+    return response.data;
+  } catch (error) {
+    console.error(`Error retrieving the department list of region with id ${id}: `, error);
+    throw error;
+  }
+}
+
+export const getMunicipalityList = async (id) => {
+  try {
+    const response = await httpClient.get(LISTINGS_ENDPOINTS.MUNICIPALITY_LIST(id));
+    return response.data;
+  } catch (error) {
+    console.error(`Error retrieving the municipality list of department with id ${id}: `, error);
+    throw error;
+  }
+}
+    
 export const getLocationTerms = async () => {
   try {
     const response = await httpClient.get(LISTINGS_ENDPOINTS.LOCATION_TERMS);

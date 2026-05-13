@@ -5,23 +5,26 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Region, Department, Municipality, Listing
+from .serializers import ListingImageSerializer, ListingSerializer, ListingDetailSerializer, PublishListingSerializer
+from .serializers import RegionSerializer, DepartmentSerializer, MunicipalitySerializer
+
+from django.db.models import Avg, Count
 from django.db.models import Q, F
 from itertools import chain
-
-from .models import Region, Department, Municipality, Listing
-from .serializers import ListingSerializer, PublishListingSerializer, RegionSerializer, DepartmentSerializer, MunicipalitySerializer, ListingFilterSerializer
     
 class ListingListView(generics.ListAPIView):
     serializer_class = ListingSerializer
     pagination_class = ListingPagination
 
     def get_queryset(self):
-        qs = Listing.objects.select_related(
-            'municipality',
-            'municipality__department',
-            'municipality__department__region',
-            'owner',
-        ).all()
+        qs = (
+            Listing.objects
+            .select_related("owner", "municipality")
+            .prefetch_related("images", "bookings__guest")
+            .all()
+        )
 
         return qs
     
@@ -33,6 +36,34 @@ class RegionListView(generics.ListAPIView):
         qs = Region.objects.all()
 
         return qs
+
+
+class ListingDetailView(generics.RetrieveAPIView):
+    serializer_class = ListingDetailSerializer
+    lookup_field = "pk"
+
+    def get_queryset(self):
+        return (
+            Listing.objects
+            .select_related(
+                "owner",
+                "municipality"
+            )
+            .prefetch_related(
+                "images",
+                "bookings__review",
+                "bookings__guest"
+            )
+            .annotate(
+                reviews_count=Count(
+                    "bookings__review",
+                    distinct=True
+                ),
+                average_rating=Avg(
+                    "bookings__review__rating"
+                )
+            )
+        )
     
 class DepartmentListView(generics.ListAPIView):
     
@@ -83,13 +114,9 @@ class LocationUnifiedView(APIView):
 
         return Response(data)
     
-class ListingDetailView(generics.RetrieveAPIView):
-    """Detalle de un listing por pk (accomodationid)."""
-    serializer_class = ListingSerializer
-    lookup_field = 'pk'
-    queryset = Listing.objects.all()
-    
 class PublishProperty(APIView):
+
+    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

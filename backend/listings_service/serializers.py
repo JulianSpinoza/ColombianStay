@@ -1,8 +1,159 @@
 from rest_framework import serializers
-from django.db.models import Q
 from .models import Listing, ListingImage, Region, Department, Municipality
+from django.db.models import Avg, Q
+from django.contrib.gis.geos import Point
+from rating_service.models import Rating
+from rating_service.serializers import RatingSerializer
+
+import json
+
+class LocationField(serializers.Field):
+
+    def to_representation(self, value):
+
+        if not value:
+            return None
+
+        return {
+            "lat": value.y,
+            "lng": value.x
+        }
+
+    def to_internal_value(self, data):
+
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    "Formato inválido de localización."
+                )
+
+        try:
+            lat = float(data["lat"])
+            lng = float(data["lng"])
+
+        except (KeyError, TypeError, ValueError):
+
+            raise serializers.ValidationError(
+                "Formato inválido de localización."
+            )
+
+        if not (-90 <= lat <= 90):
+            raise serializers.ValidationError(
+                "Latitud inválida."
+            )
+
+        if not (-180 <= lng <= 180):
+            raise serializers.ValidationError(
+                "Longitud inválida."
+            )
+
+        return Point(lng, lat, srid=4326)
+
+
+class ListingImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ListingImage
+        fields = ["id", "image_url", "thumbnail_url", "is_main"]
+
+    def get_image_url(self, obj):
+        request = self.context.get("request")
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+    def get_thumbnail_url(self, obj):
+        request = self.context.get("request")
+        if obj.thumbnail:
+            return request.build_absolute_uri(obj.thumbnail.url)
+        return None
+    
+
+class ListingSerializer(serializers.ModelSerializer):
+    images = ListingImageSerializer(many=True, read_only=True)
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = Listing
+        fields = [
+            "accomodationid",
+            "owner",
+            "municipality",
+            "title",
+            "description",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "images",
+            "reviews_count",
+            "average_rating",
+        ]
+        read_only_fields = ["accomodationid"]
+
+class ListingDetailSerializer(serializers.ModelSerializer):
+    images = ListingImageSerializer(many=True, read_only=True)
+    owner_name = serializers.CharField(source="owner.username", read_only=True)
+    reviews = serializers.SerializerMethodField()
+    reviews_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+    share_path = serializers.SerializerMethodField()
+    exactlocation = LocationField()
+
+    class Meta:
+        model = Listing
+        fields = [
+            "accomodationid",
+            "owner",
+            "owner_name",
+            "municipality",
+            "title",
+            "description",
+            "bedrooms",
+            "bathrooms",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "maxguests",
+            "images",
+            "reviews",
+            "reviews_count",
+            "average_rating",
+            "share_path",
+            "exactlocation"
+        ]
+        read_only_fields = ["accomodationid"]
+
+    def get_reviews(self, obj):
+        ratings = Rating.objects.filter(
+            booking__listing=obj
+        ).select_related(
+            'booking__guest'
+        )
+
+        return RatingSerializer(
+            ratings,
+            many=True
+        ).data
+
+    def get_share_path(self, obj):
+        return f"/listings/{obj.accomodationid}"
+
 
 class PublishListingSerializer(serializers.ModelSerializer):
+
+    exactlocation = LocationField()
+    images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True
+    )
+
     class Meta:
         model = Listing
         fields = [
@@ -17,6 +168,8 @@ class PublishListingSerializer(serializers.ModelSerializer):
             'propertytype',
             'pricepernight',
             'maxguests',
+            'exactlocation',
+            'images'
         ]
         read_only_fields = ['accomodationid']
         extra_kwargs = {
@@ -56,6 +209,7 @@ class PublishListingSerializer(serializers.ModelSerializer):
             duplicated = Listing.objects.filter(
                 owner=owner,
                 municipality=attrs['municipality'],
+                exactlocation=attrs['exactlocation'],
                 title__iexact=attrs['title'].strip(),
                 addresstext__iexact=attrs['addresstext'].strip(),
             ).exists()
@@ -66,75 +220,58 @@ class PublishListingSerializer(serializers.ModelSerializer):
                         'Ya existe una publicación con el mismo usuario, municipio, título y dirección.'
                     ]
                 })
+            
+            municipality = attrs.get("municipality")
+            exactlocation = attrs.get("exactlocation")
+
+            if municipality and exactlocation: 
+
+                if not municipality.boundary.contains(exactlocation):
+                    raise serializers.ValidationError({
+                        "exactlocation": (
+                            "La ubicación no pertenece al municipio."
+                        )
+                    })
+
 
         return attrs
     
+    def create(self, validated_data):
+
+        images_data = validated_data.pop("images")
+
+        listing = Listing.objects.create(
+            **validated_data
+        )
+
+        for image_data in images_data:
+
+            ListingImage.objects.create(
+                listing=listing,
+                image=image_data
+            )
+
+        return listing
+
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
         fields = ['regionid', 'name']
 
 class DepartmentSerializer(serializers.ModelSerializer):
-    region = RegionSerializer(read_only=True)
-
     class Meta:
         model = Department
-        fields = ['departmentid', 'name', 'region']
+        fields = ['departmentid', 'name']
 
 class MunicipalitySerializer(serializers.ModelSerializer):
-    department = DepartmentSerializer(read_only=True)
 
+    boundary = serializers.SerializerMethodField()
     class Meta:
         model = Municipality
-        fields = ['municipalityid', 'name', 'department']
+        fields = ['municipalityid', 'name', 'boundary']
 
-class LocationTermsUnifiedSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField()
-    type = serializers.CharField()
-
-class ListingImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-    thumbnail_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ListingImage
-        fields = ['id', 'image_url', 'thumbnail_url', 'is_main']
-
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        return request.build_absolute_uri(obj.image.url)
-
-    def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
-        if obj.thumbnail:
-            return request.build_absolute_uri(obj.thumbnail.url)
-        return None
-
-class ListingSerializer(serializers.ModelSerializer):
-    municipality = MunicipalitySerializer(read_only=True)
-
-    images = ListingImageSerializer(many=True, read_only=True)
-    class Meta:
-        model = Listing
-        fields = [
-            'accomodationid',
-            'owner', # Maybe add an UserSerializer type in this matter
-            'municipality',
-            'title',
-            'description',
-            'bedrooms',
-            'bathrooms',
-            'locationdesc',
-            'addresstext',
-            'propertytype',
-            'pricepernight',
-            'maxguests',
-            'images'
-        ]
-        read_only_fields = ['accomodationid']
-
-
+    def get_boundary(self, obj):
+        return json.loads(obj.boundary.geojson)
 
 class ListingFilterSerializer(serializers.Serializer):
     keyword = serializers.CharField(required=False, allow_blank=False)
@@ -194,3 +331,8 @@ class ListingFilterSerializer(serializers.Serializer):
             })
 
         return attrs
+
+class LocationTermsUnifiedSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    type = serializers.CharField()

@@ -5,6 +5,9 @@ export const LISTINGS_ENDPOINTS = {
   SEARCH: "listings/search/",
   DETAIL: (id) => `listings/${id}/`,
   PUBLISH: "publish-listing/",
+  REGION_LIST: "listings/region/",
+  DEPARTMENT_LIST: (id) => `listings/region/${id}/`,
+  MUNICIPALITY_LIST: (id) => `listings/department/${id}/`,
   LOCATION_TERMS: "location-terms/",
 };
 
