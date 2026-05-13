@@ -4,22 +4,22 @@ import "./ListingCard.css";
 const ListingCard = ({ listing, onCardClick }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // Provide default mock data if certain props aren't passed
-  const defaultListing = {
-    title: listing.title,
-    location: listing.municipality,
-    distance: "2 km away",
-    dates: "Nov 24-29",
-    price: listing.pricepernight,
-    currency: "COP",
-    rating: 4.88,
-    reviewCount: 125,
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&h=500&fit=crop",
-    isSuperhost: true,
-  };
+  const imageUrl =
+    listing?.images && listing.images.length > 0
+      ? listing.images[0]?.image_url || listing.images[0]
+      : "https://via.placeholder.com/500x500?text=No+Image";
 
-  //const card = listing || defaultListing;
-  const card = defaultListing;
+  const card = {
+    id: listing?.accomodationid || listing?.id,
+    title: listing?.title || "Untitled property",
+    municipality: listing?.municipality.name || "Unknown location",
+    price: listing?.pricepernight || listing?.price || 0,
+    currency: "COP",
+    rating: listing?.average_rating ?? listing?.rating ?? null,
+    reviewCount: listing?.reviews_count ?? listing?.reviewCount ?? 0,
+    image: imageUrl,
+    isSuperhost: listing?.is_superhost ?? false,
+  };
 
   const handleWishlistToggle = (e) => {
     e.stopPropagation();
@@ -54,6 +54,7 @@ const ListingCard = ({ listing, onCardClick }) => {
         <button
           onClick={handleWishlistToggle}
           className="wishlist-button"
+          type="button"
         >
           {isWishlisted ? (
             <svg
@@ -85,21 +86,26 @@ const ListingCard = ({ listing, onCardClick }) => {
         <div className="card-header">
           <h3 className="card-title">{card.title}</h3>
 
+          {card.rating !== null && (
           <div className="card-rating">
             <span>{card.rating}</span>
             <svg viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           </div>
+          )}
         </div>
 
         <p className="card-subtext">{card.municipality}</p>
+
+        {card.reviewCount > 0 && (
         <p className="card-subtext">
-          {card.distance} • {card.dates}
+            {card.reviewCount} review{card.reviewCount !== 1 ? "s" : ""}
         </p>
+        )}
 
         <p className="card-price">
-          ${card.price.toLocaleString()} {card.currency}
+          ${Number(card.price).toLocaleString("es-CO")} {card.currency}
           <span> per night</span>
         </p>
       </div>

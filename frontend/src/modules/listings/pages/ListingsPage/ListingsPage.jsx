@@ -1,51 +1,84 @@
 import "./ListingsPage.css";
 import ListingCard from "../../components/ListingCard/ListingCard";
-import { useListingsContext } from "../../contexts/ListingsContext.jsx";
-import {  useNavigate } from "react-router-dom";
+import {  useNavigate, useSearchParams } from "react-router-dom";
+import ApiState from "../../../../global/components/ApiState/ApiState.jsx";
+import { useEffect } from "react";
+import Pagination from "../../components/PaginationComponent/Pagination.jsx";
+import useListings from "../../hooks/useListings.js";
 
 export default function ListingsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const { 
-    listings, 
+    listings,
+    suggestions, 
     loading,
-    error 
-  } = useListingsContext();
+    error,
+    fetchListings,
+    page,
+    totalPages,
+    changePage,
+  } = useListings();
 
+  useEffect(()=> {
+    fetchListings(Object.fromEntries(searchParams));
+  },[searchParams.toString()])
 
   const handleListingClick = (listing) => {
     navigate(`/listings/${listing.accomodationid || listing.id}`);
   };
 
+  const hasMainResults = listings.length > 0;
+  const hasSuggestions = suggestions?.length > 0 || false;
+
+
+  if (loading) {
+    return (
+      <ApiState type='loading'/>
+    );
+  }
+
+  if (error) {
+    return (
+      <ApiState type='error' onRetry={() => fetchListings()}/>
+    );
+  }
+
+  if(!loading && !error && !hasMainResults && hasSuggestions) {
+    return (
+      <div className="listings-page">
+        <div className="listings-page-container">
+          <ApiState 
+            type='empty'  
+            message="No encontramos alojamientos con esos filtros"
+          />
+          <section className="suggestions-section">
+            <h2 className="section-title">Suggested properties</h2>
+            <div className="listings-grid">
+              {suggestions.map((listing) => (
+                <div
+                  key={listing.accomodationid || listing.id}
+                  onClick={() => handleListingClick(listing)}
+                  className="cursor-pointer"
+                >
+                  <ListingCard listing={listing} />
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
-    <main className="home-hero">
-      <div className="w-full">
-        
-        {/* Main Content */}
-        <div className="home-main py-8">
-          {/* LOADING */}
-          {loading && (
-            <div className="flex justify-center items-center py-12">
-              <p className="text-gray-600">Loading properties...</p>
-            </div>
-          )}
+    <div className="listings-page">
+      <div className="listings-page-container">
+          <section className="results-section">
 
-          {/* ERROR */}
-          {error && (
-            <div className="text-center py-12">
-              <p style={{ color: "red" }}>{error}</p>
-            </div>
-          )}
-
-          {/* EMPTY STATE */}
-          {!loading && !error && listings.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No properties available.</p>
-            </div>
-          )}
-          
-          {/* Listings Grid */}
-          {!loading && !error && (
+            {/* Listings Grid */}
             <div className="listings-grid">
               {listings.map((listing) => (
                 <div
@@ -57,9 +90,15 @@ export default function ListingsPage() {
                 </div>
               ))}
             </div>
-          )}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={(newPage) => {
+                changePage(newPage);
+              }}
+            />
+          </section>
         </div>
       </div>
-    </main>
   );
 }

@@ -331,3 +331,8 @@ class ListingFilterSerializer(serializers.Serializer):
             })
 
         return attrs
+
+class LocationTermsUnifiedSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    type = serializers.CharField()
