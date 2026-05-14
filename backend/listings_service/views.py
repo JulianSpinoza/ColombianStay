@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Region, Department, Municipality, Listing
 from .serializers import ListingImageSerializer, ListingSerializer, ListingDetailSerializer, PublishListingSerializer
-from .serializers import RegionSerializer, DepartmentSerializer, MunicipalitySerializer
+from .serializers import RegionSerializer, DepartmentSerializer, MunicipalitySerializer, ListingFilterSerializer
 
 from django.db.models import Avg, Count
 from django.db.models import Q, F
