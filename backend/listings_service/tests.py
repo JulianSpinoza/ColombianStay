@@ -1,4 +1,3 @@
-from typing import Self
 from unittest.mock import patch
 from urllib.parse import urlparse
 

@@ -19,7 +19,7 @@ const DEFAULT_FILTERS = {
   property_type:null,
 };
 
-export default function MainListingsSearch () {
+export default function MainListingsSearch() {
 
     const {
       options:locations,

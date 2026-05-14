@@ -27,5 +27,6 @@ export const BOOKINGS_ENDPOINTS = {
 export const USERS_ENDPOINTS = {
   REGISTER: "register/",
   LOGIN: "auth/login/",
-  REFRESH: "auth/refresh/"
+  REFRESH: "auth/refresh/",
+  CONTACT_HOST: (id) => `contact_host/${id}/`,
 }

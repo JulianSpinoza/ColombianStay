@@ -11,7 +11,14 @@ export default function SearchBarAutocomplete({
     placeholder,
 }){
 
-    const [suggestions, setSuggestions] = useState([]);
+  const normalizedOptions = useMemo(
+    () =>
+      options.map((option) => ({
+        original: option,
+        normalized: normalizeText(option),
+      })),
+    [options]
+  );
 
     const debouncedSearch = useCallback(
         debounce(() => {
@@ -24,11 +31,7 @@ export default function SearchBarAutocomplete({
         const value = e.target.value;
         setTextSearch(value);
 
-        // Empty search
-        if(value.trim() === "") {
-            setSuggestions([]);
-            return;
-        }
+    const normalizedValue = normalizeText(value);
 
         const MAXSUGGESTIONS = 7;
 

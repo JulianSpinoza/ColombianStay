@@ -19,7 +19,8 @@ def create_mock_bookings(apps, schema_editor):
     status_options = ['pending', 'confirmed', 'completed', 'cancelled']
 
     # Crear 80000 reservas mock
-    for _ in range(8):
+
+    for _ in range(80000):
         listing = random.choice(listings)
         guest = random.choice(guests)
 

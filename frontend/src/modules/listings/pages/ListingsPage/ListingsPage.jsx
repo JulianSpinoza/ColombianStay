@@ -1,12 +1,13 @@
-import "./ListingsPage.css";
+import { useEffect } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import ListingCard from "../../components/ListingCard/ListingCard";
 import {  useNavigate, useSearchParams } from "react-router-dom";
 import ApiState from "../../../../global/components/ApiState/ApiState.jsx";
-import { useEffect } from "react";
 import Pagination from "../../components/PaginationComponent/Pagination.jsx";
 import useListings from "../../hooks/useListings.js";
+import "./ListingsPage.css";
 
-export default function ListingsPage() {
+const ListingsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -25,8 +26,32 @@ export default function ListingsPage() {
     fetchListings(Object.fromEntries(searchParams));
   },[searchParams.toString()])
 
-  const handleListingClick = (listing) => {
-    navigate(`/listings/${listing.accomodationid || listing.id}`);
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      const query = {};
+
+      if (municipality) {
+        query.municipality = municipality;
+      }
+
+      if (page) {
+        query.page = page;
+      }
+
+      fetchListings(query);
+    }, 300); // debounce de 300ms
+
+    return () => clearTimeout(delay);
+  }, [municipality, page, fetchListings]);
+
+  const handleCardClick = (listing) => {
+    const listingId = listing?.accomodationid || listing?.id;
+
+    navigate(`/listings/${listingId}`, {
+      state: {
+        from: `${location.pathname}${location.search}`,
+      },
+    });
   };
 
   const hasMainResults = listings.length > 0;
@@ -101,4 +126,6 @@ export default function ListingsPage() {
         </div>
       </div>
   );
-}
+};
+
+export default ListingsPage;

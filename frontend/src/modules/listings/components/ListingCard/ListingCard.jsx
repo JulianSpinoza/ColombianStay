@@ -12,7 +12,7 @@ const ListingCard = ({ listing, onCardClick }) => {
   const card = {
     id: listing?.accomodationid || listing?.id,
     title: listing?.title || "Untitled property",
-    municipality: listing?.municipality.name || "Unknown location",
+    municipality: listing?.municipality_name || "Unknown location",
     price: listing?.pricepernight || listing?.price || 0,
     currency: "COP",
     rating: listing?.average_rating ?? listing?.rating ?? null,
@@ -28,16 +28,12 @@ const ListingCard = ({ listing, onCardClick }) => {
 
   const handleCardClick = () => {
     if (onCardClick) {
-      onCardClick(card);
+      onCardClick(listing);
     }
   };
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="card"
-    >
-      {/* Image Container */}
+    <div onClick={handleCardClick} className="card">
       <div className="card-image-container">
         <img
           src={card.image}
@@ -57,10 +53,7 @@ const ListingCard = ({ listing, onCardClick }) => {
           type="button"
         >
           {isWishlisted ? (
-            <svg
-              className="wishlist-icon active"
-              viewBox="0 0 24 24"
-            >
+            <svg className="wishlist-icon active" viewBox="0 0 24 24">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           ) : (
@@ -81,7 +74,6 @@ const ListingCard = ({ listing, onCardClick }) => {
         </button>
       </div>
 
-      {/* Content */}
       <div className="card-content">
         <div className="card-header">
           <h3 className="card-title">{card.title}</h3>

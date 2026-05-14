@@ -45,7 +45,9 @@ export default function useListings() {
           lastQueryRef.current = null;
         }
       } catch (err) {
-        handleError(err)
+        setListings([]);
+        setSuggestions([]);
+        handleError(err);
       } finally {
         lastQueryRef.current = currentQuery;
         setLoading(false);
