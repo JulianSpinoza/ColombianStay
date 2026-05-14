@@ -50,10 +50,7 @@ export default function useSpecificListing() {
         return;
       }
 
-      const mappedImages =
-        data.images?.length > 0
-          ? data.images.map((img) => img.image_url || img)
-          : ["https://via.placeholder.com/1200x800?text=No+Image"];
+      const mappedImages = data.images.map((img) => img.image_url || img);
 
       const mappedReviews =
         data.reviews?.map((review) => ({
@@ -65,13 +62,11 @@ export default function useSpecificListing() {
         })) || [];
 
       setListing({
-        id: data.accomodationid,
         title: data.title || "Untitled property",
         location:
           data.locationdesc ||
           data.addresstext ||
-          data.municipality?.name ||
-          data.municipality ||
+          data.municipality_name ||
           "Location not available",
         price: data.pricepernight || 0,
         rating: data.average_rating ?? null,
@@ -87,8 +82,8 @@ export default function useSpecificListing() {
         images: mappedImages,
         amenities: data.amenities || [],
         highlights: data.highlights || [],
-        lat: data.latitude ?? data.lat ?? null,
-        lng: data.longitude ?? data.lng ?? null,
+        lat: data.exactlocation.lat ?? null,
+        lng: data.exactlocation.lng ??  null,
         sharePath: data.share_path || `/listings/${data.accomodationid}`,
       });
     } catch (err) {

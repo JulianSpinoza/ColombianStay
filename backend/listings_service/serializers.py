@@ -100,6 +100,7 @@ class ListingSerializer(serializers.ModelSerializer):
         read_only_fields = ["accomodationid"]
 
 class ListingDetailSerializer(serializers.ModelSerializer):
+    municipality_name = serializers.CharField(source='municipality.name', read_only=True)
     images = ListingImageSerializer(many=True, read_only=True)
     owner_name = serializers.CharField(source="owner.username", read_only=True)
     reviews = serializers.SerializerMethodField()
@@ -111,14 +112,13 @@ class ListingDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
-            "accomodationid",
             "owner",
             "owner_name",
-            "municipality",
+            "municipality_name",
             "title",
             "description",
             "bedrooms",
-            "bathrooms",
+            "bathrooms",    
             "locationdesc",
             "addresstext",
             "propertytype",
