@@ -34,3 +34,13 @@ export const getHostReservations = async (query = {}) => {
         throw error;
     }
 };
+
+export const getTotalPrice = async (query) => {
+    try {
+        const response = await httpClient.post(BOOKINGS_ENDPOINTS.TOTAL_PRICE, query)
+        return response.data.total_price;
+    } catch (error) {
+        console.error("Error to retrieve the host reservations", error);
+        throw error;
+    }
+}

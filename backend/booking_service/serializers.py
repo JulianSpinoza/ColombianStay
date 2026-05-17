@@ -1,11 +1,9 @@
 from rest_framework import serializers
-from .models import Booking
+from .models import Booking, BookingStatus, calculate_total_price
+from listings_service.models import Listing
 
 from datetime import date
 from decimal import Decimal
-from .models import Booking
-
-
 
 class BookingSerializer(serializers.ModelSerializer):
     listing_title = serializers.CharField(source='listing.title', read_only=True)
@@ -34,7 +32,7 @@ class BookingSerializer(serializers.ModelSerializer):
             'check_out_date',
             'number_of_guests',
             'total_price',
-            'status',
+            'actual_status',
             'created_at',
             'updated_at',
         ]
@@ -64,7 +62,6 @@ class CreateBookingSerializer(serializers.ModelSerializer):
             'check_in_date',
             'check_out_date',
             'number_of_guests',
-            'total_price',
         ]
 
     def validate_check_in_date(self, value):
@@ -78,15 +75,6 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         if value < 1:
             raise serializers.ValidationError(
                 'Debe haber al menos 1 huésped.'
-            )
-        return value
-
-    def validate_total_price(self, value):
-        if value is None:
-            raise serializers.ValidationError('El precio total es obligatorio.')
-        if value < Decimal('0'):
-            raise serializers.ValidationError(
-                'El precio total no puede ser negativo.'
             )
         return value
 
@@ -115,8 +103,8 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         if listing is None:
             errors['listing'] = 'No fue posible identificar la propiedad.'
 
-        # Validación opcional si el modelo Listing tiene capacidad máxima
-        max_guests = getattr(listing, 'max_guests', None) if listing else None
+        # Listing tiene capacidad máxima de huespedes
+        max_guests = getattr(listing, 'maxguests', None) if listing else None
         if max_guests is not None and guests is not None and guests > max_guests:
             errors['number_of_guests'] = f'La propiedad permite máximo {max_guests} huéspedes.'
 
@@ -132,7 +120,12 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         if listing and check_in and check_out:
             overlap_exists = Booking.objects.filter(
                 listing=listing,
-                status__in=['pending', 'confirmed', 'completed'],
+                actual_status__in=[
+                    BookingStatus.PENDING,
+                    BookingStatus.CONFIRMED, 
+                    BookingStatus.ACTIVE,
+                    BookingStatus.CONFIRMED
+                ],
                 check_in_date__lt=check_out,
                 check_out_date__gt=check_in,
             ).exists()
@@ -154,6 +147,72 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         return Booking.objects.create(
             listing=listing,
             guest=request.user,
-            status='pending',
+            actual_status=BookingStatus.PENDING,
             **validated_data
         )
+    
+class TotalPriceSerializer(serializers.Serializer):
+
+    check_in_date = serializers.DateField()
+    check_out_date = serializers.DateField()
+    guests = serializers.IntegerField(required=False)
+
+    def validate_check_in_date(self, value):
+        if value < date.today():
+            raise serializers.ValidationError(
+                'La fecha de entrada no puede estar en el pasado.'
+            )
+        return value
+
+    def validate_guests(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                'Debe haber al menos 1 huésped.'
+            )
+        return value
+    
+    def validate(self, attrs):
+        check_in = attrs.get('check_in_date')
+        check_out = attrs.get('check_out_date')
+        guests = attrs.get('guests')
+
+        listing = self.context.get('listing')
+
+        errors = {}
+
+        if not check_in:
+            errors['check_in_date'] = 'Este campo es obligatorio.'
+
+        if not check_out:
+            errors['check_out_date'] = 'Este campo es obligatorio.'
+
+        if check_in and check_out and check_out <= check_in:
+            errors['check_out_date'] = 'La fecha de salida debe ser posterior a la fecha de entrada.'
+
+        if guests is not None and guests < 1:
+            errors['guests'] = 'Debe haber al menos 1 huésped.'
+
+        if listing is None:
+            errors['listing'] = 'No fue posible identificar la propiedad.'
+        
+        max_guests = getattr(listing, 'maxguests', None) if listing else None
+        if max_guests is not None and guests is not None and guests > max_guests:
+            errors['guests'] = f'La propiedad permite máximo {max_guests} huéspedes.'
+    
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return attrs
+
+    def calculate_total(self):
+
+        listing = self.context['listing']
+        check_in = self.validated_data['check_in_date']
+        check_out = self.validated_data['check_out_date']
+        
+        num_nights = (check_out - check_in).days
+        
+        total_price = calculate_total_price(listing.pricepernight,num_nights)
+        
+        return total_price
+    

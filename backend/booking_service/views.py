@@ -10,7 +10,7 @@ from django.db import transaction
 
 from listings_service.models import Listing
 from .models import Booking
-from .serializers import CreateBookingSerializer, BookingSerializer
+from .serializers import CreateBookingSerializer, BookingSerializer, TotalPriceSerializer
 
 from django.shortcuts import get_object_or_404
 
@@ -61,7 +61,6 @@ class CreateBookingView(APIView):
             'check_in_date': data.get('check_in_date'),
             'check_out_date': data.get('check_out_date'),
             'number_of_guests': data.get('number_of_guests'),
-            'total_price': data.get('total_price'),
         }
 
         with transaction.atomic():
@@ -88,6 +87,41 @@ class CreateBookingView(APIView):
             BookingSerializer(booking).data,
             status=status.HTTP_201_CREATED
         )
+
+class TotalPriceQuoteView(APIView):
+    def post(self, request):
+
+        data = request.data
+
+        listing_id = data.get('property_id') or data.get('listing')
+        if not listing_id:
+            return Response(
+                {'property_id': ['Este campo es obligatorio.']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        listing = get_object_or_404(Listing, pk=listing_id)
+
+        normalized_data = {
+            'check_in_date': data.get('check_in'),
+            'check_out_date': data.get('check_out'),
+            'guests': data.get('guests'),
+        }
+
+
+        serializer = TotalPriceSerializer(
+            data=normalized_data,
+            context={
+                'listing': listing,
+            }
+        )
+    
+        if serializer.is_valid():
+            total = serializer.calculate_total()
+            
+            return Response({"total_price": total}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserReservationsView(generics.ListAPIView):

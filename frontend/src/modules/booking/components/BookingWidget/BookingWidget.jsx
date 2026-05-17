@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./BookingWidget.css"
 import { useApiState } from "../../../../services/api/useApiState.js";
 import { bookAProperty } from "../../services/bookingService.js";
+import useTotalPrice from "../../hooks/useTotalPrice.js";
 
 /**
  * BookingWidget
@@ -24,18 +25,26 @@ const BookingWidget = ({
   const navigate = useNavigate();
 
   // Form state
-  const [checkInDate, setCheckInDate] = useState("");
-  const [checkOutDate, setCheckOutDate] = useState("");
-  const [guests, setGuests] = useState("1");
-  const [formError, setFormError] = useState("");
+  const [checkInDate, setCheckInDate] = useState();
+  const [checkOutDate, setCheckOutDate] = useState();
+  const [guests, setGuests] = useState(1);
+  const [formError, setFormError] = useState();
   const [success, setSuccess] = useState(false);
 
-  // Api state
-  const { loading, setLoading, error, setError, handleError } = useApiState();
+  const {
+    totalPrice,
+    loading:totalPriceLoading,
+    error,
+  } = useTotalPrice({
+    guests: guests,
+    check_in: checkInDate,
+    check_out: checkOutDate,
+    listing: propertyId,
+  });
 
-  // Constants to put on the backend
-  const CLEANING_FEE = 50000; // COP
-  const SERVICE_FEE_PERCENTAGE = 0.1; // 10%
+  const CLEANING_FEE = 10;
+  const SERVICE_FEE_PERCENTAGE = 0.1;
+
 
   // Calculate number of nights
   const calculateNights = () => {
@@ -101,32 +110,27 @@ const BookingWidget = ({
   const handleReservation = async () => {
     if (!validateForm()) return;
 
-    setError(null);
-    setLoading(true);
+    //setError(null);
+    //setLoading(true);
 
     try {
       // Prepare reservation data
       const reservationData = {
         property_id: propertyId,
-        start_date: checkInDate,
-        end_date: checkOutDate,
-        guests: parseInt(guests),
-        total_price: pricing.total,
-        subtotal: pricing.subtotal,
-        cleaning_fee: pricing.cleaningFee,
-        service_fee: pricing.serviceFee,
-        nights: pricing.nights,
+        check_in_date: checkInDate,
+        check_out_date: checkOutDate,
+        number_of_guests: guests,
       };
 
       const payload = {
         property_id: propertyId,
-        start_date: checkInDate,
-        end_date: checkOutDate,
-        number_of_guests: parseInt(guests),
-        total_price: pricing.total,
+        check_in_date: checkInDate,
+        check_out_date: checkOutDate,
+        number_of_guests: guests,
+        total_price: totalPrice,
       };
 
-      const serverBooking = await bookAProperty(payload);
+      const serverBooking = await bookAProperty(reservationData);
 
       // Success - combine server response with client-side pricing details
       const combined = {
@@ -144,12 +148,12 @@ const BookingWidget = ({
       setSuccess(true);
 
       // Redirect immediately to confirmation page with combined data
-      navigate("/reservation-confirmation", { state: { reservation: combined } });
+      //navigate("/reservation-confirmation", { state: { reservation: combined } });
     } catch (err) {
-      handleError(err);
+      //handleError(err);
       setFormError("Failed to complete reservation. Please try again.");
     } finally {
-      setLoading(false);
+      //setLoading(false);
     }
   };
 
@@ -199,13 +203,13 @@ const BookingWidget = ({
         <label className="form-label">CHECK-IN</label>
         <input
           type="date"
-          value={checkInDate}
+          value={checkInDate || ""}
           min={today}
           onChange={(e) => {
             setCheckInDate(e.target.value);
             setFormError("");
           }}
-          disabled={loading}
+          disabled={totalPriceLoading}
           className="form-input"
         />
       </div>
@@ -215,13 +219,13 @@ const BookingWidget = ({
         <label className="form-label">CHECK-OUT</label>
         <input
           type="date"
-          value={checkOutDate}
+          value={checkOutDate || ""}
           min={checkInDate || tomorrowStr}
           onChange={(e) => {
             setCheckOutDate(e.target.value);
             setFormError("");
           }}
-          disabled={loading}
+          disabled={totalPriceLoading}
           className="form-input"
         />
       </div>
@@ -229,28 +233,24 @@ const BookingWidget = ({
       {/* Guests Selector */}
       <div className="form-group">
         <label className="form-label">GUESTS</label>
-        <select
+        <input
+          type="number"
+          min={1}
+          disabled={totalPriceLoading}
           value={guests}
-          onChange={(e) => setGuests(e.target.value)}
-          disabled={loading}
+          onChange={(e) => setGuests(parseInt(e.target.value)) }
           className="form-input"
-        >
-          <option value="1">1 Guest</option>
-          <option value="2">2 Guests</option>
-          <option value="3">3 Guests</option>
-          <option value="4">4 Guests</option>
-          <option value="5">5 Guests</option>
-          <option value="6">6+ Guests</option>
-        </select>
+          required
+        />
       </div>
 
       {/* Reserve Button */}
       <button
         onClick={handleReservation}
-        disabled={loading || !checkInDate || !checkOutDate || success}
+        disabled={totalPriceLoading || !checkInDate || !checkOutDate || success}
         className="reserve-button"
       >
-        {loading ? (
+        {totalPriceLoading ? (
           <span className="loading">
             <span className="spinner"></span>
             Processing...
@@ -265,7 +265,7 @@ const BookingWidget = ({
       <p className="disclaimer">You won't be charged yet</p>
 
       {/* Price Breakdown */}
-      {pricing.nights > 0 && (
+      {pricing.nights > 0 && !totalPriceLoading && (
         <div className="price-breakdown">
           <div className="row">
             <span>
@@ -277,19 +277,9 @@ const BookingWidget = ({
             </span>
           </div>
 
-          <div className="row">
-            <span>Cleaning fee</span>
-            <span className="bold">${pricing.cleaningFee.toLocaleString()}</span>
-          </div>
-
-          <div className="row">
-            <span>Service fee</span>
-            <span className="bold">${pricing.serviceFee.toLocaleString()}</span>
-          </div>
-
           <div className="row total">
             <span>Total</span>
-            <span>${pricing.total.toLocaleString()}</span>
+            <span>${totalPrice?.toLocaleString()}</span>
           </div>
         </div>
       )}
@@ -297,7 +287,7 @@ const BookingWidget = ({
       {/* Info Footer */}
       <div className="info-footer">
         <p>✓ Free cancellation for 7 days</p>
-        <p>✓ Self check-in with smart lock</p>
+        <p>✓ Cancellation avaliable until 3 days before the check-in</p>
       </div>
     </div>
   );
