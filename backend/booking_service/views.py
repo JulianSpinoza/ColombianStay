@@ -10,7 +10,7 @@ from django.db import transaction
 
 from listings_service.models import Listing
 from .models import Booking
-from .serializers import CreateBookingSerializer, BookingSerializer, TotalPriceSerializer
+from .serializers import CreateBookingSerializer, BookingSerializer, BookingTotalPriceSerializer
 
 from django.shortcuts import get_object_or_404
 
@@ -88,7 +88,7 @@ class CreateBookingView(APIView):
             status=status.HTTP_201_CREATED
         )
 
-class TotalPriceQuoteView(APIView):
+class BookingPreInformationQuoteView(APIView):
     def post(self, request):
 
         data = request.data
@@ -109,7 +109,7 @@ class TotalPriceQuoteView(APIView):
         }
 
 
-        serializer = TotalPriceSerializer(
+        serializer = BookingTotalPriceSerializer(
             data=normalized_data,
             context={
                 'listing': listing,
@@ -117,9 +117,13 @@ class TotalPriceQuoteView(APIView):
         )
     
         if serializer.is_valid():
-            total = serializer.calculate_total()
+            total_price = serializer.calculate_total()
+            unavailables_dates = listing.get_unavailable_dates()
             
-            return Response({"total_price": total}, status=status.HTTP_200_OK)
+            return Response({
+                "total_price": total_price,
+                "unavailables_dates": unavailables_dates,
+                }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

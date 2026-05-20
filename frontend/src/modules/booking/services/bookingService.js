@@ -35,10 +35,10 @@ export const getHostReservations = async (query = {}) => {
     }
 };
 
-export const getTotalPrice = async (query) => {
+export const getBookingPreInfo = async (query) => {
     try {
-        const response = await httpClient.post(BOOKINGS_ENDPOINTS.TOTAL_PRICE, query)
-        return response.data.total_price;
+        const response = await httpClient.post(BOOKINGS_ENDPOINTS.PREINFORMATION, query)
+        return response.data;
     } catch (error) {
         console.error("Error to retrieve the host reservations", error);
         throw error;

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class Region(models.Model):
   
@@ -43,3 +44,21 @@ class Listing(models.Model):
 
     class Meta:
         db_table = 'accomodation'
+
+    def get_unavailable_dates(self):
+
+        from booking_service.models import Booking, BookingStatus
+
+        today = timezone.localdate()
+
+        bookings = Booking.objects.filter(
+            listing=self,
+            check_out_date__gt=today,
+        ).exclude(
+            actual_status__in=[BookingStatus.CANCELLED]
+        ).order_by('check_in_date')
+
+        return [
+            {"start": booking.check_in_date, "end": booking.check_out_date} 
+            for booking in bookings
+        ]

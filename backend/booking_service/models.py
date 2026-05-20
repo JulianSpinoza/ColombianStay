@@ -5,8 +5,6 @@ from django.db.models import Q, F
 
 from django.db import transaction
 
-from listings_service.models import Listing
-
 def calculate_total_price(price_per_night, nights):
     return price_per_night * nights
 
@@ -116,6 +114,7 @@ class Booking(models.Model):
                 if hasattr(self, '_listing_cache'):
                     price_per_night = self.listing.pricepernight
                 else:
+                    from listings_service.models import Listing
                     price_per_night = Listing.objects.only('pricepernight').get(
                         pk=self.listing_id
                     ).pricepernight

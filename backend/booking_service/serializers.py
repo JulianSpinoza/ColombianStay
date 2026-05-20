@@ -1,13 +1,14 @@
 from rest_framework import serializers
 from .models import Booking, BookingStatus, calculate_total_price
 from listings_service.models import Listing
+from django.utils import timezone
 
-from datetime import date
+from django.db.models import Q
+
 from decimal import Decimal
 
 class BookingSerializer(serializers.ModelSerializer):
     listing_title = serializers.CharField(source='listing.title', read_only=True)
-    listing_id = serializers.CharField(source='listing.accomodationid', read_only=True)
     listing_image = serializers.SerializerMethodField()
     listing_location = serializers.CharField(source='listing.locationdesc', read_only=True)
 
@@ -18,13 +19,9 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            'booking_id',
-            'listing',
             'listing_title',
-            'listing_id',
             'listing_image',
             'listing_location',
-            'guest',
             'guest_name',
             'guest_email',
             'guest_avatar',
@@ -33,11 +30,8 @@ class BookingSerializer(serializers.ModelSerializer):
             'number_of_guests',
             'total_price',
             'actual_status',
-            'created_at',
-            'updated_at',
         ]
         read_only_fields = [
-            'booking_id',
             'created_at',
             'updated_at',
             'listing_title',
@@ -65,7 +59,7 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         ]
 
     def validate_check_in_date(self, value):
-        if value < date.today():
+        if value < timezone.localdate():
             raise serializers.ValidationError(
                 'La fecha de entrada no puede estar en el pasado.'
             )
@@ -151,14 +145,14 @@ class CreateBookingSerializer(serializers.ModelSerializer):
             **validated_data
         )
     
-class TotalPriceSerializer(serializers.Serializer):
+class BookingTotalPriceSerializer(serializers.Serializer):
 
     check_in_date = serializers.DateField()
     check_out_date = serializers.DateField()
     guests = serializers.IntegerField(required=False)
 
     def validate_check_in_date(self, value):
-        if value < date.today():
+        if value < timezone.localdate():
             raise serializers.ValidationError(
                 'La fecha de entrada no puede estar en el pasado.'
             )
