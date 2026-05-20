@@ -34,3 +34,13 @@ export const getHostReservations = async (query = {}) => {
         throw error;
     }
 };
+
+export const getBookingPreInfo = async (query) => {
+    try {
+        const response = await httpClient.post(BOOKINGS_ENDPOINTS.PREINFORMATION, query)
+        return response.data;
+    } catch (error) {
+        console.error("Error to retrieve the host reservations", error);
+        throw error;
+    }
+}

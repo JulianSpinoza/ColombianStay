@@ -276,8 +276,9 @@ const PropertyDetailsPage = () => {
             <BookingWidget
               propertyId={listing.id}
               pricePerNight={listing.price}
-              rating={listing.rating ?? 0}
-              reviews={listing.reviewsCount ?? 0}
+              rating={listing.rating}
+              reviews={listing.reviews}
+              initial_unavailibity={[]}
             />
           </div>
         </div>

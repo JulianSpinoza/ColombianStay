@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.gis.db import models as geomodels
 from django.core.validators import MinValueValidator, MinLengthValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from django.db.models import Q
 
@@ -95,6 +96,24 @@ class Listing(models.Model):
                         "La ubicación no pertenece al municipio seleccionado."
                     )
                 })
+            
+    def get_unavailable_dates(self):
+
+        from booking_service.models import Booking, BookingStatus
+
+        today = timezone.localdate()
+
+        bookings = Booking.objects.filter(
+            listing=self,
+            check_out_date__gt=today,
+        ).exclude(
+            actual_status__in=[BookingStatus.CANCELLED]
+        ).order_by('check_in_date')
+
+        return [
+            {"start": booking.check_in_date, "end": booking.check_out_date} 
+            for booking in bookings
+        ]
 
     class Meta:
         db_table = 'accomodation'
