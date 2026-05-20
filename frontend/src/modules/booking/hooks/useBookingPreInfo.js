@@ -18,7 +18,6 @@ export default function useBookingPreInfo(values_booking, initial_unavailibity, 
     const values_instances = Object.values(values_booking);
 
     useEffect(() => {
-
         if(values_instances.some(
             value => (
                 value === undefined
@@ -29,7 +28,7 @@ export default function useBookingPreInfo(values_booking, initial_unavailibity, 
             setTotalPrice(null)
             return
         }
-
+        
         fetchPreInfo(values_booking);
         
     },values_instances);

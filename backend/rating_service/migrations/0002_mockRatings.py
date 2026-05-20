@@ -22,7 +22,7 @@ def seed_ratings(apps, schema_editor):
     Booking = apps.get_model('booking_service', 'Booking')
     Rating = apps.get_model('rating_service', 'Rating')
 
-    completed_bookings = Booking.objects.filter(status='completed')
+    completed_bookings = Booking.objects.filter(actual_status='COMPLETED')
 
     ratings_to_create = []
 

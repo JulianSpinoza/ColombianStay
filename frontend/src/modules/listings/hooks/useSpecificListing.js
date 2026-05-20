@@ -62,6 +62,7 @@ export default function useSpecificListing() {
         })) || [];
 
       setListing({
+        id: data.accomodationid,
         title: data.title || "Untitled property",
         location:
           data.locationdesc ||

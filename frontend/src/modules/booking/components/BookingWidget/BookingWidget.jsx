@@ -90,9 +90,6 @@ const BookingWidget = ({
     } 
   };
 
-  console.log(checkInDate)
-  console.log(checkOutDate)
-
   return (
   <>
     <BookingConfirmationModal

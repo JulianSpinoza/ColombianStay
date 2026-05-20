@@ -112,6 +112,7 @@ class ListingDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
+            "accomodationid",
             "owner",
             "owner_name",
             "municipality_name",
@@ -147,7 +148,6 @@ class ListingDetailSerializer(serializers.ModelSerializer):
 
     def get_share_path(self, obj):
         return f"/listings/{obj.accomodationid}"
-
 
 class PublishListingSerializer(serializers.ModelSerializer):
 

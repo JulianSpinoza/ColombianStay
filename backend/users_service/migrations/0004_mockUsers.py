@@ -4,9 +4,11 @@ import random
 
 from django.db import migrations
 
-from users_service.models import CustomUser
 
 def randomize_host_contact_email(apps, schema_editor):
+
+    CustomUser = apps.get_model('users_service', 'CustomUser')
+
     hosts = CustomUser.objects.filter(is_host=True)
 
     for user in hosts:
@@ -14,6 +16,9 @@ def randomize_host_contact_email(apps, schema_editor):
         user.save()
 
 def reverse_randomize(apps, schema_editor):
+
+    CustomUser = apps.get_model('users_service', 'CustomUser')
+    
     CustomUser.objects.all().update(email_as_contact=False)
 
 class Migration(migrations.Migration):

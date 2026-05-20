@@ -277,7 +277,7 @@ const PropertyDetailsPage = () => {
               propertyId={listing.id}
               pricePerNight={listing.price}
               rating={listing.rating}
-              reviews={listing.reviews}
+              reviews={listing.reviewsCount}
               initial_unavailibity={[]}
             />
           </div>
