@@ -2,15 +2,17 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db.models import Q, F
-
 from django.db import transaction
+
 
 def calculate_total_price(price_per_night, nights):
     return price_per_night * nights
 
+
 class Actuator(models.TextChoices):
     GUEST = "GUEST", "Huésped"
     HOST = "HOST", "Anfitrión"
+
 
 class BookingStatus(models.TextChoices):
     PENDING = "PENDING", "Pendiente"
@@ -19,37 +21,48 @@ class BookingStatus(models.TextChoices):
     CANCELLED = "CANCELLED", "Cancelada"
     COMPLETED = "COMPLETED", "Completada"
 
+
 class Booking(models.Model):
 
     booking_id = models.AutoField(primary_key=True)
+
     listing = models.ForeignKey(
         'listings_service.Listing',
         on_delete=models.CASCADE,
         related_name='bookings'
     )
+
     guest = models.ForeignKey(
         'users_service.CustomUser',
         on_delete=models.CASCADE,
         related_name='bookings'
     )
+
     check_in_date = models.DateField()
     check_out_date = models.DateField()
-    number_of_guests = models.IntegerField(validators=[MinValueValidator(1)])
+
+    number_of_guests = models.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
+
     total_price = models.DecimalField(
         max_digits=15,
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
     actual_status = models.CharField(
         max_length=20,
         choices=BookingStatus.choices,
         default=BookingStatus.PENDING
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'booking'
+
         constraints = [
             models.CheckConstraint(
                 condition=Q(check_out_date__gt=F('check_in_date')),
@@ -64,6 +77,7 @@ class Booking(models.Model):
                 name='booking_total_price_gte_0'
             ),
         ]
+
         indexes = [
             models.Index(fields=['listing', 'check_in_date', 'check_out_date']),
             models.Index(fields=['guest', 'actual_status']),
@@ -74,7 +88,9 @@ class Booking(models.Model):
 
         if self.check_in_date and self.check_out_date:
             if self.check_out_date <= self.check_in_date:
-                errors['check_out_date'] = 'La fecha de salida debe ser posterior a la fecha de entrada.'
+                errors['check_out_date'] = (
+                    'La fecha de salida debe ser posterior a la fecha de entrada.'
+                )
 
         if self.number_of_guests is not None and self.number_of_guests < 1:
             errors['number_of_guests'] = 'Debe haber al menos 1 huésped.'
@@ -84,28 +100,54 @@ class Booking(models.Model):
 
         if errors:
             raise ValidationError(errors)
-        
-    def update_status(self, new_status, desc_of_transaction=None, principal_actuator=None):
+
+    def update_status(
+        self,
+        new_status,
+        desc_of_transaction=None,
+        principal_actuator=None
+    ):
+        """
+        Actualiza el estado actual de la reserva y guarda el cambio
+        en el historial de estados.
+
+        Si el nuevo estado es CANCELLED, se requiere:
+        - principal_actuator: GUEST o HOST
+        - desc_of_transaction: razón/motivo de cancelación
+        """
+
+        if new_status == BookingStatus.CANCELLED:
+            if not principal_actuator:
+                raise ValidationError({
+                    'principal_actuator': (
+                        'El actor principal es obligatorio para cancelar una reserva.'
+                    )
+                })
+
+            if not desc_of_transaction or not desc_of_transaction.strip():
+                raise ValidationError({
+                    'desc_of_transaction': (
+                        'El motivo de cancelación es obligatorio.'
+                    )
+                })
 
         with transaction.atomic():
             self.actual_status = new_status
             self.save()
 
-            if new_status == BookingStatus.CANCELLED:
-                BookingStatusHistory.objects.create(
-                    booking=self,
-                    status=new_status,
-                    principal_actuator=principal_actuator,
-                    desc_of_transaction=desc_of_transaction
-                )
-            else:    
-                BookingStatusHistory.objects.create(
-                    booking=self,
-                    status=new_status
-                )
+            BookingStatusHistory.objects.create(
+                booking=self,
+                status=new_status,
+                principal_actuator=principal_actuator
+                if new_status == BookingStatus.CANCELLED
+                else None,
+                desc_of_transaction=desc_of_transaction
+                if new_status == BookingStatus.CANCELLED
+                else None,
+            )
 
     def save(self, *args, **kwargs):
-        is_new = self._state.adding 
+        is_new = self._state.adding
 
         if self.check_in_date and self.check_out_date and self.listing_id:
             nights = (self.check_out_date - self.check_in_date).days
@@ -115,11 +157,17 @@ class Booking(models.Model):
                     price_per_night = self.listing.pricepernight
                 else:
                     from listings_service.models import Listing
-                    price_per_night = Listing.objects.only('pricepernight').get(
+
+                    price_per_night = Listing.objects.only(
+                        'pricepernight'
+                    ).get(
                         pk=self.listing_id
                     ).pricepernight
 
-                self.total_price = calculate_total_price(price_per_night, nights)
+                self.total_price = calculate_total_price(
+                    price_per_night,
+                    nights
+                )
 
         with transaction.atomic():
             super().save(*args, **kwargs)
@@ -129,31 +177,44 @@ class Booking(models.Model):
                     booking=self,
                     status=self.actual_status
                 )
-        
+
+    def __str__(self):
+        return f'Reserva #{self.booking_id} - {self.actual_status}'
+
+
 class BookingStatusHistory(models.Model):
 
     booking_status_history_id = models.AutoField(primary_key=True)
+
     booking = models.ForeignKey(
         Booking,
         on_delete=models.CASCADE,
-        related_name='booking'
+        related_name='status_history'
     )
+
     status = models.CharField(
         max_length=20,
         choices=BookingStatus.choices,
         default=BookingStatus.PENDING
     )
-    desc_of_transaction = models.TextField(null=True, blank=True)
+
+    desc_of_transaction = models.TextField(
+        null=True,
+        blank=True
+    )
+
     principal_actuator = models.CharField(
         max_length=20,
         choices=Actuator.choices,
         null=True,
         blank=True
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'booking_status_history'
+
         constraints = [
             models.UniqueConstraint(
                 fields=['booking', 'status'],
@@ -162,11 +223,48 @@ class BookingStatusHistory(models.Model):
             models.CheckConstraint(
                 condition=(
                     ~Q(status=BookingStatus.CANCELLED)
-                    | 
-                    Q(desc_of_transaction__isnull=False, 
-                      principal_actuator__isnull=False
-                    ) 
+                    |
+                    (
+                        Q(desc_of_transaction__isnull=False)
+                        & ~Q(desc_of_transaction='')
+                        & Q(principal_actuator__isnull=False)
+                        & ~Q(principal_actuator='')
+                    )
                 ),
                 name='cancelled_requires_fields',
             )
         ]
+
+        indexes = [
+            models.Index(fields=['booking', 'status']),
+            models.Index(fields=['principal_actuator']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def clean(self):
+        errors = {}
+
+        if self.status == BookingStatus.CANCELLED:
+            if not self.principal_actuator:
+                errors['principal_actuator'] = (
+                    'El actor principal es obligatorio cuando la reserva se cancela.'
+                )
+
+            if not self.desc_of_transaction or not self.desc_of_transaction.strip():
+                errors['desc_of_transaction'] = (
+                    'El motivo de cancelación es obligatorio.'
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return (
+            f'Reserva #{self.booking_id} - '
+            f'{self.status} - '
+            f'{self.created_at}'
+        )
