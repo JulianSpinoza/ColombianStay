@@ -1,10 +1,13 @@
 from django.urls import path
-from .views import ListingDetailView, ListingListView, LocationUnifiedView, RegionListView, DepartmentListView, MunicipalityListView, PublishProperty, ListingSearchView
+from .views import ListingDetailView, ListingListView, LocationUnifiedView, RegionListView, DepartmentListView, MunicipalityListView, PublishProperty, ListingSearchView, UpdateProperty, UpdatePropertyImages
 
 urlpatterns = [
     path('listings/', ListingListView.as_view(), name='listing-list'),
     path('publish-listing/', PublishProperty.as_view(), name='publish-property'),
     path('listings/<int:pk>/', ListingDetailView.as_view(), name='listing-detail'),
+    path('listings/<int:pk>/edit/', UpdateProperty.as_view(), name='update-property'),
+    path('listings/<int:pk>/edit/images/', UpdatePropertyImages.as_view(), name='update-property-images'),
+    
     path('listings/region/', RegionListView.as_view(), name='region-list'),
     path('listings/region/<int:region_id>/', DepartmentListView.as_view(), name='department-list'),
     path('listings/department/<int:department_id>/', MunicipalityListView.as_view(), name='municipality-list'),
