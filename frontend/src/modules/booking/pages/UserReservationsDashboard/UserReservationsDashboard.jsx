@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
@@ -7,115 +7,30 @@ import "./UserReservationsDashboard.css";
 import httpClient from "../../../../services/api/httpClient.js";
 import useReservations from "../../hooks/useReservations.js";
 
-/**
- * UserReservationsDashboard
- * User Story: 'Como usuario, quiero ver mis reservas y poder cancelarlas'
- * 
- * Features:
- * - Muestra lista de reservas del usuario actual
- * - Información de cada propiedad (título, localización, foto)
- * - Filtros: Próximas, Pasadas, Canceladas
- * - Búsqueda por nombre de propiedad
- * - Lógica de cancelación con modal de confirmación
- * - Actualización optimista de UI
- * - Acceso a detalles de la propiedad
- */
 const UserReservationsDashboard = () => {
+  const {
+    reservations,
+    setReservations,
+    loading,
+    error,
+    setError,
+    fetchReservations,
+  } = useReservations("guest");
 
-  const { reservations, loading, error, fetchReservations } = useReservations("guest");
-  
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all"); // all, upcoming, past, cancelled
+  const [activeFilter, setActiveFilter] = useState("all");
   const [selectedReservationId, setSelectedReservationId] = useState(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Mock data - En producción, obtener del backend
-  const mockReservations = [
-    {
-      id: "RES101",
-      property: {
-        id: "PROP001",
-        title: "Apartamento Moderno en Bogotá",
-        location: "Teusaquillo, Bogotá",
-        image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop",
-      },
-      start_date: "2025-12-20",
-      end_date: "2025-12-25",
-      status: "confirmed",
-      total_price: 850000,
-      created_at: "2025-12-01",
-    },
-    {
-      id: "RES102",
-      property: {
-        id: "PROP003",
-        title: "Cabaña en la Montaña",
-        location: "Zipaquirá, Cundinamarca",
-        image: "https://images.unsplash.com/photo-1506479773649-6bde12d37357?w=400&h=300&fit=crop",
-      },
-      start_date: "2025-11-01",
-      end_date: "2025-11-08",
-      status: "completed",
-      total_price: 1200000,
-      created_at: "2025-10-01",
-    },
-    {
-      id: "RES103",
-      property: {
-        id: "PROP004",
-        title: "Casa de Playa en Cartagena",
-        location: "Cartagena, Bolívar",
-        image: "https://images.unsplash.com/photo-1501183007986-d339d0da3123?w=400&h=300&fit=crop",
-      },
-      start_date: "2025-09-15",
-      end_date: "2025-09-20",
-      status: "cancelled",
-      total_price: 950000,
-      created_at: "2025-08-20",
-    },
-    {
-      id: "RES104",
-      property: {
-        id: "PROP005",
-        title: "Loft Moderno en Medellín",
-        location: "El Poblado, Medellín",
-        image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop",
-      },
-      start_date: "2026-02-10",
-      end_date: "2026-02-15",
-      status: "confirmed",
-      total_price: 720000,
-      created_at: "2025-12-10",
-    },
-    {
-      id: "RES105",
-      property: {
-        id: "PROP006",
-        title: "Villa Exclusiva con Piscina",
-        location: "Envigado, Medellín",
-        image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop",
-      },
-      start_date: "2025-10-05",
-      end_date: "2025-10-10",
-      status: "completed",
-      total_price: 1500000,
-      created_at: "2025-09-01",
-    },
-  ];
-
-
-  // Aplicar filtros y búsqueda
   const handleSearch = () => {
     const query = {};
 
-    // Filtro por búsqueda
-    if (searchTerm) {
-      query.nameOfProperty = searchTerm;
+    if (searchTerm.trim()) {
+      query.nameOfProperty = searchTerm.trim();
     }
 
-    // Filtro por estado
     if (activeFilter) {
       query.perspectiveStatus = activeFilter;
     }
@@ -123,63 +38,89 @@ const UserReservationsDashboard = () => {
     fetchReservations(query);
   };
 
-  // Manejar cancelación
-  const handleCancelReservation = async (reservationId) => {
+  const handleCancelReservation = async (
+    reservationId,
+    cancellationReason
+  ) => {
+    if (!reservationId) {
+      setError("No se pudo identificar la reserva seleccionada.");
+      return;
+    }
+
+    if (!cancellationReason || cancellationReason.trim().length < 5) {
+      setError("Debes ingresar un motivo de cancelación válido.");
+      return;
+    }
+
     setIsCancelling(true);
+    setError(null);
+    setSuccessMessage("");
+
     try {
-      // Actualizar optimistamente en la UI
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === reservationId ? { ...res, status: "cancelled" } : res
+      await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), {
+        status: "cancelled",
+        cancellation_reason: cancellationReason.trim(),
+      });
+
+      setReservations((prevReservations) =>
+        prevReservations.filter(
+          (reservation) => reservation.id !== reservationId
         )
       );
 
       setIsCancelModalOpen(false);
-      setSuccessMessage("Tu reserva ha sido cancelada");
+      setSelectedReservationId(null);
+      setSuccessMessage("Tu reserva ha sido cancelada correctamente.");
 
-      // En producción: llamar al API para cancelar
-      try {
-        
-        await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), { status: 'cancelled' });
-        
-      } catch (apiErr) {
-        console.error('API cancel error', apiErr);
-        setError('Error al cancelar la reserva en el servidor');
-        
-      }
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3500);
+    } catch (apiErr) {
+      console.error("API cancel error", apiErr);
 
-      // Limpiar mensaje de éxito después de 3 segundos
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      setError("Error al cancelar la reserva");
-      console.error(err);
-      // Revertir cambio optimista en caso de error
-      setReservations(mockReservations);
+      const backendReasonError =
+        apiErr?.response?.data?.cancellation_reason?.[0];
+
+      setError(
+        backendReasonError || "Error al cancelar la reserva en el servidor."
+      );
     } finally {
       setIsCancelling(false);
     }
   };
 
-  // Abrir modal de confirmación
   const handleOpenCancelModal = (reservationId) => {
+    console.log("ID recibido desde ReservationCard:", reservationId);
+
+    if (!reservationId) {
+      setError("No se pudo identificar la reserva seleccionada.");
+      return;
+    }
+
+    setError(null);
+    setSuccessMessage("");
     setSelectedReservationId(reservationId);
     setIsCancelModalOpen(true);
   };
 
+  const handleCloseCancelModal = () => {
+    if (isCancelling) return;
+
+    setIsCancelModalOpen(false);
+    setSelectedReservationId(null);
+  };
+
   const selectedReservation = reservations.find(
-    (res) => res.id === selectedReservationId
+    (reservation) => reservation.id === selectedReservationId
   );
 
   return (
     <div className="page">
       <div className="container">
-
-        {/* Encabezado */}
         <div className="header">
           <h1 className="title">Mis Reservas</h1>
         </div>
 
-        {/* Tarjeta de información */}
         <div className="info-card">
           <svg className="info-icon" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -188,36 +129,45 @@ const UserReservationsDashboard = () => {
               clipRule="evenodd"
             />
           </svg>
+
           <p className="info-text">
-            <strong>Tip:</strong> Puedes cancelar una reserva hasta 7 días antes de la fecha de llegada sin penalización.
+            <strong>Tip:</strong> Puedes cancelar una reserva hasta 7 días antes
+            de la fecha de llegada sin penalización.
           </p>
         </div>
 
-        {/* Mensaje de éxito */}
         {successMessage && (
           <div className="success-message">
-            <svg className="success-icon" fill="currentColor" viewBox="0 0 20 20">
+            <svg
+              className="success-icon"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                 clipRule="evenodd"
               />
             </svg>
+
             <span>{successMessage}</span>
           </div>
         )}
 
-        {/* Error */}
         {error && (
           <div className="error-message">
             <p>{error}</p>
           </div>
         )}
 
-        {/* Buscador y filtros */}
         <div className="filters">
           <div className="search">
-            <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="search-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -225,11 +175,17 @@ const UserReservationsDashboard = () => {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
+
             <input
               type="text"
               placeholder="Buscar una propiedad..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleSearch();
+                }
+              }}
               className="search-input"
             />
           </div>
@@ -243,7 +199,17 @@ const UserReservationsDashboard = () => {
             ].map((filter) => (
               <button
                 key={filter.key}
-                onClick={() => setActiveFilter(filter.key)}
+                type="button"
+                onClick={() => {
+                  setActiveFilter(filter.key);
+
+                  fetchReservations({
+                    perspectiveStatus: filter.key,
+                    ...(searchTerm.trim()
+                      ? { nameOfProperty: searchTerm.trim() }
+                      : {}),
+                  });
+                }}
                 className={`filter-button ${
                   activeFilter === filter.key ? "active" : ""
                 }`}
@@ -254,7 +220,6 @@ const UserReservationsDashboard = () => {
           </div>
         </div>
 
-        {/* Lista de reservas */}
         {loading ? (
           <div className="loader-container">
             <div className="loader" />
@@ -279,11 +244,13 @@ const UserReservationsDashboard = () => {
         ) : (
           <div className="empty-state">
             <h3>No hay reservas</h3>
+
             <p>
               {searchTerm
                 ? "No hay reservas que coincidan con tu búsqueda"
                 : "Aún no has hecho ninguna reserva"}
             </p>
+
             <a href="/" className="primary-button">
               Explorar propiedades
             </a>
@@ -293,10 +260,13 @@ const UserReservationsDashboard = () => {
 
       <CancelReservationModal
         isOpen={isCancelModalOpen}
-        reservationId={selectedReservationId}
+        reservationId={selectedReservation?.id || selectedReservationId}
         propertyTitle={selectedReservation?.property?.title || ""}
+        location={selectedReservation?.property?.location || ""}
+        startDate={selectedReservation?.start_date || ""}
+        endDate={selectedReservation?.end_date || ""}
         onConfirm={handleCancelReservation}
-        onCancel={() => setIsCancelModalOpen(false)}
+        onCancel={handleCloseCancelModal}
         isLoading={isCancelling}
       />
     </div>

@@ -1,46 +1,44 @@
-from django.shortcuts import render
-from rest_framework.decorators import action
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-
-
+from django.shortcuts import get_object_or_404
 
 from listings_service.models import Listing
-from .models import Booking
-from .serializers import CreateBookingSerializer, BookingSerializer, BookingTotalPriceSerializer
+from .models import Booking, BookingStatus, Actuator
+from .serializers import (
+    CreateBookingSerializer,
+    BookingSerializer,
+    BookingTotalPriceSerializer,
+)
 
-from django.shortcuts import get_object_or_404
 
 class HostReservationsView(generics.ListAPIView):
     """
     Vista para obtener todas las reservas de las propiedades del host autenticado.
-    Sin usar rest_framework.permissions, validación manual en el método list().
     """
     serializer_class = BookingSerializer
-    
+
     def get_queryset(self):
-        """Filtrar reservas por propiedades del host autenticado"""
         if not self.request.user or not self.request.user.is_authenticated:
             return Booking.objects.none()
-        
-        # Obtener todas las propiedades del host
+
         host_listings = Listing.objects.filter(owner=self.request.user)
-        # Retornar reservas de esas propiedades
-        return Booking.objects.filter(listing__in=host_listings).order_by('-created_at')
-    
+
+        return Booking.objects.filter(
+            listing__in=host_listings
+        ).order_by("-created_at")
+
     def list(self, request, *args, **kwargs):
-        """Override del método list para validación manual de autenticación"""
-        # Validación manual sin usar rest_framework.permissions
         if not request.user or not request.user.is_authenticated:
             return Response(
-                {'error': 'Autenticación requerida. Por favor, inicia sesión.'}, 
-                status=status.HTTP_401_UNAUTHORIZED
+                {"error": "Autenticación requerida. Por favor, inicia sesión."},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-        
+
         return super().list(request, *args, **kwargs)
+
 
 class CreateBookingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -48,120 +46,173 @@ class CreateBookingView(APIView):
     def post(self, request):
         data = request.data
 
-        listing_id = data.get('property_id') or data.get('listing')
+        listing_id = data.get("property_id") or data.get("listing")
+
         if not listing_id:
             return Response(
-                {'property_id': ['Este campo es obligatorio.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {"property_id": ["Este campo es obligatorio."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         listing = get_object_or_404(Listing, pk=listing_id)
 
         normalized_data = {
-            'check_in_date': data.get('check_in_date'),
-            'check_out_date': data.get('check_out_date'),
-            'number_of_guests': data.get('number_of_guests'),
+            "check_in_date": data.get("check_in_date"),
+            "check_out_date": data.get("check_out_date"),
+            "number_of_guests": data.get("number_of_guests"),
         }
 
         with transaction.atomic():
-            # Bloquea la fila del listing mientras se crea la reserva
             listing = Listing.objects.select_for_update().filter(pk=listing_id).first()
+
             if not listing:
                 return Response(
-                    {'detail': 'Propiedad no encontrada.'},
-                    status=status.HTTP_404_NOT_FOUND
+                    {"detail": "Propiedad no encontrada."},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             serializer = CreateBookingSerializer(
                 data=normalized_data,
                 context={
-                    'request': request,
-                    'listing': listing,
-                }
+                    "request": request,
+                    "listing": listing,
+                },
             )
+
             serializer.is_valid(raise_exception=True)
 
             booking = serializer.save()
 
         return Response(
             BookingSerializer(booking).data,
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
+
 
 class BookingPreInformationQuoteView(APIView):
     def post(self, request):
-
         data = request.data
 
-        listing_id = data.get('property_id') or data.get('listing')
+        listing_id = data.get("property_id") or data.get("listing")
+
         if not listing_id:
             return Response(
-                {'property_id': ['Este campo es obligatorio.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {"property_id": ["Este campo es obligatorio."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         listing = get_object_or_404(Listing, pk=listing_id)
 
         normalized_data = {
-            'check_in_date': data.get('check_in'),
-            'check_out_date': data.get('check_out'),
-            'guests': data.get('guests'),
+            "check_in_date": data.get("check_in"),
+            "check_out_date": data.get("check_out"),
+            "guests": data.get("guests"),
         }
-
 
         serializer = BookingTotalPriceSerializer(
             data=normalized_data,
             context={
-                'listing': listing,
-            }
+                "listing": listing,
+            },
         )
-    
+
         if serializer.is_valid():
             total_price = serializer.calculate_total()
             unavailables_dates = listing.get_unavailable_dates()
-            
-            return Response({
-                "total_price": total_price,
-                "unavailables_dates": unavailables_dates,
-                }, status=status.HTTP_200_OK)
-        
+
+            return Response(
+                {
+                    "total_price": total_price,
+                    "unavailables_dates": unavailables_dates,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserReservationsView(generics.ListAPIView):
-    """Lista las reservas del usuario autenticado (guest).
-    Validación manual de autenticación en `list()`.
+    """
+    Lista las reservas del usuario autenticado como huésped.
     """
     serializer_class = BookingSerializer
 
     def get_queryset(self):
         if not self.request.user or not self.request.user.is_authenticated:
             return Booking.objects.none()
-        return Booking.objects.filter(guest=self.request.user).order_by('-created_at')
+
+        return Booking.objects.filter(
+            guest=self.request.user
+        ).order_by("-created_at")
 
     def list(self, request, *args, **kwargs):
         if not request.user or not request.user.is_authenticated:
-            return Response({'error': 'Autenticación requerida.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"error": "Autenticación requerida."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         return super().list(request, *args, **kwargs)
 
 
 class CancelReservationView(APIView):
-    """Patch endpoint to cancel a reservation. Validates that the requester
-    is either the guest who made the booking or the owner of the listing."""
+    """
+    Cancela una reserva y guarda el motivo de cancelación
+    en BookingStatusHistory.desc_of_transaction.
+    """
+
     def patch(self, request, pk):
         if not request.user or not request.user.is_authenticated:
-            return Response({'error': 'Autenticación requerida.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"error": "Autenticación requerida."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
         booking = get_object_or_404(Booking, pk=pk)
 
-        # Only guest or listing owner can cancel
         is_guest = booking.guest == request.user
         is_owner = booking.listing.owner == request.user
+
         if not (is_guest or is_owner):
-            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "No autorizado"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        booking.status = 'cancelled'
-        booking.save()
+        if booking.actual_status == BookingStatus.CANCELLED:
+            return Response(
+                {"error": "La reserva ya se encuentra cancelada."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return Response({'message': 'Reserva cancelada'}, status=status.HTTP_200_OK)
+        cancellation_reason = (
+            request.data.get("cancellation_reason")
+            or request.data.get("reason")
+            or ""
+        ).strip()
 
+        if not cancellation_reason:
+            return Response(
+                {"cancellation_reason": ["El motivo de cancelación es obligatorio."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        principal_actuator = Actuator.GUEST if is_guest else Actuator.HOST
+
+        booking.update_status(
+            BookingStatus.CANCELLED,
+            desc_of_transaction=cancellation_reason,
+            principal_actuator=principal_actuator,
+        )
+
+        return Response(
+            {
+                "message": "Reserva cancelada correctamente.",
+                "booking_id": booking.booking_id,
+                "actual_status": booking.actual_status,
+                "status": booking.actual_status.lower(),
+                "cancellation_reason": cancellation_reason,
+                "principal_actuator": principal_actuator,
+            },
+            status=status.HTTP_200_OK,
+        )

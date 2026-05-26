@@ -1,99 +1,172 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import "./CancelReservationModal.css";
 
-/**
- * CancelReservationModal
- * Modal de confirmación para cancelar reservas
- * Props:
- * - isOpen: boolean
- * - reservationId: string
- * - propertyTitle: string
- * - onConfirm: function(reservationId)
- * - onCancel: function()
- * - isLoading: boolean
- */
 const CancelReservationModal = ({
   isOpen,
   reservationId,
   propertyTitle,
+  location,
+  startDate,
+  endDate,
   onConfirm,
   onCancel,
   isLoading = false,
 }) => {
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [isConfirmed, setIsConfirmed] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCancellationReason("");
+      setIsConfirmed(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const reasonIsValid = cancellationReason.trim().length >= 5;
+  const canSubmit = reasonIsValid && isConfirmed && !isLoading;
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Fecha no disponible";
+
+    return new Date(dateStr).toLocaleDateString("es-CO", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const handleConfirm = () => {
+    if (!canSubmit) return;
+
+    onConfirm(reservationId, cancellationReason.trim());
+  };
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
-        onClick={onCancel}
+        className="cancel-popup-backdrop"
+        onClick={isLoading ? undefined : onCancel}
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 transform transition-all">
-          {/* Icono de advertencia */}
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100">
-              <svg
-                className="w-6 h-6 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4v2m0 4v2m0-14a9 9 0 110 18 9 9 0 010-18z"
-                />
-              </svg>
-            </div>
+      <div className="cancel-popup-wrapper">
+        <div className="cancel-popup-card">
+          <div className="cancel-popup-floating-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              />
+            </svg>
           </div>
 
-          {/* Título */}
-          <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-            ¿Cancelar reserva?
-          </h3>
+          <button
+            type="button"
+            className="cancel-popup-close"
+            onClick={onCancel}
+            disabled={isLoading}
+            aria-label="Cerrar modal"
+          >
+            ×
+          </button>
 
-          {/* Descripción */}
-          <p className="text-sm text-gray-600 text-center mb-2">
-            Estás a punto de cancelar la reserva de:
-          </p>
-          <p className="text-sm font-medium text-gray-900 text-center mb-4 px-2 py-2 bg-gray-50 rounded-lg">
-            {propertyTitle}
-          </p>
+          <div className="cancel-popup-content">
+            <h2>Cancelar reserva</h2>
 
-          {/* Aviso sobre cancelación */}
-          <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800">
-              <strong>Nota:</strong> Una vez cancelada, la reserva no podrá recuperarse. Podrás crear una nueva reserva en el futuro.
+            <p className="cancel-popup-description">
+              Revisa los datos de la reserva antes de continuar.
             </p>
-          </div>
 
-          {/* Botones */}
-          <div className="flex gap-3">
-            <button
-              onClick={onCancel}
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Mantener Reserva
-            </button>
-            <button
-              onClick={() => onConfirm(reservationId)}
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                  Cancelando...
-                </>
-              ) : (
-                "Sí, Cancelar"
-              )}
-            </button>
+            <section className="cancel-popup-summary">
+              <div className="cancel-popup-summary-row">
+                <span>Propiedad</span>
+                <strong>{propertyTitle || "Reserva seleccionada"}</strong>
+              </div>
+
+              <div className="cancel-popup-summary-row">
+                <span>Municipio</span>
+                <strong>{location || "Municipio no disponible"}</strong>
+              </div>
+
+              <div className="cancel-popup-summary-row">
+                <span>Fechas</span>
+                <strong>
+                  {formatDate(startDate)} - {formatDate(endDate)}
+                </strong>
+              </div>
+            </section>
+
+            <section className="cancel-popup-field">
+              <label htmlFor="cancellationReason">
+                Motivo de cancelación <span>*</span>
+              </label>
+
+              <textarea
+                id="cancellationReason"
+                value={cancellationReason}
+                onChange={(event) =>
+                  setCancellationReason(event.target.value)
+                }
+                disabled={isLoading}
+                placeholder="Escribe el motivo..."
+                rows={3}
+              />
+
+              <div className="cancel-popup-helper">
+                <p
+                  className={
+                    cancellationReason.length > 0 && !reasonIsValid
+                      ? "cancel-popup-helper-error"
+                      : ""
+                  }
+                >
+                  {cancellationReason.length > 0 && !reasonIsValid
+                    ? "Mínimo 5 caracteres."
+                    : "Campo obligatorio."}
+                </p>
+
+                <span>{cancellationReason.trim().length}/5</span>
+              </div>
+            </section>
+
+            <label className="cancel-popup-check">
+              <input
+                type="checkbox"
+                checked={isConfirmed}
+                onChange={(event) => setIsConfirmed(event.target.checked)}
+                disabled={isLoading}
+              />
+
+              <span>Confirmo que deseo cancelar esta reserva.</span>
+            </label>
+
+            <div className="cancel-popup-actions">
+              <button
+                type="button"
+                className="cancel-popup-button cancel-popup-button-secondary"
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                Volver
+              </button>
+
+              <button
+                type="button"
+                className="cancel-popup-button cancel-popup-button-primary"
+                onClick={handleConfirm}
+                disabled={!canSubmit}
+              >
+                {isLoading ? "Cancelando..." : "Cancelar reserva"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
