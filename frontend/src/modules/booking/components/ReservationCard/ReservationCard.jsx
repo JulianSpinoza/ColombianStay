@@ -127,15 +127,23 @@ const ReservationCard = ({
             {/* Botón de cancelar */}
             {canCancel() && onCancel && (
               <button
-                onClick={() => onCancel(reservation.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isHovered
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                Cancelar
-              </button>
+                  type="button"
+                  onClick={() => {
+                    if (!reservation.id) {
+                      console.error("La reserva no tiene ID:", reservation);
+                      return;
+                    }
+
+                    onCancel(reservation.id);
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isHovered
+                      ? "bg-red-100 text-red-700 hover:bg-red-200"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  Cancelar
+                </button>
             )}
 
             {/* Indicador si no se puede cancelar */}
