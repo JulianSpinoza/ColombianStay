@@ -1,0 +1,166 @@
+/* ReservationCard.css */
+
+/* Tarjeta principal */
+.host-reservation-card,
+.guest-reservation-card {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+/* Hover leve solo sombra */
+.host-reservation-card:hover,
+.guest-reservation-card:hover {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+/* Imagen de la propiedad */
+.host-reservation-card-image-wrapper,
+.guest-reservation-card-image-wrapper {
+  width: 112px;
+  height: 112px;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.host-reservation-card-image,
+.guest-reservation-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Contenido de la card */
+.host-reservation-card-content,
+.guest-reservation-card-content {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* Header: título + estado */
+.host-reservation-card-header,
+.guest-reservation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.host-reservation-card-title,
+.guest-reservation-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Badges de estado */
+.host-reservation-card-status,
+.guest-reservation-card-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-confirmed { background: #dcfce7; color: #166534; }
+.status-active { background: #dbeafe; color: #1e40af; }
+.status-cancelled { background: #f3f4f6; color: #4b5563; }
+.status-completed { background: #ede9fe; color: #5b21b6; }
+
+/* Ubicación y guest info */
+.host-reservation-card-location,
+.guest-reservation-card-location,
+.host-reservation-card-guest,
+.guest-reservation-card-guest {
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-top: 0.2rem;
+}
+
+/* Fechas y creación */
+.host-reservation-card-dates,
+.guest-reservation-card-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Footer con botón de cancelación */
+.host-reservation-card-footer,
+.guest-reservation-card-footer {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.host-reservation-card-cancel-button,
+.guest-reservation-card-cancel-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  background: #111827;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.host-reservation-card-cancel-button:hover,
+.guest-reservation-card-cancel-button:hover {
+  background: #1f2937;
+}
+
+.host-reservation-card-note,
+.guest-reservation-card-note {
+  font-size: 0.82rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+  .host-reservation-card,
+  .guest-reservation-card {
+    grid-template-columns: 1fr;
+  }
+
+  .host-reservation-card-image-wrapper,
+  .guest-reservation-card-image-wrapper {
+    width: 100%;
+    height: 180px;
+  }
+
+  .host-reservation-card-header,
+  .guest-reservation-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .host-reservation-card-dates,
+  .guest-reservation-card-dates {
+    flex-direction: column;
+  }
+
+  .host-reservation-card-footer,
+  .guest-reservation-card-footer {
+    justify-content: stretch;
+  }
+
+  .host-reservation-card-cancel-button,
+  .guest-reservation-card-cancel-button {
+    width: 100%;
+  }
+}

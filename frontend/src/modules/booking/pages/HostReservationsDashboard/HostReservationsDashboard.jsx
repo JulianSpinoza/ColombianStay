@@ -1,215 +1,155 @@
-import React, { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
-import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
+import "./HostReservationsDashboard.css";
 import httpClient from "../../../../services/api/httpClient.js";
 import useReservations from "../../hooks/useReservations.js";
 
-const HostReservationsDashboard = () => {
-  
-  const { reservations, loading, error, fetchReservations } = useReservations("host");
+const RECENT_CANCELLED_DAYS = 30;
+
+export default function HostReservationsDashboard() {
+  const { reservations, setReservations, loading, error, setError } = useReservations("host");
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all"); // all, upcoming, past, cancelled
+  const [activeFilter, setActiveFilter] = useState("all");
   const [selectedReservationId, setSelectedReservationId] = useState(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Aplicar filtros y búsqueda
-  const handleSearch = () => {
-    let filtered = reservations;
-
-    // Filtro por búsqueda
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (res) =>
-          res.property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          res.guest.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filtro por estado
+  const isRecentlyCancelled = (reservation) => {
+    if (reservation.status !== "cancelled") return false;
+    const referenceDate = reservation.updated_at || reservation.created_at;
+    if (!referenceDate) return true;
+    const cancelledDate = new Date(referenceDate);
     const today = new Date();
-    if (activeFilter === "upcoming") {
-      filtered = filtered.filter(
-        (res) =>
-          new Date(res.start_date) > today && res.status === "confirmed"
-      );
-    } else if (activeFilter === "past") {
-      filtered = filtered.filter(
-        (res) =>
-          new Date(res.end_date) < today && res.status !== "cancelled"
-      );
-    } else if (activeFilter === "cancelled") {
-      filtered = filtered.filter((res) => res.status === "cancelled");
-    }
-
-    setFilteredReservations(filtered);
+    return (today - cancelledDate) / (1000*60*60*24) <= RECENT_CANCELLED_DAYS;
   };
 
-  // Manejar cancelación
-  const handleCancelReservation = async (reservationId) => {
+  const panelReservations = useMemo(() => {
+    const activeStatuses = ["pending","confirmed","active"];
+    return reservations.filter(r => activeStatuses.includes(r.status) || isRecentlyCancelled(r));
+  }, [reservations]);
+
+  const filteredReservations = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return panelReservations.filter(reservation => {
+      const propertyTitle = reservation.property?.title?.toLowerCase() || "";
+      const location = reservation.property?.location?.toLowerCase() || "";
+      const matchesSearch = !normalizedSearch || propertyTitle.includes(normalizedSearch) || location.includes(normalizedSearch);
+
+      const status = reservation.status || "pending";
+      const matchesFilter = activeFilter === "all"
+        || (activeFilter === "active" && ["pending","confirmed","active"].includes(status))
+        || (activeFilter === "cancelled" && status === "cancelled");
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [panelReservations, searchTerm, activeFilter]);
+
+  const selectedReservation = reservations.find(r => r.id === selectedReservationId);
+
+  const handleCancelReservation = async (reservationId, cancellationReason) => {
+    if (!reservationId) return setError("No se pudo identificar la reserva.");
+    if (!cancellationReason || cancellationReason.trim().length < 5) return setError("Debes ingresar un motivo válido.");
+
     setIsCancelling(true);
+    setError(null);
+    setSuccessMessage("");
+
     try {
-      // Actualizar optimistamente en la UI
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === reservationId ? { ...res, status: "cancelled" } : res
-        )
-      );
-      
+      const response = await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), {
+        status: "cancelled",
+        cancellation_reason: cancellationReason.trim()
+      });
+
+      setReservations(prev => prev.map(r => r.id === reservationId ? {...r, status: response.data.status, updated_at: new Date().toISOString()} : r));
       setIsCancelModalOpen(false);
-      setSuccessMessage("Reserva cancelada correctamente");
-
-      // Llamar al API para cancelar la reserva
-      try {
-        await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), {
-          status: "cancelled"
-        });
-      } catch (apiError) {
-        console.error("Error al cancelar en el backend:", apiError);
-        // Revertir cambio optimista en caso de error del API
-        setReservations((prev) =>
-          prev.map((res) =>
-            res.id === reservationId 
-              ? { ...res, status: "confirmed" } 
-              : res
-          )
-        );
-        setError("Error al cancelar la reserva. Intenta de nuevo.");
-        setSuccessMessage("");
-        return;
-      }
-
-      // Limpiar mensaje de éxito después de 3 segundos
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      setError("Error al cancelar la reserva");
+      setSelectedReservationId(null);
+      setSuccessMessage(response.data.message);
+    } catch(err) {
       console.error(err);
-      // Revertir cambio optimista en caso de error
-      const updatedReservations = reservations.map((res) =>
-        res.id === reservationId ? { ...res, status: "confirmed" } : res
-      );
-      setReservations(updatedReservations);
+      let message = "Error al cancelar la reserva.";
+      if(err?.response?.data){
+        const data = err.response.data;
+        if(data?.cancellation_reason?.[0]) message = data.cancellation_reason[0];
+        else if(data?.detail) message = data.detail;
+        else if(data?.message) message = data.message;
+      }
+      setError(message);
     } finally {
       setIsCancelling(false);
     }
   };
 
-  // Abrir modal de confirmación
-  const handleOpenCancelModal = (reservationId) => {
+  const handleOpenCancelModal = reservationId => {
+    if(!reservationId) return setError("No se pudo identificar la reserva.");
     setSelectedReservationId(reservationId);
     setIsCancelModalOpen(true);
+    setError(null);
+    setSuccessMessage("");
   };
 
-  const selectedReservation = reservations.find(
-    (res) => res.id === selectedReservationId
-  );
+  const handleCloseCancelModal = () => {
+    if(isCancelling) return;
+    setIsCancelModalOpen(false);
+    setSelectedReservationId(null);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
-      <div className="w-full max-w-6xl">
-        {/* Encabezado */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Reservas hechas a mis alojamientos
-          </h1>
-          <p className="text-gray-600">
-            Gestiona todas las reservas de tus propiedades
-          </p>
-        </div>
+    <div className="host-reservations-page">
+      <div className="host-reservations-container">
 
-        {/* Mensaje de éxito */}
+        {/* Subtítulo opcional */}
+        <p className="host-reservations-subtitle">
+          Aquí aparecen tus reservas activas y las canceladas recientemente.
+        </p>
+
         {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-            <svg
-              className="w-5 h-5 text-green-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-green-800">{successMessage}</span>
-          </div>
+          <section className="host-reservations-success-message">
+            <span>{successMessage}</span>
+          </section>
         )}
 
-        {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
-          </div>
+          <section className="host-reservations-error-message">
+            <p>{error}</p>
+          </section>
         )}
 
-        {/* Buscador y Filtros */}
-        <div className="mb-6 space-y-4">
-          {/* Buscador */}
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-3 h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Buscar por propiedad o nombre de huésped..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Filtros */}
-          <div className="flex flex-wrap gap-2">
+        {/* Filtros y búsqueda */}
+        <div className="host-reservations-filters">
+          <input
+            type="text"
+            placeholder="Buscar propiedad o huésped..."
+            className="host-reservations-search-input"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+          <div className="host-reservations-filter-buttons">
             {[
-              { key: "all", label: "Todas", icon: "📋" },
-              { key: "upcoming", label: "Próximas", icon: "📅" },
-              { key: "past", label: "Pasadas", icon: "✅" },
-              { key: "cancelled", label: "Canceladas", icon: "❌" },
-            ].map((filter) => (
+              { key:"all", label:"Todas"},
+              { key:"active", label:"Activas"},
+              { key:"cancelled", label:"Canceladas recientes"}
+            ].map(f => (
               <button
-                key={filter.key}
-                onClick={() => setActiveFilter(filter.key)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  activeFilter === filter.key
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                }`}
+                key={f.key}
+                className={`host-reservations-filter-button ${activeFilter===f.key?"active":""}`}
+                onClick={() => setActiveFilter(f.key)}
               >
-                {filter.icon} {filter.label}
+                {f.label}
               </button>
             ))}
           </div>
         </div>
 
         {/* Lista de reservas */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full" />
-          </div>
-        ) : reservations.length > 0 ? (
-          <div className="space-y-4">
-            {/* Contador */}
-            <p className="text-sm text-gray-600 mb-4">
-              {reservations.length}{" "}
-              {reservations.length === 1 ? "reserva" : "reservas"}
-            </p>
-
-            {/* Tarjetas de reserva */}
-            {reservations.map((reservation) => (
+        <div className="host-reservations-list">
+          {loading ? (
+            <p>Cargando reservas...</p>
+          ) : filteredReservations.length>0 ? (
+            filteredReservations.map(reservation => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
@@ -217,46 +157,24 @@ const HostReservationsDashboard = () => {
                 isHost={true}
                 onCancel={handleOpenCancelModal}
               />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400 mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">
-              No hay reservas
-            </h3>
-            <p className="text-gray-600">
-              {searchTerm
-                ? "No hay reservas que coincidan con tu búsqueda"
-                : "Todavía no tienes reservas en este período"}
-            </p>
-          </div>
-        )}
+            ))
+          ) : (
+            <p>No hay reservas para mostrar</p>
+          )}
+        </div>
       </div>
 
-      {/* Modal de confirmación de cancelación */}
       <CancelReservationModal
         isOpen={isCancelModalOpen}
-        reservationId={selectedReservationId}
+        reservationId={selectedReservation?.id || selectedReservationId}
         propertyTitle={selectedReservation?.property?.title || ""}
+        location={selectedReservation?.property?.location || ""}
+        startDate={selectedReservation?.start_date || ""}
+        endDate={selectedReservation?.end_date || ""}
         onConfirm={handleCancelReservation}
-        onCancel={() => setIsCancelModalOpen(false)}
+        onCancel={handleCloseCancelModal}
         isLoading={isCancelling}
       />
     </div>
   );
-};
-
-export default HostReservationsDashboard;
+}

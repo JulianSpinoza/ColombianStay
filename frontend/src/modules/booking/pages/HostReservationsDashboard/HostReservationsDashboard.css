@@ -1,0 +1,77 @@
+.host-reservations-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f8fafc;
+}
+
+.host-reservations-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.host-reservations-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+/* Mensajes de éxito y error */
+.host-reservations-success-message {
+  background: #dcfce7;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #166534;
+  margin-bottom: 0.75rem;
+}
+
+.host-reservations-error-message {
+  background: #fee2e2;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #991b1b;
+  margin-bottom: 0.75rem;
+}
+
+/* Filtros */
+.host-reservations-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.host-reservations-search-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  outline: none;
+}
+
+.host-reservations-filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.host-reservations-filter-button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: 0.2s ease;
+}
+
+.host-reservations-filter-button.active {
+  background: #1f2937;
+  color: white;
+  border-color: #1f2937;
+}
+
+/* Lista de reservas */
+.host-reservations-list {
+  display: grid;
+  gap: 0.75rem;
+}
