@@ -160,11 +160,18 @@ const CancelReservationModal = ({
 
               <button
                 type="button"
-                className="cancel-popup-button cancel-popup-button-primary"
+                className="cancel-popup-button cancel-popup-button-primary flex items-center justify-center gap-2"
                 onClick={handleConfirm}
                 disabled={!canSubmit}
               >
-                {isLoading ? "Cancelando..." : "Cancelar reserva"}
+                {isLoading ? (
+                  <>
+                    <div className="spinner" />
+                    Cancelando...
+                  </>
+                ) : (
+                  "Cancelar reserva"
+                )}
               </button>
             </div>
           </div>

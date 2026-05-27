@@ -81,62 +81,64 @@ const UserReservationsDashboard = () => {
     (reservation) => reservation.id === selectedReservationId
   );
 
-  const handleCancelReservation = async (
-    reservationId,
-    cancellationReason
-  ) => {
-    if (!reservationId) {
-      setError("No se pudo identificar la reserva seleccionada.");
-      return;
-    }
+  const handleCancelReservation = async (reservationId, cancellationReason) => {
+      if (!reservationId) {
+        setError("No se pudo identificar la reserva seleccionada.");
+        return;
+      }
 
-    if (!cancellationReason || cancellationReason.trim().length < 5) {
-      setError("Debes ingresar un motivo de cancelación válido.");
-      return;
-    }
+      if (!cancellationReason || cancellationReason.trim().length < 5) {
+        setError("Debes ingresar un motivo de cancelación válido.");
+        return;
+      }
 
-    setIsCancelling(true);
-    setError(null);
-    setSuccessMessage("");
+      setIsCancelling(true);
+      setError(null);
+      setSuccessMessage("");
 
-    try {
-      await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), {
-        status: "cancelled",
-        cancellation_reason: cancellationReason.trim(),
-      });
+      try {
+        const response = await httpClient.patch(
+          BOOKINGS_ENDPOINTS.CANCEL(reservationId),
+          {
+            status: "cancelled",
+            cancellation_reason: cancellationReason.trim(),
+          }
+        );
 
-      setReservations((prevReservations) =>
-        prevReservations.map((reservation) =>
-          reservation.id === reservationId
-            ? {
-                ...reservation,
-                status: "cancelled",
-                updated_at: new Date().toISOString(),
-              }
-            : reservation
-        )
-      );
+        // Actualizar el estado de la reserva
+        setReservations((prevReservations) =>
+          prevReservations.map((reservation) =>
+            reservation.id === reservationId
+              ? {
+                  ...reservation,
+                  status: response.data.status,
+                  updated_at: new Date().toISOString(),
+                }
+              : reservation
+          )
+        );
 
-      setIsCancelModalOpen(false);
-      setSelectedReservationId(null);
-      setSuccessMessage("Tu reserva ha sido cancelada correctamente.");
+        setIsCancelModalOpen(false);
+        setSelectedReservationId(null);
+        setSuccessMessage(response.data.message);
+      } catch (err) {
+        console.error("Error cancelando reserva:", err);
 
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3500);
-    } catch (apiErr) {
-      console.error("API cancel error", apiErr);
+        let message = "Error al cancelar la reserva en el servidor.";
 
-      const backendReasonError =
-        apiErr?.response?.data?.cancellation_reason?.[0];
+        // Si el backend devuelve un mensaje
+        if (err?.response?.data) {
+          const data = err.response.data;
+          if (data?.cancellation_reason?.[0]) message = data.cancellation_reason[0];
+          else if (data?.detail) message = data.detail;
+          else if (data?.message) message = data.message;
+        }
 
-      setError(
-        backendReasonError || "Error al cancelar la reserva en el servidor."
-      );
-    } finally {
-      setIsCancelling(false);
-    }
-  };
+        setError(message);
+      } finally {
+        setIsCancelling(false);
+      }
+    };
 
   const handleOpenCancelModal = (reservationId) => {
     if (!reservationId) {
