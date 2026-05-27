@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
@@ -7,6 +7,8 @@ import "./UserReservationsDashboard.css";
 import httpClient from "../../../../services/api/httpClient.js";
 import useReservations from "../../hooks/useReservations.js";
 
+const RECENT_CANCELLED_DAYS = 30;
+
 const UserReservationsDashboard = () => {
   const {
     reservations,
@@ -14,7 +16,6 @@ const UserReservationsDashboard = () => {
     loading,
     error,
     setError,
-    fetchReservations,
   } = useReservations("guest");
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,19 +25,61 @@ const UserReservationsDashboard = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const handleSearch = () => {
-    const query = {};
+  const isRecentlyCancelled = (reservation) => {
+    if (reservation.status !== "cancelled") return false;
 
-    if (searchTerm.trim()) {
-      query.nameOfProperty = searchTerm.trim();
-    }
+    const referenceDate = reservation.updated_at || reservation.created_at;
 
-    if (activeFilter) {
-      query.perspectiveStatus = activeFilter;
-    }
+    if (!referenceDate) return true;
 
-    fetchReservations(query);
+    const cancelledDate = new Date(referenceDate);
+    const today = new Date();
+
+    const differenceInDays =
+      (today - cancelledDate) / (1000 * 60 * 60 * 24);
+
+    return differenceInDays <= RECENT_CANCELLED_DAYS;
   };
+
+  const panelReservations = useMemo(() => {
+    const activeStatuses = ["pending", "confirmed", "active"];
+
+    return reservations.filter((reservation) => {
+      const status = reservation.status || "pending";
+
+      return (
+        activeStatuses.includes(status) ||
+        isRecentlyCancelled(reservation)
+      );
+    });
+  }, [reservations]);
+
+  const filteredReservations = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return panelReservations.filter((reservation) => {
+      const status = reservation.status || "pending";
+      const propertyTitle = reservation.property?.title?.toLowerCase() || "";
+      const location = reservation.property?.location?.toLowerCase() || "";
+
+      const matchesSearch =
+        !normalizedSearch ||
+        propertyTitle.includes(normalizedSearch) ||
+        location.includes(normalizedSearch);
+
+      const matchesFilter =
+        activeFilter === "all" ||
+        (activeFilter === "active" &&
+          ["pending", "confirmed", "active"].includes(status)) ||
+        (activeFilter === "cancelled" && status === "cancelled");
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [panelReservations, searchTerm, activeFilter]);
+
+  const selectedReservation = reservations.find(
+    (reservation) => reservation.id === selectedReservationId
+  );
 
   const handleCancelReservation = async (
     reservationId,
@@ -63,8 +106,14 @@ const UserReservationsDashboard = () => {
       });
 
       setReservations((prevReservations) =>
-        prevReservations.filter(
-          (reservation) => reservation.id !== reservationId
+        prevReservations.map((reservation) =>
+          reservation.id === reservationId
+            ? {
+                ...reservation,
+                status: "cancelled",
+                updated_at: new Date().toISOString(),
+              }
+            : reservation
         )
       );
 
@@ -90,8 +139,6 @@ const UserReservationsDashboard = () => {
   };
 
   const handleOpenCancelModal = (reservationId) => {
-    console.log("ID recibido desde ReservationCard:", reservationId);
-
     if (!reservationId) {
       setError("No se pudo identificar la reserva seleccionada.");
       return;
@@ -110,19 +157,22 @@ const UserReservationsDashboard = () => {
     setSelectedReservationId(null);
   };
 
-  const selectedReservation = reservations.find(
-    (reservation) => reservation.id === selectedReservationId
-  );
-
   return (
-    <div className="page">
-      <div className="container">
-        <div className="header">
-          <h1 className="title">Mis Reservas</h1>
-        </div>
+    <div className="guest-reservations-page">
+      <div className="guest-reservations-container">
+        <header className="guest-reservations-header">
+          <h1 className="guest-reservations-title">Mis reservas</h1>
+          <p className="guest-reservations-subtitle">
+            Consulta tus reservas activas y las canceladas recientemente.
+          </p>
+        </header>
 
-        <div className="info-card">
-          <svg className="info-icon" fill="currentColor" viewBox="0 0 20 20">
+        <section className="guest-reservations-info-card">
+          <svg
+            className="guest-reservations-info-icon"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
             <path
               fillRule="evenodd"
               d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0z"
@@ -130,16 +180,16 @@ const UserReservationsDashboard = () => {
             />
           </svg>
 
-          <p className="info-text">
-            <strong>Tip:</strong> Puedes cancelar una reserva hasta 7 días antes
-            de la fecha de llegada sin penalización.
+          <p className="guest-reservations-info-text">
+            <strong>Panel de reservas:</strong> aquí aparecen tus reservas
+            activas y las canceladas durante los últimos 30 días.
           </p>
-        </div>
+        </section>
 
         {successMessage && (
-          <div className="success-message">
+          <section className="guest-reservations-success-message">
             <svg
-              className="success-icon"
+              className="guest-reservations-success-icon"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -151,19 +201,19 @@ const UserReservationsDashboard = () => {
             </svg>
 
             <span>{successMessage}</span>
-          </div>
+          </section>
         )}
 
         {error && (
-          <div className="error-message">
+          <section className="guest-reservations-error-message">
             <p>{error}</p>
-          </div>
+          </section>
         )}
 
-        <div className="filters">
-          <div className="search">
+        <section className="guest-reservations-filters">
+          <div className="guest-reservations-search">
             <svg
-              className="search-icon"
+              className="guest-reservations-search-icon"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -178,60 +228,45 @@ const UserReservationsDashboard = () => {
 
             <input
               type="text"
-              placeholder="Buscar una propiedad..."
+              placeholder="Buscar por propiedad o municipio..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handleSearch();
-                }
-              }}
-              className="search-input"
+              className="guest-reservations-search-input"
             />
           </div>
 
-          <div className="filter-buttons">
+          <div className="guest-reservations-filter-buttons">
             {[
-              { key: "all", label: "Todas", icon: "📋" },
-              { key: "upcoming", label: "Próximas", icon: "📅" },
-              { key: "past", label: "Pasadas", icon: "✅" },
-              { key: "cancelled", label: "Canceladas", icon: "❌" },
+              { key: "all", label: "Todas" },
+              { key: "active", label: "Activas" },
+              { key: "cancelled", label: "Canceladas recientes" },
             ].map((filter) => (
               <button
                 key={filter.key}
                 type="button"
-                onClick={() => {
-                  setActiveFilter(filter.key);
-
-                  fetchReservations({
-                    perspectiveStatus: filter.key,
-                    ...(searchTerm.trim()
-                      ? { nameOfProperty: searchTerm.trim() }
-                      : {}),
-                  });
-                }}
-                className={`filter-button ${
+                onClick={() => setActiveFilter(filter.key)}
+                className={`guest-reservations-filter-button ${
                   activeFilter === filter.key ? "active" : ""
                 }`}
               >
-                {filter.icon} {filter.label}
+                {filter.label}
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
         {loading ? (
-          <div className="loader-container">
-            <div className="loader" />
+          <div className="guest-reservations-loader-container">
+            <div className="guest-reservations-loader" />
           </div>
-        ) : reservations.length > 0 ? (
-          <div className="reservations">
-            <p className="counter">
-              {reservations.length}{" "}
-              {reservations.length === 1 ? "reserva" : "reservas"}
+        ) : filteredReservations.length > 0 ? (
+          <section className="guest-reservations-list">
+            <p className="guest-reservations-counter">
+              {filteredReservations.length}{" "}
+              {filteredReservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
-            {reservations.map((reservation) => (
+            {filteredReservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
@@ -240,21 +275,20 @@ const UserReservationsDashboard = () => {
                 onCancel={handleOpenCancelModal}
               />
             ))}
-          </div>
+          </section>
         ) : (
-          <div className="empty-state">
-            <h3>No hay reservas</h3>
+          <section className="guest-reservations-empty-state">
+            <h3>No hay reservas para mostrar</h3>
 
             <p>
-              {searchTerm
-                ? "No hay reservas que coincidan con tu búsqueda"
-                : "Aún no has hecho ninguna reserva"}
+              No encontramos reservas activas o canceladas recientemente que
+              coincidan con tu búsqueda.
             </p>
 
-            <a href="/" className="primary-button">
+            <a href="/" className="guest-reservations-primary-button">
               Explorar propiedades
             </a>
-          </div>
+          </section>
         )}
       </div>
 

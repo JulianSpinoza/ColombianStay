@@ -20,6 +20,14 @@ export default function useReservations(perspective) {
     fetchReservations({});
   }, []);
 
+  const normalizeStatus = (booking) => {
+    return (
+      booking.status ||
+      booking.actual_status?.toLowerCase() ||
+      "pending"
+    );
+  };
+
   async function fetchReservations(filterQuery = {}) {
     setError(null);
     setLoading(true);
@@ -38,9 +46,10 @@ export default function useReservations(perspective) {
           },
           start_date: booking.check_in_date,
           end_date: booking.check_out_date,
-          status: booking.status || booking.actual_status?.toLowerCase(),
+          status: normalizeStatus(booking),
           total_price: booking.total_price,
           created_at: booking.created_at,
+          updated_at: booking.updated_at,
         }));
 
         setReservations(formatted);
@@ -63,9 +72,10 @@ export default function useReservations(perspective) {
           },
           start_date: booking.check_in_date,
           end_date: booking.check_out_date,
-          status: booking.status || booking.actual_status?.toLowerCase(),
+          status: normalizeStatus(booking),
           total_price: booking.total_price,
           created_at: booking.created_at,
+          updated_at: booking.updated_at,
         }));
 
         setReservations(formatted);
