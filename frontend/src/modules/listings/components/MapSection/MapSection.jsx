@@ -5,7 +5,7 @@ export default function MapSection({ lat, lng, title, address }) {
   const position = [lat || 4.67310, lng || -74.05654];
 
   return (
-    <div style={{ width: "100%", height: "400px" }}>
+    <div style={{ width: "100%", height: "400px" }} className="MapIndex">
       <MapContainer
         center={position}
         zoom={15}

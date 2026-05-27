@@ -854,4 +854,8 @@
   .mobile-image-count {
     display: none;
   }
+  .MapIndex{
+      position: relative;
+      z-index: 0 !important;
+  }
 }
