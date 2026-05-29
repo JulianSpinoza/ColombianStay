@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./EditProfileForm.css"
+import { Phone } from "lucide-react";
 
 /**
  * EditProfileForm
@@ -29,18 +30,10 @@ const EditProfileForm = ({ initialData = {}, onSave, onCancel }) => {
     });
   }, [initialData]);
 
-  const validateEmail = (email) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
-
   const validate = () => {
     const newErrors = {};
 
     if (!formData.username.trim()) newErrors.username = "Username is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (formData.email && !validateEmail(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
     if (!formData.first_name.trim()) newErrors.first_name = "First name is required";
     if (!formData.last_name.trim()) newErrors.last_name = "Last name is required";
 
@@ -115,18 +108,14 @@ const EditProfileForm = ({ initialData = {}, onSave, onCancel }) => {
         {/* Email */}
         <div className="form-group">
           <label className="form-label">Email</label>
+
           <input
             type="email"
             name="email"
             value={formData.email}
-            onChange={handleChange}
-            disabled={isSaving}
-            className={inputClass(errors.email)}
-            placeholder="Enter email"
+            disabled
+            className="form-input input-disabled"
           />
-          {errors.email && (
-            <p className="field-error">{errors.email}</p>
-          )}
         </div>
 
         {/* First & Last name */}
