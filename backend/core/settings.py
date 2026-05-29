@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "rest_framework", # To do petitions
     'rest_framework_simplejwt', # To apply JWT
     "corsheaders", # To accept petitions from the frontend
+    'phonenumber_field',
 
     # My services (apps)
     'users_service',
