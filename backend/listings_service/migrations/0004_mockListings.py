@@ -47,6 +47,26 @@ def create_mock_listings(apps, schema_editor):
 
     property_types = ["house", "apartment", "cabin", "loft", "studio"]
 
+    # Certificar que al menos un Listing tiene la palabra "Acogedor" en su titulo o descripción
+    # También para pruebas
+
+    bogota_municipality = Municipality.objects.get(municipalityid=10)
+
+    Listing.objects.create(
+        owner=random.choice(hosts),
+        municipality=bogota_municipality,
+        title="Mini Estudio Acogedor",
+        description=random.choice(descriptions),
+        bedrooms=2,
+        bathrooms=2,
+        locationdesc="Ubicación cercana a puntos de interés turísticos y comerciales.",
+        addresstext=f"Calle {random.randint(1, 100)} # {random.randint(1,50)}-{random.randint(1,50)}",
+        propertytype="apartment",
+        pricepernight=300000,
+        maxguests=3,
+        exactlocation=random_point_in_multipolygon(bogota_municipality.boundary),
+    )
+
     # Crear 12 listings
     for i in range(12):
 

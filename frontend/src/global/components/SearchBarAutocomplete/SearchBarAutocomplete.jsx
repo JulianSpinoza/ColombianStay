@@ -69,15 +69,17 @@ export default function SearchBarAutocomplete({
                 onChange={handleInputSearch}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
+                data_testid="search-input"
                 />
                 {suggestions.length > 0 && (
-                    <ul className="suggestions-list">
+                    <ul className="suggestions-list" data_testid="search-bar-suggestions-list">
                         {suggestions.map((suggestion) => (
                             <li 
                             key={suggestion.name_option}
                             onClick={() => handleSelectOption(suggestion)}
                             onMouseDown={(e) => e.preventDefault()}
                             className="suggestion-item"
+                            data_testid="search-bar-suggestions-item"
                             >
                                 <span className="suggestion-name">
                                     {suggestion.name_option}
@@ -91,7 +93,11 @@ export default function SearchBarAutocomplete({
                     </ul>
                 )}
             </div>
-            <button onClick={debouncedSearch} type="button">
+            <button 
+                onClick={debouncedSearch} 
+                type="button"
+                data_testid="search-button"
+            >
                 <svg
                 className="w-5 h-5 text-gray-400"
                 fill="currentColor"

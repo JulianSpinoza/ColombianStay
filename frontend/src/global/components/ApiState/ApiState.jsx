@@ -12,12 +12,14 @@ const ApiState = ({ type, title, message, onRetry }) => {
       message: message || 'No pudimos cargar la información. Intenta nuevamente.',
       icon: '⚠️',
       showRetry: true,
+      data_testid: "api_state_error"
     },
     empty: {
       title: title || 'No hay resultados',
       message: message || 'No encontramos datos para mostrar.',
       icon: '📭',
       showRetry: false,
+      data_testid: "api_state_empty"
     },
   }
 
@@ -34,7 +36,7 @@ const ApiState = ({ type, title, message, onRetry }) => {
     );
   } else {
     return (
-        <div style={styles.container}>
+        <div data_testid={current.data_testid} style={styles.container}>
         <div style={styles.icon}>{current.icon}</div>
         <h2>{current.title}</h2>
         <p>{current.message}</p>

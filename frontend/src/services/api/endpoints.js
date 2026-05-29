@@ -1,4 +1,6 @@
-export const BACKENDDJANGO = "http://localhost:8000/api/";
+export const BACKENDDJANGO = "/api/";
+
+console.log(import.meta.env.VITE_API_DJANGO_URL);
 
 export const LISTINGS_ENDPOINTS = {
   ALL: "listings/",

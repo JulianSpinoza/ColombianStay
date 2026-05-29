@@ -42,6 +42,20 @@ services:
     depends_on:
       - backend
 
+  cypress:
+    image: cypress/included:13.13.0
+    profiles: ["testing"]
+    container_name: cypress
+    depends_on:
+      - frontend
+      - backend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    environment:
+      - CYPRESS_baseUrl=http://frontend:5173
+    command: ["cypress", "run"]
+
 volumes:
   postgres_data:
   django_media:
