@@ -35,7 +35,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['username'] = user.username
 
         return token
-    
 
 class ContactHostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,3 +48,16 @@ class ContactHostSerializer(serializers.ModelSerializer):
             data["email"] = None
 
         return data
+    
+
+class UserInformation(serializers.ModelSerializer):
+    class Meta:
+        model=CustomUser
+        fields=[
+            'username',
+            'first_name', 
+            'last_name', 
+            'email', 
+            'phone_number', 
+            'profile_picture'
+            ]
