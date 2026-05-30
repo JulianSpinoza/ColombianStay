@@ -42,5 +42,3 @@ class CustomUser(AbstractUser):
                 name='email_contact_available_only_if_is_host'
             )
         ]
-
-
