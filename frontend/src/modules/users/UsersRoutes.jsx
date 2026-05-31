@@ -6,6 +6,11 @@ import UserReservationsDashboard from "../booking/pages/UserReservationsDashboar
 import HostRoute from "../../global/routes/HostRoute";
 import HostReservationsDashboard from "../booking/pages/HostReservationsDashboard/HostReservationsDashboard";
 
+import HistoricReservationsPage from "./pages/HistoricReservationsPage/HistoricReservationsPage";
+import PublicInformationPage from "./pages/PublicInformationPage/PublicInformationPage";
+import MyAccommodationsPage from "./pages/MyAccommodationsPage/MyAccommodationsPage";
+import BillingPage from "./pages/BillingPage/BillingPage";
+
 // Rutas del servicio Users
 
 export default function UsersRoutes () {
@@ -18,9 +23,10 @@ export default function UsersRoutes () {
                 <Route element={<PersonalUsersLayout/>}>
                     <Route path="my-profile" element={<ProfilePage/>}/>
                     <Route path="my-reservations" element={<UserReservationsDashboard/>} />
-                    <Route element={<HostRoute/>}>
-                        <Route path="host/reservations" element={<HostReservationsDashboard/>}/>
-                    </Route>
+                    <Route path="historic-reservations" element={<HistoricReservationsPage/>} />
+                    <Route path="public-information" element={<PublicInformationPage/>} />
+                    <Route path="my-accommodations" element={<MyAccommodationsPage/>} />
+                    <Route path="billing" element={<BillingPage/>} />
                 </Route>
             </Route>
         </Routes>

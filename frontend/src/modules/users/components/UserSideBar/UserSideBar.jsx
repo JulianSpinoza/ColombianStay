@@ -6,14 +6,29 @@ export default function UserSideBar()  {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const selected = location.state?.selectedOption;
+  const pathname = location.pathname;
+
+  const selected =
+    pathname === "/user/my-profile"
+      ? "profile"
+      : pathname === "/user/my-reservations"
+      ? "reservations"
+      : pathname === "/user/historic-reservations"
+      ? "historic"
+      : pathname === "/host/public-information"
+      ? "publicInfo"
+      : pathname === "/host/accommodations"
+      ? "accommodations"
+      : pathname === "/host/billing"
+      ? "billing"
+       : "";
 
   const { state } = useAuthContext();
   const user = state.user;
 
-  const handleNavigate = (key, path) => {
-    navigate(path ,{ state : { selectedOption: key }});
-  };
+  const handleNavigate = (path) => {
+    navigate(path);
+};
 
   return (
     <div className="sidebar-container">
@@ -31,19 +46,19 @@ export default function UserSideBar()  {
         {/* Opciones */}
         <div className="menu-section">
             <button
-            className={selected === "profile" ? "menu-item selected" : "menu-item"}
-            onClick={() => handleNavigate("profile", "/user/my-profile")}
+                className={selected === "profile" ? "menu-item selected" : "menu-item"}
+                onClick={() => handleNavigate("/user/my-profile")}
             >
-            My profile
+                My profile
             </button>
 
             <p className="menu-label">As guest</p>
 
             <button
-            className={selected === "reservations" ? "menu-item selected" : "menu-item"}
-            onClick={() => handleNavigate("reservations", "/user/my-reservations")}
+                className={selected === "reservations" ? "menu-item selected" : "menu-item"}
+                onClick={() => handleNavigate("/user/my-reservations")}
             >
-            Reservations
+                Reservations
             </button>
 
             {user.is_host && (
