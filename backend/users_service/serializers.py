@@ -2,12 +2,22 @@ from rest_framework import serializers
 from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from phonenumber_field.serializerfields import PhoneNumberField
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
-
+    phone_number = PhoneNumberField(region="CO")
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'is_host']
+        fields = [
+            'username', 
+            'email', 
+            'password', 
+            'first_name', 
+            'last_name', 
+            'is_host',
+            'phone_number',
+            'profile_picture',
+            ]
         extra_kwargs = {
             'email': {'required': True},
             'is_host': {'required': False},
@@ -51,6 +61,8 @@ class ContactHostSerializer(serializers.ModelSerializer):
     
 
 class UserInformation(serializers.ModelSerializer):
+
+    phone_number = PhoneNumberField(region="CO")
     class Meta:
         model=CustomUser
         fields=[

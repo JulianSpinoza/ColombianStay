@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
         if archive.size > limit_bytes:
             raise ValidationError(f"El tamaño máximo permitido es de {limit_mb}MB.")
 
-    phone_number = PhoneNumberField(region="CO")
+    phone_number = PhoneNumberField(region="CO", blank=False, null=False)
     is_host = models.BooleanField(default=False, help_text='Designates whether this user has properties.', verbose_name='host status')
     email_as_contact = models.BooleanField(default=False, help_text='Establish the email to share')
     profile_picture = models.ImageField(
@@ -28,7 +28,8 @@ class CustomUser(AbstractUser):
         validators=[
             FileExtensionValidator(['jpg', 'png', 'jpeg']),
             validate_image_size
-        ]
+        ],
+        blank=True,
     )
 
     def __str__(self):
