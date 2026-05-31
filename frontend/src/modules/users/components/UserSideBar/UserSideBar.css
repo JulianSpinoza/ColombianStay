@@ -117,3 +117,12 @@
     font-size: 13px;
     color: #f8f7b2;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar-container {
+        width: 100%;
+        height: auto;
+        flex-shrink: 0;
+    }
+}
