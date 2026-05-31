@@ -17,7 +17,7 @@ export default function UserSideBar()  {
       ? "historic"
       : pathname === "/host/public-information"
       ? "publicInfo"
-      : pathname === "/host/accommodations"
+      : pathname === "/host/my-accommodations"
       ? "accommodations"
       : pathname === "/host/billing"
       ? "billing"
@@ -79,7 +79,7 @@ export default function UserSideBar()  {
 
             <button
                 className={selected === "accommodations" ? "menu-item selected" : "menu-item"}
-                onClick={() => handleNavigate("/host/accommodations")}
+                onClick={() => handleNavigate("/host/my-accommodations")}
             >
                 My accommodations
             </button>
