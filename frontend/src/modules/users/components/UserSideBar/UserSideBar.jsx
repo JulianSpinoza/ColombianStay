@@ -17,7 +17,7 @@ export default function UserSideBar()  {
       ? "historic"
       : pathname === "/host/public-information"
       ? "publicInfo"
-      : pathname === "/host/accommodations"
+      : pathname === "/host/my-accommodations"
       ? "accommodations"
       : pathname === "/host/billing"
       ? "billing"
