@@ -19,6 +19,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             'profile_picture',
             ]
         extra_kwargs = {
+            'username' : {'required': True},
+            'password' : {'required': True},
             'email': {'required': True},
             'is_host': {'required': False},
         }
