@@ -59,7 +59,7 @@ function LoginModal() {
       setError(err.response?.data?.detail || "Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
-      onClose();
+      if (!error) onClose();
     }
   };
 

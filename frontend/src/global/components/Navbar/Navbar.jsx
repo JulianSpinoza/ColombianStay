@@ -33,7 +33,6 @@ const Navbar = ({children}) => {
 
   const handleLoginClick = () => {
     setIsProfileMenuOpen(false);
-    console.log(location.pathname);
     navigate("/login", { state: { backgroundLocation: location } });
   };
 
