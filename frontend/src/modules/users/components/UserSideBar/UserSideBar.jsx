@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import "./UserSideBar.css";
-import { useAuthContext } from "../../contexts/AuthContext";
+import usePersonalInfo from "../../hooks/usePersonalInfo";
 
 export default function UserSideBar()  {
   const navigate = useNavigate();
@@ -21,24 +21,37 @@ export default function UserSideBar()  {
       ? "accommodations"
        : "";
 
-  const { state } = useAuthContext();
-  const user = state.user;
+    const handleNavigate = (path) => {
+        navigate(path);
+    };
 
-  const handleNavigate = (path) => {
-    navigate(path);
-};
+    const {
+        userProfile,
+        loading,
+        error,
+    } = usePersonalInfo();
 
   return (
     <div className="sidebar-container">
             
         {/* Foto y nombre */}
-        <div className="profile-section" onClick={() => handleNavigate("profile", "/user/my-profile")}>
+        <div className="profile-section" onClick={() => handleNavigate("/user/my-profile")}>
                 <div className="avatar-container">
                     <div className="avatar-circle">
-                        {(user.username).charAt(0).toUpperCase()}
+                        {userProfile?.profile_picture ? (
+                            <img
+                                src={
+                                userProfile?.profile_picture
+                                }
+                                alt="Profile Picture"
+                                className="profile-preview"
+                            />
+                            ) : userProfile?.username && (
+                            (userProfile?.username).charAt(0).toUpperCase()
+                        )}
                     </div>
                 </div>
-            <p className="profile-name">{user.username}</p>
+            <p className="profile-name">{userProfile?.username}</p>
         </div>
 
         {/* Opciones */}

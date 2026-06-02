@@ -45,11 +45,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Información adicional en el token
         token['is_host'] = user.is_host
         token['username'] = user.username
-        
-        if user.profile_picture and hasattr(user.profile_picture, 'url'):
-            token['profile_picture'] = user.profile_picture.url
-        else:
-            token['profile_picture'] = None
 
         return token
 
@@ -80,3 +75,11 @@ class UserInformation(serializers.ModelSerializer):
             'phone_number', 
             'profile_picture'
             ]
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        if instance.phone_number:
+            data["phone_number"] = instance.phone_number.national_number
+        
+        return data

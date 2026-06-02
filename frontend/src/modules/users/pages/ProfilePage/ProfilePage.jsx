@@ -1,40 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuthContext } from "../../contexts/AuthContext";
 import EditProfileForm from "../../components/EditProfileForm/EditProfileForm";
 import "./ProfilePage.css"
-import { getPersonalInfo } from "../../services/usersService";
+import ApiState from "../../../../global/components/ApiState/ApiState";
+import usePersonalInfo from "../../hooks/usePersonalInfo";
 
 /**
  * ProfilePage
  * Displays user profile info and allows editing via EditProfileForm
  */
 const ProfilePage = () => {
+  const { state } = useAuthContext();
   const [isEditing, setIsEditing] = useState(false);
-  const [userProfile, setUserProfile] = useState(null)
+  const {
+    userProfile,
+    loading,
+    error,
+    updatePersonalInfo,
+  } = usePersonalInfo();
 
-  useEffect(() => {
-    fetchPersonalInfo()
-  }, [])
-
-  async function fetchPersonalInfo() {
-    try {
-      const data = await getPersonalInfo();
-      setUserProfile(data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  const handleSaveProfile = async (formData) => {
-    // TODO: Call backend API to update user
-    // const response = await updateUserProfile(formData);
-    console.log("Profile update (mock):", formData);
-    setIsEditing(false);
+  const handleSaveProfile = async (data) => {
+    updatePersonalInfo(data);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
   };
+
+  if (loading) {
+    return (
+      <ApiState type='loading'/>
+    );
+  }
+
+  if (error) {
+    return (
+      <ApiState type='error' onRetry={() => fetchPersonalInfo()}/>
+    );
+  }
 
   return (
     <div className="profile-page">
@@ -51,7 +54,18 @@ const ProfilePage = () => {
               <div className="profile-card">
                 <div className="avatar-wrapper">
                   <div className="avatar">
-                    {/*(userProfile?.username).charAt(0).toUpperCase()*/}
+                    {(userProfile?.profile_picture && userProfile) ? (
+                      <img
+                        src={
+                          userProfile?.profile_picture ||
+                          "https://placehold.co/100x100?text=User"
+                        }
+                        alt="Profile Picture"
+                        className="profile-preview"
+                      />
+                    ) : userProfile && (
+                      (userProfile?.username).charAt(0).toUpperCase()
+                    )}
                   </div>
                 </div>
 
@@ -94,8 +108,16 @@ const ProfilePage = () => {
 
                 <section>
                   <h3 className="section-title">Contact Information</h3>
-                  <p className="label">Email Address</p>
-                  <p className="value">{userProfile?.email}</p>
+                  <div className="info-grid">
+                    <div>
+                      <p className="label">Email Address</p>
+                      <p className="value">{userProfile?.email}</p>
+                    </div>
+                    <div>
+                      <p className="label">Phone Number</p>
+                      <p className="value">{"+57 "+ userProfile?.phone_number}</p>
+                    </div>
+                  </div>
                 </section>
 
                 <hr />
@@ -118,6 +140,8 @@ const ProfilePage = () => {
                 email: userProfile?.email || "",
                 first_name: userProfile?.first_name || "",
                 last_name: userProfile?.last_name || "",
+                phone: userProfile?.phone_number || "",
+                profile_picture: userProfile?.profile_picture || null,
               }}
               onSave={handleSaveProfile}
               onCancel={handleCancel}

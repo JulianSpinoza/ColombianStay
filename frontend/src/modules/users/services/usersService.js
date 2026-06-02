@@ -30,7 +30,19 @@ export const loginUser = async (credentials) => {
 export const getPersonalInfo = async () => {
 
     try {
-        const response = await httpClient.get(USERS_ENDPOINTS.GET_INFO_ME);
+        const response = await httpClient.get(USERS_ENDPOINTS.INFO_ME);
+        return response.data
+    } catch (error) {
+        console.error("Error getting my personal information:", error);
+        throw error;
+    }
+
+}
+
+export const updatePersonalInfo = async (updateInfo) => {
+
+    try {
+        const response = await httpClient.put(USERS_ENDPOINTS.INFO_ME, updateInfo);
         return response.data
     } catch (error) {
         console.error("Error getting my personal information:", error);
