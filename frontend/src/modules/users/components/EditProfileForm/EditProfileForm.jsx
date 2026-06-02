@@ -25,18 +25,6 @@ const EditProfileForm = ({ initialData = {}, onSave, onCancel }) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
-    setFormData({
-      profile_picture: null,
-      profilePreview: initialData.profile_picture || "",
-      username: initialData.username || "",
-      email: initialData.email || "",
-      phone: initialData.phone || "",
-      first_name: initialData.first_name || "",
-      last_name: initialData.last_name || "",
-    });
-  }, [initialData]);
-
-  useEffect(() => {
   const handleBeforeUnload = (event) => {
     if (hasUnsavedChanges) {
       event.preventDefault();
