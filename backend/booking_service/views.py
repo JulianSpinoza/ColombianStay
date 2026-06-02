@@ -15,6 +15,7 @@ from .serializers import (
     BookingSerializer,
     BookingTotalPriceSerializer,
     CancelBookingSerializer,
+    PendingRatingBookingSerializer
 )
 
 MIN_GUEST_CANCELLATION_DAYS = 3
@@ -215,6 +216,16 @@ class BookingPreInformationQuoteView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+class PendingRatingsListView(generics.ListAPIView):
+    serializer_class = PendingRatingBookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Booking.objects.filter(
+            guest=self.request.user,
+            actual_status=BookingStatus.COMPLETED,
+            review__isnull=True
+        ).select_related('listing')
 
 class UserReservationsView(generics.ListAPIView):
     """

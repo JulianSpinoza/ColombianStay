@@ -16,3 +16,12 @@ class RatingSerializer(serializers.ModelSerializer):
         model = Rating
         fields = ['ratingid', 'booking', 'guest', 'guest_name', 'rating', 'comment', 'created_at']
         read_only_fields = ['ratingid', 'created_at']
+
+class CreateRatingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rating
+        fields = [
+            'rating',
+            'comment'
+        ]
