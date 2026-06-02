@@ -1,18 +1,39 @@
 .general-layout {
-    height: 100vh;
+    height: 100vh; /* CAMBIADO: Alto fijo de la pantalla, no min-height */
     display: flex;
     flex-direction: column;
     background: linear-gradient(to bottom, #f8f8f8, #ffe5c1);
+    overflow: hidden; /* Evita que la página completa scrolleé */
 }
 
 .main-layout {
     flex: 1;
     display: flex;
     flex-direction: row;
-    min-height: 0;
+    overflow: hidden; /* Contiene el scroll de los hijos */
 }
 
-.main-layout main{
-    width: 100%;
-    overflow-y: auto;
+.main-layout main {
+    flex: 1;
+    overflow-y: auto; /* Ahora sí funcionará porque su contenedor padre está limitado */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .general-layout {
+        height: auto; /* En móviles permitimos que la página crezca de manera normal */
+        overflow: visible;
+    }
+
+    .main-layout {
+        flex-direction: column;
+        overflow: visible;
+    }
+
+    .main-layout main {
+        width: 100%;
+        flex: none;
+        overflow-y: visible; /* En móviles el scroll vuelve a ser normal de la página */
+        padding: 1rem;
+    }
 }
