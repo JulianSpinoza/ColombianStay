@@ -46,47 +46,24 @@ export default function UserSideBar()  {
             Reservations
             </button>
 
-            <button
-            className={
-                selected === "historic" ? "menu-item selected" : "menu-item"
-            }
-            onClick={() =>
-                handleNavigate("historic")
-            }
-            >
-            Historic reservations
-            </button>
+            {user.is_host && (
+                <>
+                    <p className="menu-label">As host</p>
 
-            <p className="menu-label">As host</p>
+                    <button
+                    className={
+                        selected === "accomodations" ? "menu-item selected" : "menu-item"
+                    }
+                    onClick={() =>
+                        handleNavigate("accomodations", "/user/host/reservations")
+                    }
+                    >
+                    My accomodations reservations
+                    </button>
 
-            <button
-            className={
-                selected === "publicInfo" ? "menu-item selected" : "menu-item"
-            }
-            onClick={() =>
-                handleNavigate("publicInfo")
-            }
-            >
-            Public information
-            </button>
+                </>
+            )}
 
-            <button
-            className={
-                selected === "accomodations" ? "menu-item selected" : "menu-item"
-            }
-            onClick={() =>
-                handleNavigate("accomodations")
-            }
-            >
-            My accomodations
-            </button>
-
-            <button
-            className={selected === "billing" ? "menu-item selected" : "menu-item"}
-            onClick={() => handleNavigate("billing")}
-            >
-            Billing
-            </button>
         </div>
 
         {/* Footer */}

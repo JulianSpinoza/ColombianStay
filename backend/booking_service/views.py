@@ -80,6 +80,7 @@ class HostReservationsView(generics.ListAPIView):
 
         return super().list(request, *args, **kwargs)
 
+
 class CreateBookingView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -90,8 +91,8 @@ class CreateBookingView(APIView):
 
         if not listing_id:
             return Response(
-                {'property_id': ['Este campo es obligatorio.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {"property_id": ["Este campo es obligatorio."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         with transaction.atomic():
@@ -101,8 +102,8 @@ class CreateBookingView(APIView):
 
             if not listing:
                 return Response(
-                    {'detail': 'Propiedad no encontrada.'},
-                    status=status.HTTP_404_NOT_FOUND
+                    {"detail": "Propiedad no encontrada."},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             normalized_data = {
@@ -114,9 +115,9 @@ class CreateBookingView(APIView):
             serializer = CreateBookingSerializer(
                 data=normalized_data,
                 context={
-                    'request': request,
-                    'listing': listing,
-                }
+                    "request": request,
+                    "listing": listing,
+                },
             )
 
             serializer.is_valid(raise_exception=True)
@@ -125,8 +126,9 @@ class CreateBookingView(APIView):
 
         return Response(
             BookingSerializer(booking).data,
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
+
 
 class BookingPreInformationQuoteView(APIView):
     def post(self, request):
@@ -136,23 +138,23 @@ class BookingPreInformationQuoteView(APIView):
 
         if not listing_id:
             return Response(
-                {'property_id': ['Este campo es obligatorio.']},
-                status=status.HTTP_400_BAD_REQUEST
+                {"property_id": ["Este campo es obligatorio."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         listing = get_object_or_404(Listing, pk=listing_id)
 
         normalized_data = {
-            'check_in_date': data.get('check_in'),
-            'check_out_date': data.get('check_out'),
-            'guests': data.get('guests'),
+            "check_in_date": data.get("check_in"),
+            "check_out_date": data.get("check_out"),
+            "guests": data.get("guests"),
         }
 
         serializer = BookingTotalPriceSerializer(
             data=normalized_data,
             context={
-                'listing': listing,
-            }
+                "listing": listing,
+            },
         )
 
         if serializer.is_valid():

@@ -1,0 +1,133 @@
+/* Backdrop */
+.cancel-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 40;
+}
+
+/* Contenedor del modal */
+.cancel-modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 420px;
+  width: 90%;
+  z-index: 50;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+/* Icono de advertencia */
+.cancel-modal-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.icon-svg {
+  width: 40px;
+  height: 40px;
+  color: #dc2626;
+}
+
+/* Título y subtítulo */
+.cancel-modal-title {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.cancel-modal-subtitle {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+/* Resumen de la reserva */
+.cancel-modal-summary {
+  background: #f3f4f6;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.cancel-modal-summary p {
+  margin: 0.25rem 0;
+}
+
+/* Motivo de cancelación */
+.cancel-modal-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.cancel-modal-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+/* Checkbox de confirmación */
+.cancel-modal-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.cancel-modal-checkbox input {
+  margin-right: 0.5rem;
+}
+
+/* Botones */
+.cancel-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancel-modal-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.cancel-modal-button.primary {
+  background: #dc2626;
+  color: #fff;
+}
+
+.cancel-modal-button.primary:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+}
+
+.cancel-modal-button.secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.cancel-modal-button.secondary:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}

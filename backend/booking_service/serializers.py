@@ -30,6 +30,8 @@ class BookingSerializer(serializers.ModelSerializer):
     )
     guest_avatar = serializers.SerializerMethodField()
 
+    status = serializers.SerializerMethodField()
+
     class Meta:
         model = Booking
         fields = [
@@ -48,6 +50,7 @@ class BookingSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
+
         read_only_fields = [
             'booking_id',
             'created_at',
@@ -61,6 +64,20 @@ class BookingSerializer(serializers.ModelSerializer):
             'total_price',
             'actual_status',
         ]
+
+    def get_status(self, obj):
+        if not obj.actual_status:
+            return ""
+
+        return obj.actual_status.lower()
+
+    def get_guest_name(self, obj):
+        full_name = obj.guest.get_full_name()
+
+        if full_name:
+            return full_name
+
+        return obj.guest.username
 
     def get_listing_image(self, obj):
         return (
@@ -79,15 +96,15 @@ class CreateBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            'check_in_date',
-            'check_out_date',
-            'number_of_guests',
+            "check_in_date",
+            "check_out_date",
+            "number_of_guests",
         ]
 
     def validate_check_in_date(self, value):
         if value < timezone.localdate():
             raise serializers.ValidationError(
-                'La fecha de entrada no puede estar en el pasado.'
+                "La fecha de entrada no puede estar en el pasado."
             )
 
         return value
@@ -95,26 +112,26 @@ class CreateBookingSerializer(serializers.ModelSerializer):
     def validate_number_of_guests(self, value):
         if value < 1:
             raise serializers.ValidationError(
-                'Debe haber al menos 1 huésped.'
+                "Debe haber al menos 1 huésped."
             )
 
         return value
 
     def validate(self, attrs):
-        check_in = attrs.get('check_in_date')
-        check_out = attrs.get('check_out_date')
-        guests = attrs.get('number_of_guests')
+        check_in = attrs.get("check_in_date")
+        check_out = attrs.get("check_out_date")
+        guests = attrs.get("number_of_guests")
 
-        listing = self.context.get('listing')
-        request = self.context.get('request')
+        listing = self.context.get("listing")
+        request = self.context.get("request")
 
         errors = {}
 
         if not check_in:
-            errors['check_in_date'] = 'Este campo es obligatorio.'
+            errors["check_in_date"] = "Este campo es obligatorio."
 
         if not check_out:
-            errors['check_out_date'] = 'Este campo es obligatorio.'
+            errors["check_out_date"] = "Este campo es obligatorio."
 
         if check_in and check_out and check_out <= check_in:
             errors['check_out_date'] = (
@@ -122,10 +139,12 @@ class CreateBookingSerializer(serializers.ModelSerializer):
             )
 
         if guests is not None and guests < 1:
-            errors['number_of_guests'] = 'Debe haber al menos 1 huésped.'
+            errors["number_of_guests"] = "Debe haber al menos 1 huésped."
 
         if listing is None:
-            errors['listing'] = 'No fue posible identificar la propiedad.'
+            errors["listing"] = "No fue posible identificar la propiedad."
+
+        max_guests = getattr(listing, "maxguests", None) if listing else None
 
         max_guests = getattr(listing, 'maxguests', None) if listing else None
 
@@ -162,8 +181,8 @@ class CreateBookingSerializer(serializers.ModelSerializer):
             ).exists()
 
             if overlap_exists:
-                errors['non_field_errors'] = [
-                    'La propiedad ya tiene una reserva en ese rango de fechas.'
+                errors["non_field_errors"] = [
+                    "La propiedad ya tiene una reserva en ese rango de fechas."
                 ]
 
         if errors:
@@ -172,8 +191,8 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        request = self.context['request']
-        listing = self.context['listing']
+        request = self.context["request"]
+        listing = self.context["listing"]
 
         return Booking.objects.create(
             listing=listing,
@@ -191,7 +210,7 @@ class BookingTotalPriceSerializer(serializers.Serializer):
     def validate_check_in_date(self, value):
         if value < timezone.localdate():
             raise serializers.ValidationError(
-                'La fecha de entrada no puede estar en el pasado.'
+                "La fecha de entrada no puede estar en el pasado."
             )
 
         return value
@@ -199,25 +218,25 @@ class BookingTotalPriceSerializer(serializers.Serializer):
     def validate_guests(self, value):
         if value < 1:
             raise serializers.ValidationError(
-                'Debe haber al menos 1 huésped.'
+                "Debe haber al menos 1 huésped."
             )
 
         return value
 
     def validate(self, attrs):
-        check_in = attrs.get('check_in_date')
-        check_out = attrs.get('check_out_date')
-        guests = attrs.get('guests')
+        check_in = attrs.get("check_in_date")
+        check_out = attrs.get("check_out_date")
+        guests = attrs.get("guests")
 
-        listing = self.context.get('listing')
+        listing = self.context.get("listing")
 
         errors = {}
 
         if not check_in:
-            errors['check_in_date'] = 'Este campo es obligatorio.'
+            errors["check_in_date"] = "Este campo es obligatorio."
 
         if not check_out:
-            errors['check_out_date'] = 'Este campo es obligatorio.'
+            errors["check_out_date"] = "Este campo es obligatorio."
 
         if check_in and check_out and check_out <= check_in:
             errors['check_out_date'] = (
@@ -225,7 +244,7 @@ class BookingTotalPriceSerializer(serializers.Serializer):
             )
 
         if guests is not None and guests < 1:
-            errors['guests'] = 'Debe haber al menos 1 huésped.'
+            errors["guests"] = "Debe haber al menos 1 huésped."
 
         if listing is None:
             errors['listing'] = 'No fue posible identificar la propiedad.'
