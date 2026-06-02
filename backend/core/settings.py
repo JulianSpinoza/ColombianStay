@@ -171,3 +171,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configuration on local media storage
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1"
+    ).split(",")
+    if host.strip()
+]

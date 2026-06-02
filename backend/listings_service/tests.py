@@ -9,17 +9,32 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files.storage import default_storage
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
+
 from rest_framework import status
-from rest_framework.test import APITestCase, APITransactionTestCase, APIRequestFactory
+from rest_framework.test import (
+    APITestCase,
+    APITransactionTestCase,
+    APIRequestFactory,
+)
 
 from PIL import Image
 
-from listings_service.models import Listing, ListingImage, Region, Department, Municipality
-from listings_service.serializers import PublishListingSerializer, ListingImageSerializer
+from listings_service.models import (
+    Listing,
+    ListingImage,
+    Region,
+    Department,
+    Municipality,
+)
+from listings_service.serializers import (
+    PublishListingSerializer,
+    ListingImageSerializer,
+)
 
 import tempfile
 import io
 import json
+
 
 User = get_user_model()
 
@@ -31,6 +46,7 @@ def create_test_user(**kwargs):
     """
     next_id = (User.objects.aggregate(max_id=Max("id"))["max_id"] or 0) + 1
     kwargs.setdefault("id", next_id)
+
     return User.objects.create_user(**kwargs)
 
 
@@ -39,6 +55,7 @@ def generate_test_image(image_format="JPEG"):
     image = Image.new("RGB", (100, 100))
     image.save(file, image_format)
     file.seek(0)
+
     return file
 
 
@@ -59,10 +76,12 @@ class BaseListingTestMixin:
     @classmethod
     def create_test_municipality(cls):
         region = Region.objects.create(name="Región de prueba")
+
         department = Department.objects.create(
             region=region,
             name="Departamento de prueba",
         )
+
         polygon = Polygon((
             (-76.50, 5.80),
             (-76.40, 5.80),
@@ -80,6 +99,7 @@ class BaseListingTestMixin:
     @classmethod
     def get_existing_municipality(cls):
         municipality = Municipality.objects.order_by("pk").first()
+
         if municipality is not None:
             return municipality
 
@@ -88,13 +108,19 @@ class BaseListingTestMixin:
     @classmethod
     def get_valid_point_for_municipality(cls, municipality):
         point = municipality.boundary.point_on_surface
-        return Point(point.x, point.y, srid=municipality.boundary.srid or 4326)
+
+        return Point(
+            point.x,
+            point.y,
+            srid=municipality.boundary.srid or 4326,
+        )
 
     def get_valid_point(self):
         return self.get_valid_point_for_municipality(self.municipality)
 
     def get_valid_location(self):
         point = self.get_valid_point()
+
         return {
             "lat": point.y,
             "lng": point.x,
@@ -102,6 +128,7 @@ class BaseListingTestMixin:
 
     def get_alternate_valid_location(self):
         point = self.get_valid_point()
+
         return {
             "lat": point.y + 0.00001,
             "lng": point.x + 0.00001,
@@ -125,16 +152,19 @@ class BaseListingTestMixin:
     def get_valid_multipart_payload(self):
         payload = self.get_valid_payload()
         payload["exactlocation"] = json.dumps(payload["exactlocation"])
+
         return payload
 
     def get_valid_publish_payload(self):
         payload = self.get_valid_payload()
         payload["images"] = [make_uploaded_image("publish_image.jpg")]
+
         return payload
 
     def get_valid_publish_multipart_payload(self):
         payload = self.get_valid_multipart_payload()
         payload["images"] = [make_uploaded_image("publish_image.jpg")]
+
         return payload
 
     def create_listing(self, owner=None, **overrides):
@@ -152,7 +182,9 @@ class BaseListingTestMixin:
             "maxguests": 2,
             "exactlocation": self.get_valid_point(),
         }
+
         data.update(overrides)
+
         return Listing.objects.create(**data)
 
 
@@ -297,7 +329,7 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
         self.assertEqual(listing.municipality, self.municipality)
         self.assertEqual(listing.title, "Apartamento amplio")
         self.assertEqual(listing.images.count(), 1)
-    
+
     def test_sets_user_as_host_when_property_is_created(self):
         self.client.force_authenticate(user=self.user)
 
@@ -314,10 +346,15 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
 
     def test_rejects_invalid_municipality(self):
         self.client.force_authenticate(user=self.user)
+
         payload = self.get_valid_publish_multipart_payload()
         payload["municipality"] = 99999999
 
-        response = self.client.post(self.url, payload, format="multipart")
+        response = self.client.post(
+            self.url,
+            payload,
+            format="multipart",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("municipality", response.data)
@@ -330,6 +367,7 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
             self.get_valid_publish_multipart_payload(),
             format="multipart",
         )
+
         second_response = self.client.post(
             self.url,
             self.get_valid_publish_multipart_payload(),
@@ -338,6 +376,7 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
 
         self.assertEqual(first_response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(second_response.status_code, status.HTTP_400_BAD_REQUEST)
+
         self.assertEqual(
             Listing.objects.filter(
                 owner=self.user,
@@ -349,10 +388,15 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
 
     def test_owner_in_payload_is_ignored(self):
         self.client.force_authenticate(user=self.user)
+
         payload = self.get_valid_publish_multipart_payload()
         payload["owner"] = 999999
 
-        response = self.client.post(self.url, payload, format="multipart")
+        response = self.client.post(
+            self.url,
+            payload,
+            format="multipart",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -371,6 +415,7 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
             self.get_valid_publish_multipart_payload(),
             format="multipart",
         )
+
         self.assertEqual(first_response.status_code, status.HTTP_201_CREATED)
 
         other_user = create_test_user(
@@ -389,6 +434,7 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
         )
 
         self.assertEqual(second_response.status_code, status.HTTP_201_CREATED)
+
         self.assertEqual(
             Listing.objects.filter(
                 title="Apartamento amplio",
@@ -396,6 +442,7 @@ class PublishPropertyAPITests(BaseListingTestMixin, APITestCase):
             ).count(),
             2,
         )
+
 
 class PublishPropertyTransactionTests(BaseListingTestMixin, APITransactionTestCase):
     @classmethod
@@ -418,8 +465,10 @@ class PublishPropertyTransactionTests(BaseListingTestMixin, APITransactionTestCa
 
         def failing_save(*args, **kwargs):
             update_fields = kwargs.get("update_fields")
+
             if update_fields == ["is_host"]:
                 raise Exception("Simulated user save failure")
+
             return original_save(*args, **kwargs)
 
         with patch.object(self.user, "save", side_effect=failing_save):
@@ -461,6 +510,7 @@ class PublishPropertyTransactionTests(BaseListingTestMixin, APITransactionTestCa
 
         self.assertFalse(serializer.is_valid())
         self.assertIn("non_field_errors", serializer.errors)
+
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class ListingImageModelTest(BaseListingTestMixin, TestCase):
@@ -705,7 +755,11 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         payload = self.get_update_payload()
         payload["owner"] = self.other_user.pk
 
-        response = self.client.put(self.url, payload, format="json")
+        response = self.client.put(
+            self.url,
+            payload,
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -745,7 +799,11 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         payload["exactlocation"] = json.dumps(payload["exactlocation"])
         payload["images"] = [make_uploaded_image("ignored_image.jpg")]
 
-        response = self.client.put(self.url, payload, format="multipart")
+        response = self.client.put(
+            self.url,
+            payload,
+            format="multipart",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(ListingImage.objects.filter(pk=old_image.pk).exists())
@@ -772,7 +830,11 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         payload["title"] = duplicated_listing.title
         payload["addresstext"] = duplicated_listing.addresstext
 
-        response = self.client.put(self.url, payload, format="json")
+        response = self.client.put(
+            self.url,
+            payload,
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -786,7 +848,11 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         payload["bedrooms"] = 4
         payload["maxguests"] = 2
 
-        response = self.client.put(self.url, payload, format="json")
+        response = self.client.put(
+            self.url,
+            payload,
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("maxguests", response.data)
@@ -798,7 +864,11 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         payload["bathrooms"] = 5
         payload["maxguests"] = 4
 
-        response = self.client.put(self.url, payload, format="json")
+        response = self.client.put(
+            self.url,
+            payload,
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("bathrooms", response.data)
@@ -809,7 +879,11 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         payload = self.get_update_payload()
         payload["pricepernight"] = -1
 
-        response = self.client.put(self.url, payload, format="json")
+        response = self.client.put(
+            self.url,
+            payload,
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("pricepernight", response.data)
@@ -823,14 +897,24 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         related_manager_class = type(self.listing.bookings)
 
         with patch.object(related_manager_class, "exists", return_value=True):
-            response = self.client.put(self.url, payload, format="json")
+            response = self.client.put(
+                self.url,
+                payload,
+                format="json",
+            )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("exactlocation", response.data)
 
         self.listing.refresh_from_db()
-        self.assertAlmostEqual(self.listing.exactlocation.y, self.get_valid_location()["lat"])
-        self.assertAlmostEqual(self.listing.exactlocation.x, self.get_valid_location()["lng"])
+        self.assertAlmostEqual(
+            self.listing.exactlocation.y,
+            self.get_valid_location()["lat"],
+        )
+        self.assertAlmostEqual(
+            self.listing.exactlocation.x,
+            self.get_valid_location()["lng"],
+        )
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
@@ -855,12 +939,17 @@ class UpdatePropertyImagesAPITests(BaseListingTestMixin, APITestCase):
 
     def setUp(self):
         self.listing = self.create_listing(owner=self.user)
+
         self.old_image = ListingImage.objects.create(
             listing=self.listing,
             image=make_uploaded_image("old_image.jpg"),
             is_main=True,
         )
-        self.url = reverse("update-property-images", kwargs={"pk": self.listing.pk})
+
+        self.url = reverse(
+            "update-property-images",
+            kwargs={"pk": self.listing.pk},
+        )
 
     def test_requires_authentication_to_update_property_images(self):
         response = self.client.put(
@@ -917,7 +1006,11 @@ class UpdatePropertyImagesAPITests(BaseListingTestMixin, APITestCase):
     def test_rejects_empty_images_payload_and_keeps_existing_images(self):
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.put(self.url, {}, format="multipart")
+        response = self.client.put(
+            self.url,
+            {},
+            format="multipart",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("images", response.data)
@@ -963,3 +1056,553 @@ class UpdatePropertyImagesAPITests(BaseListingTestMixin, APITestCase):
         self.assertIn("images", response.data)
         self.assertTrue(ListingImage.objects.filter(pk=self.old_image.pk).exists())
         self.assertEqual(self.listing.images.count(), 1)
+
+
+class ListingListAPITests(BaseListingTestMixin, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = create_test_user(
+            username="listing_list_user",
+            email="listing-list@test.com",
+            password="secret123",
+            is_host=True,
+        )
+        cls.municipality = cls.get_existing_municipality()
+
+    def setUp(self):
+        self.listing = self.create_listing(
+            owner=self.user,
+            title="Apartamento visible",
+            description="Descripción visible suficientemente larga.",
+            locationdesc="Ubicación visible suficientemente larga.",
+            addresstext="Calle visible #1-2",
+            pricepernight=110000,
+        )
+
+        ListingImage.objects.create(
+            listing=self.listing,
+            image=make_uploaded_image("listing_list_image.jpg"),
+            is_main=True,
+        )
+
+        self.url = reverse("listing-list")
+
+    def get_results(self, response):
+        if isinstance(response.data, dict) and "results" in response.data:
+            return response.data["results"]
+
+        return response.data
+
+    def test_can_list_properties(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = self.get_results(response)
+        response_text = str(response.data)
+
+        self.assertGreaterEqual(len(results), 1)
+        self.assertIn("Apartamento visible", response_text)
+
+    def test_listing_list_response_contains_expected_fields(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = self.get_results(response)
+        first_item = results[0]
+
+        expected_fields = [
+            "accomodationid",
+            "owner",
+            "title",
+            "description",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "municipality_name",
+            "pricepernight",
+            "images",
+            "reviews_count",
+            "average_rating",
+        ]
+
+        for field in expected_fields:
+            self.assertIn(field, first_item)
+
+    def test_listing_list_is_paginated(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIsInstance(response.data, dict)
+        self.assertIn("count", response.data)
+        self.assertIn("results", response.data)
+
+
+class ListingDetailAPITests(BaseListingTestMixin, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = create_test_user(
+            username="listing_detail_user",
+            email="listing-detail@test.com",
+            password="secret123",
+            is_host=True,
+        )
+        cls.municipality = cls.get_existing_municipality()
+
+    def setUp(self):
+        self.listing = self.create_listing(
+            owner=self.user,
+            title="Apartamento detalle",
+            description="Descripción de detalle suficientemente larga.",
+            locationdesc="Ubicación de detalle suficientemente larga.",
+            addresstext="Calle detalle #1-2",
+            pricepernight=130000,
+            maxguests=3,
+        )
+
+        ListingImage.objects.create(
+            listing=self.listing,
+            image=make_uploaded_image("listing_detail_image.jpg"),
+            is_main=True,
+        )
+
+        self.url = reverse(
+            "listing-detail",
+            kwargs={"pk": self.listing.pk},
+        )
+
+    def test_can_get_listing_detail(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.data["accomodationid"],
+            self.listing.pk,
+        )
+        self.assertEqual(response.data["title"], "Apartamento detalle")
+        self.assertEqual(response.data["owner"], self.user.pk)
+
+    def test_listing_detail_response_contains_expected_fields(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        expected_fields = [
+            "accomodationid",
+            "owner",
+            "owner_name",
+            "municipality_name",
+            "title",
+            "description",
+            "bedrooms",
+            "bathrooms",
+            "locationdesc",
+            "addresstext",
+            "propertytype",
+            "pricepernight",
+            "maxguests",
+            "images",
+            "reviews",
+            "reviews_count",
+            "average_rating",
+            "share_path",
+            "exactlocation",
+        ]
+
+        for field in expected_fields:
+            self.assertIn(field, response.data)
+
+    def test_listing_detail_contains_exactlocation_as_lat_lng(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIn("exactlocation", response.data)
+        self.assertIn("lat", response.data["exactlocation"])
+        self.assertIn("lng", response.data["exactlocation"])
+
+    def test_listing_detail_contains_share_path(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.data["share_path"],
+            f"/listings/{self.listing.pk}",
+        )
+
+    def test_listing_detail_returns_404_for_non_existing_listing(self):
+        response = self.client.get(
+            reverse("listing-detail", kwargs={"pk": 99999999}),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class ListingSearchAPITests(BaseListingTestMixin, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = create_test_user(
+            username="listing_search_user",
+            email="listing-search@test.com",
+            password="secret123",
+            is_host=True,
+        )
+        cls.municipality = cls.get_existing_municipality()
+
+        cls.other_region = Region.objects.create(
+            name="Región búsqueda alternativa"
+        )
+
+        cls.other_department = Department.objects.create(
+            region=cls.other_region,
+            name="Departamento búsqueda alternativa",
+        )
+
+        polygon = Polygon((
+            (-75.50, 5.80),
+            (-75.40, 5.80),
+            (-75.40, 5.90),
+            (-75.50, 5.90),
+            (-75.50, 5.80),
+        ), srid=4326)
+
+        cls.other_municipality = Municipality.objects.create(
+            department=cls.other_department,
+            name="Municipio búsqueda alternativa",
+            boundary=MultiPolygon(polygon, srid=4326),
+        )
+
+    def setUp(self):
+        self.matching_listing = self.create_listing(
+            owner=self.user,
+            municipality=self.municipality,
+            title="Apartamento acogedor cerca al centro",
+            description="Hospedaje cómodo para búsqueda por palabra clave.",
+            bedrooms=2,
+            bathrooms=1,
+            locationdesc="Ubicación central suficientemente larga.",
+            addresstext="Calle búsqueda #1-2",
+            propertytype="apartment",
+            pricepernight=120000,
+            maxguests=4,
+        )
+
+        self.non_matching_listing = self.create_listing(
+            owner=self.user,
+            municipality=self.other_municipality,
+            title="Casa rural silenciosa",
+            description="Hospedaje campestre sin coincidencia de palabra.",
+            bedrooms=5,
+            bathrooms=3,
+            locationdesc="Ubicación rural suficientemente larga.",
+            addresstext="Calle rural #1-2",
+            propertytype="house",
+            pricepernight=900000,
+            maxguests=10,
+            exactlocation=self.get_valid_point_for_municipality(
+                self.other_municipality
+            ),
+        )
+
+        self.url = reverse("listing-search")
+
+    def get_results(self, response):
+        if isinstance(response.data, dict) and "results" in response.data:
+            return response.data["results"]
+
+        return response.data
+
+    def get_result_titles(self, response):
+        return [
+            item["title"]
+            for item in self.get_results(response)
+        ]
+
+    def test_search_without_filters_returns_paginated_response(self):
+        response = self.client.get(self.url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIsInstance(response.data, dict)
+        self.assertIn("count", response.data)
+        self.assertIn("results", response.data)
+        self.assertIn("total_pages", response.data)
+        self.assertIn("applied_filters", response.data)
+        self.assertIn("clear_one_filter_urls", response.data)
+        self.assertIn("clear_all_filters_url", response.data)
+        self.assertIn("suggestions", response.data)
+
+    def test_search_by_keyword_returns_matching_listing(self):
+        response = self.client.get(
+            self.url,
+            {"keyword": "acogedor"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        titles = self.get_result_titles(response)
+
+        self.assertIn("Apartamento acogedor cerca al centro", titles)
+        self.assertNotIn("Casa rural silenciosa", titles)
+
+    def test_search_by_price_range_returns_matching_listing(self):
+        response = self.client.get(
+            self.url,
+            {
+                "min_price": 100000,
+                "max_price": 200000,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        titles = self.get_result_titles(response)
+
+        self.assertIn("Apartamento acogedor cerca al centro", titles)
+        self.assertNotIn("Casa rural silenciosa", titles)
+
+    def test_search_by_capacity_filters_returns_matching_listing(self):
+        response = self.client.get(
+            self.url,
+            {
+                "bedrooms": 2,
+                "bathrooms": 1,
+                "maxguests": 4,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        titles = self.get_result_titles(response)
+
+        self.assertIn("Apartamento acogedor cerca al centro", titles)
+
+    def test_search_by_propertytype_returns_matching_listing(self):
+        response = self.client.get(
+            self.url,
+            {
+                "propertytype": "apartment",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        titles = self.get_result_titles(response)
+
+        self.assertIn("Apartamento acogedor cerca al centro", titles)
+        self.assertNotIn("Casa rural silenciosa", titles)
+
+    def test_search_by_region_department_and_municipality(self):
+        response = self.client.get(
+            self.url,
+            {
+                "region_id": self.municipality.department.region.pk,
+                "department_id": self.municipality.department.pk,
+                "municipality_id": self.municipality.pk,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        titles = self.get_result_titles(response)
+
+        self.assertIn("Apartamento acogedor cerca al centro", titles)
+        self.assertNotIn("Casa rural silenciosa", titles)
+
+    def test_search_rejects_min_price_greater_than_max_price(self):
+        response = self.client.get(
+            self.url,
+            {
+                "min_price": 300000,
+                "max_price": 100000,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("min_price", response.data)
+        self.assertIn("max_price", response.data)
+
+    def test_search_rejects_department_that_does_not_belong_to_region(self):
+        response = self.client.get(
+            self.url,
+            {
+                "region_id": self.municipality.department.region.pk,
+                "department_id": self.other_department.pk,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("department_id", response.data)
+
+    def test_search_rejects_municipality_that_does_not_belong_to_department(self):
+        response = self.client.get(
+            self.url,
+            {
+                "department_id": self.municipality.department.pk,
+                "municipality_id": self.other_municipality.pk,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("municipality_id", response.data)
+
+
+class LocationCatalogAPITests(BaseListingTestMixin, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.region = Region.objects.create(
+            name="Región catálogo"
+        )
+
+        cls.department = Department.objects.create(
+            region=cls.region,
+            name="Departamento catálogo",
+        )
+
+        polygon = Polygon((
+            (-77.50, 6.80),
+            (-77.40, 6.80),
+            (-77.40, 6.90),
+            (-77.50, 6.90),
+            (-77.50, 6.80),
+        ), srid=4326)
+
+        cls.municipality = Municipality.objects.create(
+            department=cls.department,
+            name="Municipio catálogo",
+            boundary=MultiPolygon(polygon, srid=4326),
+        )
+
+        cls.other_region = Region.objects.create(
+            name="Otra región catálogo"
+        )
+
+        cls.other_department = Department.objects.create(
+            region=cls.other_region,
+            name="Otro departamento catálogo",
+        )
+
+        other_polygon = Polygon((
+            (-78.50, 7.80),
+            (-78.40, 7.80),
+            (-78.40, 7.90),
+            (-78.50, 7.90),
+            (-78.50, 7.80),
+        ), srid=4326)
+
+        cls.other_municipality = Municipality.objects.create(
+            department=cls.other_department,
+            name="Otro municipio catálogo",
+            boundary=MultiPolygon(other_polygon, srid=4326),
+        )
+
+    def test_can_list_regions(self):
+        response = self.client.get(
+            reverse("region-list"),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn("Región catálogo", response_text)
+
+        first_item = response.data[0]
+        self.assertIn("regionid", first_item)
+        self.assertIn("name", first_item)
+
+    def test_can_list_departments_by_region(self):
+        response = self.client.get(
+            reverse(
+                "department-list",
+                kwargs={"region_id": self.region.pk},
+            ),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn("Departamento catálogo", response_text)
+        self.assertNotIn("Otro departamento catálogo", response_text)
+
+    def test_can_list_municipalities_by_department(self):
+        response = self.client.get(
+            reverse(
+                "municipality-list",
+                kwargs={"department_id": self.department.pk},
+            ),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn("Municipio catálogo", response_text)
+        self.assertNotIn("Otro municipio catálogo", response_text)
+
+        first_item = response.data[0]
+        self.assertIn("municipalityid", first_item)
+        self.assertIn("name", first_item)
+        self.assertIn("boundary", first_item)
+
+    def test_can_list_unified_location_terms(self):
+        response = self.client.get(
+            reverse("all_locations_list"),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn("Región catálogo", response_text)
+        self.assertIn("Departamento catálogo", response_text)
+        self.assertIn("Municipio catálogo", response_text)
+
+    def test_unified_location_terms_contains_expected_types(self):
+        response = self.client.get(
+            reverse("all_locations_list"),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        types = {
+            item["type"]
+            for item in response.data
+        }
+
+        self.assertIn("Region", types)
+        self.assertIn("Departamento", types)
+        self.assertIn("Municipio", types)
+
+    def test_unified_location_terms_contains_expected_fields(self):
+        response = self.client.get(
+            reverse("all_locations_list"),
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        first_item = response.data[0]
+
+        self.assertIn("id", first_item)
+        self.assertIn("name_of_location", first_item)
+        self.assertIn("type", first_item)

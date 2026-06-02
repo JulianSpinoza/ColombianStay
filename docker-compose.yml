@@ -12,6 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c max_connections=1000
 
   backend:
     build:
@@ -41,6 +42,18 @@ services:
       - ./frontend/.env
     depends_on:
       - backend
+
+  locust:
+    image: locustio/locust
+    container_name: booking_locust
+    working_dir: /mnt/locust
+    volumes:
+      - ./:/mnt/locust
+    ports:
+      - "8089:8089"
+    depends_on:
+      - backend
+    command: -f /mnt/locust/locustfile.py --host http://backend:8000
 
 volumes:
   postgres_data:

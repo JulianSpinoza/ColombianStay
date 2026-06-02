@@ -25,7 +25,11 @@ class ListingListView(generics.ListAPIView):
             Listing.objects
             .select_related("owner", "municipality")
             .prefetch_related("images", "bookings__guest")
-            .all()
+            .annotate(
+                reviews_count=Count("bookings__review", distinct=True),
+                average_rating=Avg("bookings__review__rating"),
+            )
+            .order_by("-accomodationid")
         )
 
         return qs

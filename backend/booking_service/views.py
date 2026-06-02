@@ -63,11 +63,20 @@ class HostReservationsView(generics.ListAPIView):
         if not self.request.user or not self.request.user.is_authenticated:
             return Booking.objects.none()
 
-        host_listings = Listing.objects.filter(owner=self.request.user)
 
-        return Booking.objects.filter(
-            listing__in=host_listings
-        ).order_by('-created_at')
+        return (
+            Booking.objects
+            .select_related(
+                "listing",
+                "listing__owner",
+                "guest",
+            )
+            .filter(
+                listing__owner=self.request.user
+            )
+            .order_by("-created_at")
+        )
+
 
     def list(self, request, *args, **kwargs):
         if not request.user or not request.user.is_authenticated:
@@ -183,9 +192,18 @@ class UserReservationsView(generics.ListAPIView):
         if not self.request.user or not self.request.user.is_authenticated:
             return Booking.objects.none()
 
-        return Booking.objects.filter(
-            guest=self.request.user
-        ).order_by('-created_at')
+        return (
+            Booking.objects
+            .select_related(
+                "listing",
+                "guest",
+            )
+            .filter(
+                guest=self.request.user
+            )
+            .order_by("-created_at")
+        )
+
 
     def list(self, request, *args, **kwargs):
         if not request.user or not request.user.is_authenticated:
