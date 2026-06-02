@@ -19,8 +19,6 @@ export default function UserSideBar()  {
       ? "publicInfo"
       : pathname === "/host/my-accommodations"
       ? "accommodations"
-      : pathname === "/host/billing"
-      ? "billing"
        : "";
 
   const { state } = useAuthContext();
@@ -82,13 +80,6 @@ export default function UserSideBar()  {
                 onClick={() => handleNavigate("/host/my-accommodations")}
             >
                 My accommodations
-            </button>
-
-            <button
-                className={selected === "billing" ? "menu-item selected" : "menu-item"}
-                onClick={() => handleNavigate("/host/billing")}
-            >
-                Billing
             </button>
         </div>
 

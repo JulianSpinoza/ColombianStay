@@ -26,3 +26,15 @@ export const loginUser = async (credentials) => {
         throw error;
     }
 }
+
+export const getPersonalInfo = async () => {
+
+    try {
+        const response = await httpClient.get(USERS_ENDPOINTS.GET_INFO_ME);
+        return response.data
+    } catch (error) {
+        console.error("Error getting my personal information:", error);
+        throw error;
+    }
+
+}
