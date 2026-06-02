@@ -19,8 +19,6 @@ export default function UserSideBar()  {
       ? "publicInfo"
       : pathname === "/host/my-accommodations"
       ? "accommodations"
-      : pathname === "/host/billing"
-      ? "billing"
        : "";
 
   const { state } = useAuthContext();

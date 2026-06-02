@@ -45,6 +45,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Información adicional en el token
         token['is_host'] = user.is_host
         token['username'] = user.username
+        
+        if user.profile_picture and hasattr(user.profile_picture, 'url'):
+            token['profile_picture'] = user.profile_picture.url
+        else:
+            token['profile_picture'] = None
 
         return token
 

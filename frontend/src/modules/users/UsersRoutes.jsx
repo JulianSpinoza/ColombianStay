@@ -9,7 +9,6 @@ import HostReservationsDashboard from "../booking/pages/HostReservationsDashboar
 import HistoricReservationsPage from "./pages/HistoricReservationsPage/HistoricReservationsPage";
 import PublicInformationPage from "./pages/PublicInformationPage/PublicInformationPage";
 import MyAccommodationsPage from "./pages/MyAccommodationsPage/MyAccommodationsPage";
-import BillingPage from "./pages/BillingPage/BillingPage";
 
 // Rutas del servicio Users
 
@@ -26,7 +25,6 @@ export default function UsersRoutes () {
                     <Route path="historic-reservations" element={<HistoricReservationsPage/>} />
                     <Route path="public-information" element={<PublicInformationPage/>} />
                     <Route path="my-accommodations" element={<MyAccommodationsPage/>} />
-                    <Route path="billing" element={<BillingPage/>} />
                 </Route>
             </Route>
         </Routes>

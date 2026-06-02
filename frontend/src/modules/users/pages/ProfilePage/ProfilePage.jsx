@@ -1,17 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuthContext } from "../../contexts/AuthContext";
 import EditProfileForm from "../../components/EditProfileForm/EditProfileForm";
 import "./ProfilePage.css"
+import { getPersonalInfo } from "../../services/usersService";
 
 /**
  * ProfilePage
  * Displays user profile info and allows editing via EditProfileForm
  */
 const ProfilePage = () => {
-  const { state } = useAuthContext();
   const [isEditing, setIsEditing] = useState(false);
+  const [userProfile, setUserProfile] = useState(null)
 
-  const user = state.user || {};
+  useEffect(() => {
+    fetchPersonalInfo()
+  }, [])
+
+  async function fetchPersonalInfo() {
+    try {
+      const data = await getPersonalInfo();
+      setUserProfile(data)
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
   const handleSaveProfile = async (formData) => {
     // TODO: Call backend API to update user
@@ -39,14 +51,14 @@ const ProfilePage = () => {
               <div className="profile-card">
                 <div className="avatar-wrapper">
                   <div className="avatar">
-                    {(user.username).charAt(0).toUpperCase()}
+                    {/*(userProfile?.username).charAt(0).toUpperCase()*/}
                   </div>
                 </div>
 
-                <h2 className="username">{user.username}</h2>
-                <p className="email">{user.email}</p>
+                <h2 className="username">{userProfile?.username}</h2>
+                <p className="email">{userProfile?.email}</p>
 
-                {user.is_host && (
+                {userProfile?.is_host && (
                   <div className="verified-wrapper">
                     <span className="verified-badge">✓ Verified Host</span>
                   </div>
@@ -69,11 +81,11 @@ const ProfilePage = () => {
                   <div className="info-grid">
                     <div>
                       <p className="label">First Name</p>
-                      <p className="value">{user.first_name || "—"}</p>
+                      <p className="value">{userProfile?.first_name || "—"}</p>
                     </div>
                     <div>
                       <p className="label">Last Name</p>
-                      <p className="value">{user.last_name || "—"}</p>
+                      <p className="value">{userProfile?.last_name || "—"}</p>
                     </div>
                   </div>
                 </section>
@@ -83,7 +95,7 @@ const ProfilePage = () => {
                 <section>
                   <h3 className="section-title">Contact Information</h3>
                   <p className="label">Email Address</p>
-                  <p className="value">{user.email}</p>
+                  <p className="value">{userProfile?.email}</p>
                 </section>
 
                 <hr />
@@ -102,10 +114,10 @@ const ProfilePage = () => {
           <div className="edit-form-wrapper">
             <EditProfileForm
               initialData={{
-                username: user.username || "",
-                email: user.email || "",
-                first_name: user.first_name || "",
-                last_name: user.last_name || "",
+                username: userProfile?.username || "",
+                email: userProfile?.email || "",
+                first_name: userProfile?.first_name || "",
+                last_name: userProfile?.last_name || "",
               }}
               onSave={handleSaveProfile}
               onCancel={handleCancel}
