@@ -210,3 +210,19 @@ class BookingTotalPriceSerializer(serializers.Serializer):
         
         return total_price
     
+class PendingRatingBookingSerializer(serializers.ModelSerializer):
+    listing_title = serializers.CharField(
+        source='listing.title',
+        read_only=True
+    )
+
+    class Meta:
+        model = Booking
+        fields = [
+            'booking_id',
+            'listing',
+            'listing_title',
+            'check_in_date',
+            'check_out_date',
+            'total_price',
+            ]

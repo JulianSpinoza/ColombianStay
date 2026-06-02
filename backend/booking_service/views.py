@@ -9,8 +9,8 @@ from django.db import transaction
 
 
 from listings_service.models import Listing
-from .models import Booking
-from .serializers import CreateBookingSerializer, BookingSerializer, BookingTotalPriceSerializer
+from .models import Booking, BookingStatus
+from .serializers import CreateBookingSerializer, BookingSerializer, BookingTotalPriceSerializer, PendingRatingBookingSerializer
 
 from django.shortcuts import get_object_or_404
 
@@ -127,6 +127,16 @@ class BookingPreInformationQuoteView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class PendingRatingsListView(generics.ListAPIView):
+    serializer_class = PendingRatingBookingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Booking.objects.filter(
+            guest=self.request.user,
+            actual_status=BookingStatus.COMPLETED,
+            review__isnull=True
+        ).select_related('listing')
 
 class UserReservationsView(generics.ListAPIView):
     """Lista las reservas del usuario autenticado (guest).
