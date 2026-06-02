@@ -29,9 +29,6 @@ function App() {
               <PropertyManager />
             }/>
 
-            {/* Host reservations dashboard (now public for tests) */}
-            <Route path="/host/reservations" element={<HostReservationsDashboard />} />
-
           </Routes>
         </BrowserRouter>
     </div>
