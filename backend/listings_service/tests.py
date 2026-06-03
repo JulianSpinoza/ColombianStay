@@ -629,7 +629,6 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
 
     def get_update_payload(self):
         return {
-            "municipality": self.municipality.pk,
             "title": "Apartamento actualizado",
             "description": "Descripción actualizada suficientemente larga.",
             "bedrooms": 2,
@@ -639,7 +638,6 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
             "propertytype": "apartment",
             "pricepernight": 200000,
             "maxguests": 4,
-            "exactlocation": self.get_valid_location(),
         }
 
     def test_requires_authentication_to_update_property_information(self):
@@ -742,7 +740,6 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         )
 
         payload = self.get_update_payload()
-        payload["exactlocation"] = json.dumps(payload["exactlocation"])
         payload["images"] = [make_uploaded_image("ignored_image.jpg")]
 
         response = self.client.put(self.url, payload, format="multipart")
@@ -768,7 +765,6 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         self.client.force_authenticate(user=self.user)
 
         payload = self.get_update_payload()
-        payload["municipality"] = duplicated_listing.municipality.pk
         payload["title"] = duplicated_listing.title
         payload["addresstext"] = duplicated_listing.addresstext
 
@@ -814,23 +810,36 @@ class UpdatePropertyAPITests(BaseListingTestMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("pricepernight", response.data)
 
-    def test_denies_geolocation_change_when_listing_has_bookings(self):
+    def test_rejects_exactlocation_when_updating_information(self):
         self.client.force_authenticate(user=self.user)
 
+        original_location = self.listing.exactlocation
         payload = self.get_update_payload()
         payload["exactlocation"] = self.get_alternate_valid_location()
 
-        related_manager_class = type(self.listing.bookings)
-
-        with patch.object(related_manager_class, "exists", return_value=True):
-            response = self.client.put(self.url, payload, format="json")
+        response = self.client.put(self.url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("exactlocation", response.data)
 
         self.listing.refresh_from_db()
-        self.assertAlmostEqual(self.listing.exactlocation.y, self.get_valid_location()["lat"])
-        self.assertAlmostEqual(self.listing.exactlocation.x, self.get_valid_location()["lng"])
+        self.assertAlmostEqual(self.listing.exactlocation.y, original_location.y)
+        self.assertAlmostEqual(self.listing.exactlocation.x, original_location.x)
+
+    def test_rejects_municipality_when_updating_information(self):
+        self.client.force_authenticate(user=self.user)
+
+        original_municipality_id = self.listing.municipality_id
+        payload = self.get_update_payload()
+        payload["municipality"] = self.municipality.pk
+
+        response = self.client.put(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("municipality", response.data)
+
+        self.listing.refresh_from_db()
+        self.assertEqual(self.listing.municipality_id, original_municipality_id)
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())

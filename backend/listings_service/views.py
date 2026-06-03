@@ -170,6 +170,24 @@ class UpdateProperty(APIView):
         data.pop('images', None)
         data.pop('owner', None)
 
+        blocked_fields = {}
+
+        if 'municipality' in data:
+            blocked_fields['municipality'] = (
+                'No se permite modificar el municipio de una publicación existente.'
+            )
+
+        if 'exactlocation' in data:
+            blocked_fields['exactlocation'] = (
+                'No se permite modificar la ubicación exacta de una publicación existente.'
+            )
+
+        if blocked_fields:
+            return Response(
+                blocked_fields,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = UpdateListingSerializer(
             listing,
             data=data,
