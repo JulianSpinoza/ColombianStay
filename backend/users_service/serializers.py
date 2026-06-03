@@ -73,8 +73,10 @@ class UserInformation(serializers.ModelSerializer):
             'last_name', 
             'email', 
             'phone_number', 
-            'profile_picture'
+            'profile_picture',
+            'is_host'
             ]
+        read_only_fields = ['is_host']
     
     def to_representation(self, instance):
         data = super().to_representation(instance)

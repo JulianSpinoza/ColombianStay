@@ -48,7 +48,7 @@ const Navbar = ({children}) => {
 
   const handleHostReservations = () => {
     setIsProfileMenuOpen(false);
-    navigate("/host/reservations");
+    navigate("/user/host/reservations");
   };
 
   const handleProfileClick = () => {

@@ -72,7 +72,7 @@ export default function UserSideBar()  {
                 Reservations
             </button>
 
-            {user.is_host && (
+            {userProfile?.is_host && (
                 <>
                     <p className="menu-label">As host</p>
 
