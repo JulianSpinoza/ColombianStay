@@ -30,6 +30,7 @@ const UserReservationsDashboard = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [localError, setLocalError] = useState(null);
 
   useEffect(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -217,7 +218,7 @@ const UserReservationsDashboard = () => {
               {reservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
-            {reservations.map((reservation) => (
+            {filteredReservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
@@ -253,6 +254,15 @@ const UserReservationsDashboard = () => {
         onConfirm={handleCancelReservation}
         onCancel={handleCloseCancelModal}
         isLoading={isCancelling}
+      />
+
+      <RateStayModal
+        isOpen={isRateModalOpen}
+        onClose={() => setIsRateModalOpen(false)}
+        listing={pendingRatingListing}
+        onSubmit={(data) => {
+          console.log("Rating guardado con éxito en Docker:", data);
+        }}
       />
     </div>
   );

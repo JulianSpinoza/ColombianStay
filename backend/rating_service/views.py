@@ -1,12 +1,49 @@
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from django.db.models import Avg
 
 from .models import Rating
-from .serializers import RatingSerializer
+from .serializers import CreateRatingSerializer, RatingSerializer
 
 from listings_service.models import Listing
+from booking_service.models import Booking, BookingStatus
+
+class CreateRatingView(generics.CreateAPIView):
+    serializer_class = CreateRatingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        booking_id = self.kwargs['booking_id']
+
+        try:
+            booking = Booking.objects.get(pk=booking_id)
+        except Booking.DoesNotExist:
+            raise ValidationError(
+                {"booking": "La reserva no existe."}
+            )
+
+        # Solo el huésped propietario puede calificar
+        if booking.guest != self.request.user:
+            raise PermissionDenied(
+                "No puede calificar una reserva que no le pertenece."
+            )
+
+        # Debe estar completada
+        if booking.actual_status != BookingStatus.COMPLETED:
+            raise ValidationError(
+                {"booking": "Solo se pueden calificar reservas completadas."}
+            )
+
+        # Evitar doble calificación
+        if hasattr(booking, 'review'):
+            raise ValidationError(
+                {"booking": "Esta reserva ya fue calificada."}
+            )
+
+        serializer.save(booking=booking)
 
 class HostRatingsView(generics.ListAPIView):
     #Vista para obtener todos los ratings de las propiedades del host que está ctualmente

@@ -16,10 +16,14 @@ export default function UsersRoutes () {
     return (
         <Routes>
             {/* Rutas publicas*/ }
-                
+                    
             {/* Rutas Privadas*/ }
-            <Route element={<PrivateRoute/>}>
+                <Route element={<PrivateRoute/>}>
                 <Route element={<PersonalUsersLayout/>}>
+                     
+                    {/* 2. RUTA DE LA LISTA COMPLETA */}
+                    <Route path="my-accommodations" element={<OwnAccommodationsList />} /> 
+                    <Route path= "my-accommodation/:id" element={<OwnAccommodationDetail />} />
                     <Route path="my-profile" element={<ProfilePage/>}/>
                     <Route path="my-reservations" element={<UserReservationsDashboard/>} />
                     <Route element={<HostRoute/>}>
