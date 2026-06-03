@@ -6,6 +6,7 @@ import "./UserReservationsDashboard.css";
 import useReservations from "../../hooks/useReservations.js";
 import useCancelReservation from "../../hooks/useCancelReservation.js";
 import { useSearchParams } from "react-router-dom";
+import RateStayModal from "../../../ratings/components/RateStayModal/RateStayModal.jsx";
 
 const UserReservationsDashboard = () => {
 
@@ -30,7 +31,7 @@ const UserReservationsDashboard = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [localError, setLocalError] = useState(null);
+  const [isRateModalOpen, setIsRateModalOpen] = useState(false)
 
   useEffect(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -83,6 +84,32 @@ const UserReservationsDashboard = () => {
       setIsCancelModalOpen(false);
       setSelectedReservationId(null);
     };
+
+  const handleRateReservation = (reservationId) => {
+    if (!reservationId) {
+      setError("No se pudo identificar la reserva seleccionada.");
+      return;
+    }
+      setIsRateModalOpen(false);
+      setSelectedReservationId(null);
+  }
+
+  const handleOpenRateModal = (reservationId) => {
+    if (!reservationId) {
+      setError("No se pudo identificar la reserva seleccionada.");
+      return;
+    }
+
+    setError(null);
+    setSuccessMessage("");
+    setSelectedReservationId(reservationId);
+    setIsRateModalOpen(true);
+  }
+
+  const handleCloseRateModal = () => {
+    setIsRateModalOpen(false);
+    setSelectedReservationId(null);
+  };
 
   const handleOpenCancelModal = (reservationId) => {
     if (!reservationId) {
@@ -218,13 +245,14 @@ const UserReservationsDashboard = () => {
               {reservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
-            {filteredReservations.map((reservation) => (
+            {reservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
                 showGuestInfo={false}
                 isHost={false}
                 onCancel={handleOpenCancelModal}
+                onRate={handleOpenRateModal}
               />
             ))}
           </section>
@@ -258,11 +286,10 @@ const UserReservationsDashboard = () => {
 
       <RateStayModal
         isOpen={isRateModalOpen}
-        onClose={() => setIsRateModalOpen(false)}
-        listing={pendingRatingListing}
-        onSubmit={(data) => {
-          console.log("Rating guardado con éxito en Docker:", data);
-        }}
+        onConfirm={handleRateReservation}
+        onClose={handleCloseRateModal}
+        listingTitle={selectedReservation?.property?.title}
+        bookingId={selectedReservation?.id || selectedReservationId}
       />
     </div>
   );

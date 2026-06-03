@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import httpClient from "../../../../services/api/httpClient";
-// 1. IMPORTAMOS EL ARCHIVO CSS QUE ACABAMOS DE CREAR
 import "./RateStayModal.css";
+import { ratePropertyByBooking } from "../../services/ratingsService";
 
-const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
+const RateStayModal = ({ isOpen, onClose, listingTitle, bookingId }) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -22,20 +21,14 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
       setErrorMessage("Please select a rating");
       return;
     }
-    if (!listing || !listing.accomodationid) {
-      setErrorMessage("Error: no property to rate");
-      return;
-    }
     try {
       setIsSubmitting(true);
       setErrorMessage("");
-      const response = await httpClient.post('ratings/', {
-        listing: listing.accomodationid,
+      await ratePropertyByBooking(bookingId,{
         rating: rating,
         comment: comment || null,
-      });
+      })
       setIsSuccessSubmitted(true);
-      if (onSubmit) onSubmit(response.data);
     } catch (error) {
       console.error("Error submitting rating:", error);
       setErrorMessage("Error submitting rating. Please try again.");
@@ -53,8 +46,6 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
     onClose();
   };
 
-  const listingTitle = listing?.title || "your stay";
-
   // 2. RENDERIZADO CON LAS NUEVAS CLASES DEL CSS PERSONALIZADO
   return (
     <div className="rate-modal-overlay">
@@ -68,7 +59,7 @@ const RateStayModal = ({ isOpen, onClose, onSubmit, listing }) => {
           <>
             <div className="rate-modal-header">
               <h2 className="rate-modal-title">Tell other guests how it went</h2>
-              {listing && (
+              {listingTitle && (
                 <p className="rate-modal-subtitle">
                   Rate your stay at <span style={{ fontWeight: 600, color: '#374151' }}>{listingTitle}</span>
                 </p>

@@ -1,7 +1,7 @@
 import React from "react";
 import "./ReservationCard.css";
 
-export default function ReservationCard({ reservation, onCancel, showGuestInfo, isHost }) {
+export default function ReservationCard({ reservation, onCancel, onRate, showGuestInfo, isHost }) {
   const statusConfig = {
     pending: { label: "Pendiente", className: "status-pending" },
     confirmed: { label: "Confirmada", className: "status-confirmed" },
@@ -11,7 +11,13 @@ export default function ReservationCard({ reservation, onCancel, showGuestInfo, 
   };
 
   const status = statusConfig[reservation.status] || { label: reservation.status, className: "" };
-  const canCancel = () => reservation.status !== "cancelled" && reservation.status !== "completed";
+  const canCancel = () => 
+    reservation.status !== "cancelled" && 
+    reservation.status !== "active" &&
+    reservation.status !== "completed";
+
+  const canRate = () => 
+    reservation.status === "completed";
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Fecha no disponible";
@@ -43,10 +49,13 @@ export default function ReservationCard({ reservation, onCancel, showGuestInfo, 
         <div className="host-reservation-card-footer">
           {canCancel() && onCancel ? (
             <button className="host-reservation-card-cancel-button" onClick={() => onCancel(reservation.id)}>Cancelar reserva</button>
-          ) : (
+          ) : reservation.status !== 'completed' && (
             <span className="host-reservation-card-note">
               {reservation.status==="cancelled"?"Esta reserva fue cancelada":"No se puede cancelar"}
             </span>
+          )}
+          {canRate() && onRate && (
+            <button className="host-reservation-card-cancel-button" onClick={() => onRate(reservation.id)}>Califica esta reserva</button>
           )}
         </div>
       </div>
