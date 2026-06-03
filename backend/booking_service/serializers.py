@@ -8,7 +8,6 @@ from decimal import Decimal
 from .models import Booking, BookingStatus, calculate_total_price
 from listings_service.models import Listing
 
-
 class BookingSerializer(serializers.ModelSerializer):
     listing_title = serializers.CharField(
         source='listing.title',
@@ -30,7 +29,7 @@ class BookingSerializer(serializers.ModelSerializer):
     )
     guest_avatar = serializers.SerializerMethodField()
 
-    status = serializers.SerializerMethodField()
+    # status = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -80,17 +79,32 @@ class BookingSerializer(serializers.ModelSerializer):
         return obj.guest.username
 
     def get_listing_image(self, obj):
-        return (
-            "https://images.unsplash.com/photo-1502672260266-"
-            "1c1ef2d93688?w=400&h=300&fit=crop"
+        request = self.context.get("request")
+
+        listing_image = (
+            obj.listing.images
+            .filter(is_main=True)
+            .first()
         )
+
+        if listing_image is None:
+            listing_image = obj.listing.images.first()
+
+        if listing_image and listing_image.image:
+            image_url = listing_image.image.url
+
+            if request:
+                return request.build_absolute_uri(image_url)
+
+            return image_url
+
+        return None
 
     def get_guest_avatar(self, obj):
         return (
             f"https://api.dicebear.com/7.x/avataaars/svg?"
             f"seed={obj.guest.username}"
         )
-
 
 class CreateBookingSerializer(serializers.ModelSerializer):
     class Meta:
