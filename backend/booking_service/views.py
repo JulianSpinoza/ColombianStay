@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Q
 
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -17,6 +18,41 @@ from .serializers import (
 )
 
 MIN_GUEST_CANCELLATION_DAYS = 3
+
+
+def apply_reservation_filters(queryset, query_params):
+    """
+    Aplica filtros opcionales recibidos por query string.
+
+    Parámetros soportados:
+    - search_term: busca en title y description del listing/accommodation.
+    - actual_status: filtra por el estado actual del booking.
+
+    También se acepta actual_state como alias por compatibilidad con nombres
+    usados en algunas pantallas.
+    """
+
+    search_term = query_params.get('search_term')
+    actual_status = (
+        query_params.get('actual_status')
+    )
+
+    if search_term:
+        search_term = search_term.strip()
+
+        if search_term:
+            queryset = queryset.filter(
+                Q(listing__title__icontains=search_term)
+                | Q(listing__description__icontains=search_term)
+            )
+
+    if actual_status:
+        actual_status = actual_status.strip()
+
+        if actual_status:
+            queryset = queryset.filter(actual_status__iexact=actual_status)
+
+    return queryset
 
 def user_is_host(user):
     """
@@ -63,11 +99,19 @@ class HostReservationsView(generics.ListAPIView):
         if not self.request.user or not self.request.user.is_authenticated:
             return Booking.objects.none()
 
-        host_listings = Listing.objects.filter(owner=self.request.user)
+        queryset = Booking.objects.select_related(
+            'listing',
+            'guest',
+        ).filter(
+            listing__owner=self.request.user
+        )
 
-        return Booking.objects.filter(
-            listing__in=host_listings
-        ).order_by('-created_at')
+        queryset = apply_reservation_filters(
+            queryset,
+            self.request.query_params,
+        )
+
+        return queryset.order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         if not request.user or not request.user.is_authenticated:
@@ -79,7 +123,6 @@ class HostReservationsView(generics.ListAPIView):
             )
 
         return super().list(request, *args, **kwargs)
-
 
 class CreateBookingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -128,7 +171,6 @@ class CreateBookingView(APIView):
             BookingSerializer(booking).data,
             status=status.HTTP_201_CREATED,
         )
-
 
 class BookingPreInformationQuoteView(APIView):
     def post(self, request):
@@ -185,9 +227,19 @@ class UserReservationsView(generics.ListAPIView):
         if not self.request.user or not self.request.user.is_authenticated:
             return Booking.objects.none()
 
-        return Booking.objects.filter(
+        queryset = Booking.objects.select_related(
+            'listing',
+            'guest',
+        ).filter(
             guest=self.request.user
-        ).order_by('-created_at')
+        )
+
+        queryset = apply_reservation_filters(
+            queryset,
+            self.request.query_params,
+        )
+
+        return queryset.order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         if not request.user or not request.user.is_authenticated:
