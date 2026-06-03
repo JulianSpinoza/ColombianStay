@@ -21,7 +21,8 @@ export const BOOKINGS_ENDPOINTS = {
   HOST_RESERVATIONS: "host-reservations/",
   GUEST_RESERVATIONS: "user-reservations/",
   CREATE: "bookings/",
-  CANCEL: (id) => `reservations/${id}/cancel/`,
+  CANCEL_AS_GUEST: (id) => `reservations/${id}/cancel/guest/`,
+  CANCEL_AS_HOST: (id) => `reservations/${id}/cancel/host/`,
   PREINFORMATION: "bookings/preinformation/",
 };
 
