@@ -1,22 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
-import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 
 import "./UserReservationsDashboard.css";
-import httpClient from "../../../../services/api/httpClient.js";
 import useReservations from "../../hooks/useReservations.js";
 import useCancelReservation from "../../hooks/useCancelReservation.js";
-
-const RECENT_CANCELLED_DAYS = 30;
+import { useSearchParams } from "react-router-dom";
 
 const UserReservationsDashboard = () => {
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { 
       reservations, 
       loading, 
       error, 
       setError,
-      fetchReservations,
     } = useReservations("guest");
 
   const {
@@ -33,19 +32,31 @@ const UserReservationsDashboard = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-      const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-  
-      if(activeFilter === "all"){
-        fetchReservations({
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    
+    let filter;
+
+      if(normalizedSearchTerm === "" && activeFilter === "all") {
+        filter = {}
+      } else if(normalizedSearchTerm === "" && activeFilter !== "all"){
+        filter = {
+          actual_status: activeFilter,
+        }
+      } else if(normalizedSearchTerm !== "" && activeFilter === "all"){
+        filter = {
           search_term: normalizedSearchTerm,
-        })
+        }
       } else {
-        fetchReservations({
+        filter = {
           search_term: normalizedSearchTerm,
           actual_status: activeFilter,
-        })
+        }
       }
-    }, [searchTerm, activeFilter]);
+    
+
+    setSearchParams(filter);
+
+  }, [searchTerm, activeFilter])
 
   const selectedReservation = reservations.find(
     (reservation) => reservation.id === selectedReservationId
@@ -193,14 +204,14 @@ const UserReservationsDashboard = () => {
           <div className="guest-reservations-loader-container">
             <div className="guest-reservations-loader" />
           </div>
-        ) : filteredReservations.length > 0 ? (
+        ) : reservations.length > 0 ? (
           <section className="guest-reservations-list">
             <p className="guest-reservations-counter">
-              {filteredReservations.length}{" "}
-              {filteredReservations.length === 1 ? "reserva" : "reservas"}
+              {reservations.length}{" "}
+              {reservations.length === 1 ? "reserva" : "reservas"}
             </p>
 
-            {filteredReservations.map((reservation) => (
+            {reservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
