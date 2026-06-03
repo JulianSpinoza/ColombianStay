@@ -53,7 +53,6 @@ class LocationField(serializers.Field):
 
         return Point(lng, lat, srid=4326)
 
-
 class ListingImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
@@ -74,7 +73,6 @@ class ListingImageSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.thumbnail.url)
         return None
     
-
 class ListingSerializer(serializers.ModelSerializer):
     images = ListingImageSerializer(many=True, read_only=True)
     reviews_count = serializers.IntegerField(read_only=True)
@@ -339,3 +337,124 @@ class LocationTermsUnifiedSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     type = serializers.CharField()
+
+class UpdateListingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Listing
+        fields = [
+            'accomodationid',
+            'title',
+            'description',
+            'bedrooms',
+            'bathrooms',
+            'locationdesc',
+            'addresstext',
+            'propertytype',
+            'pricepernight',
+            'maxguests',
+        ]
+        read_only_fields = ['accomodationid']
+        extra_kwargs = {
+            'pricepernight': {'min_value': 0},
+            'bedrooms': {'min_value': 1},
+            'bathrooms': {'min_value': 1},
+            'maxguests': {'min_value': 1},
+        }
+
+    def validate_title(self, value):
+        return value.strip()
+
+    def validate_description(self, value):
+        return value.strip()
+
+    def validate_locationdesc(self, value):
+        return value.strip()
+
+    def validate_addresstext(self, value):
+        return value.strip()
+
+    def validate(self, attrs):
+        bedrooms = attrs.get('bedrooms', getattr(self.instance, 'bedrooms', None))
+        bathrooms = attrs.get('bathrooms', getattr(self.instance, 'bathrooms', None))
+        maxguests = attrs.get('maxguests', getattr(self.instance, 'maxguests', None))
+        pricepernight = attrs.get('pricepernight', getattr(self.instance, 'pricepernight', None))
+        title = attrs.get('title', getattr(self.instance, 'title', None))
+        description = attrs.get('description', getattr(self.instance, 'description', None))
+        addresstext = attrs.get('addresstext', getattr(self.instance, 'addresstext', None))
+
+        municipality = getattr(self.instance, 'municipality', None)
+        exactlocation = getattr(self.instance, 'exactlocation', None)
+
+        if maxguests < bedrooms:
+            raise serializers.ValidationError({
+                'maxguests': 'El máximo de huéspedes no puede ser menor que la cantidad de habitaciones.'
+            })
+
+        if bathrooms > maxguests:
+            raise serializers.ValidationError({
+                'bathrooms': 'La cantidad de baños no puede ser mayor que el máximo de huéspedes.'
+            })
+
+        if pricepernight < 0:
+            raise serializers.ValidationError({
+                'pricepernight': 'El precio por noche no puede ser negativo.'
+            })
+
+        if title.lower() == description.lower():
+            raise serializers.ValidationError({
+                'description': 'La descripción no debe ser igual al título.'
+            })
+
+        request = self.context.get('request')
+        owner = getattr(request, 'user', None)
+
+        if owner and owner.is_authenticated:
+            duplicated = Listing.objects.filter(
+                owner=owner,
+                municipality=municipality,
+                exactlocation=exactlocation,
+                title__iexact=title.strip(),
+                addresstext__iexact=addresstext.strip(),
+            )
+
+            if self.instance:
+                duplicated = duplicated.exclude(pk=self.instance.pk)
+
+            if duplicated.exists():
+                raise serializers.ValidationError({
+                    'non_field_errors': [
+                        'Ya existe una publicación con el mismo usuario, municipio, título y dirección.'
+                    ]
+                })
+
+        return attrs
+
+
+class UpdateListingImagesSerializer(serializers.Serializer):
+    images = serializers.ListField(
+        child=serializers.ImageField(),
+        allow_empty=False,
+        write_only=True,
+        error_messages={
+            'empty': 'La publicación debe tener al menos una imagen.'
+        }
+    )
+
+    def validate_images(self, images):
+        if not images:
+            raise serializers.ValidationError(
+                'La publicación debe tener al menos una imagen.'
+            )
+
+        allowed_content_types = {'image/jpeg', 'image/png'}
+
+        for image in images:
+            content_type = getattr(image, 'content_type', None)
+
+            if content_type not in allowed_content_types:
+                raise serializers.ValidationError(
+                    'Solo se permiten imágenes JPG, JPEG o PNG.'
+                )
+
+        return images

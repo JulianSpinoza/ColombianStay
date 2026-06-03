@@ -5,13 +5,15 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Region, Department, Municipality, Listing
-from .serializers import ListingImageSerializer, ListingSerializer, ListingDetailSerializer, PublishListingSerializer
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from .models import Region, Department, Municipality, Listing, ListingImage
+from .serializers import ListingImageSerializer, ListingSerializer, ListingDetailSerializer, PublishListingSerializer, UpdateListingSerializer, UpdateListingImagesSerializer
 from .serializers import RegionSerializer, DepartmentSerializer, MunicipalitySerializer, ListingFilterSerializer
+
 
 from django.db.models import Avg, Count
 from django.db.models import Q, F
+from django.shortcuts import get_object_or_404
 from itertools import chain
     
 class ListingListView(generics.ListAPIView):
@@ -116,7 +118,7 @@ class LocationUnifiedView(APIView):
     
 class PublishProperty(APIView):
 
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -148,7 +150,128 @@ class PublishProperty(APIView):
             },
             status=status.HTTP_201_CREATED
         )
-    
+
+class UpdateProperty(APIView):
+
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    permission_classes = [IsAuthenticated]
+
+    def get_listing(self, pk, user):
+        return get_object_or_404(
+            Listing,
+            accomodationid=pk,
+            owner=user
+        )
+
+    def put(self, request, pk):
+        listing = self.get_listing(pk, request.user)
+
+        data = request.data.copy()
+        data.pop('images', None)
+        data.pop('owner', None)
+
+        blocked_fields = {}
+
+        if 'municipality' in data:
+            blocked_fields['municipality'] = (
+                'No se permite modificar el municipio de una publicación existente.'
+            )
+
+        if 'exactlocation' in data:
+            blocked_fields['exactlocation'] = (
+                'No se permite modificar la ubicación exacta de una publicación existente.'
+            )
+
+        if blocked_fields:
+            return Response(
+                blocked_fields,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = UpdateListingSerializer(
+            listing,
+            data=data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            with transaction.atomic():
+                listing = serializer.save(owner=request.user)
+
+        except IntegrityError:
+            return Response(
+                {
+                    'message': 'No fue posible actualizar la información de la publicación.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                'message': 'Property information updated successfully.',
+                'data': ListingDetailSerializer(
+                    listing,
+                    context={'request': request}
+                ).data
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class UpdatePropertyImages(APIView):
+
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+
+    def get_listing(self, pk, user):
+        return get_object_or_404(
+            Listing,
+            accomodationid=pk,
+            owner=user
+        )
+
+    def put(self, request, pk):
+        listing = self.get_listing(pk, request.user)
+        images = request.FILES.getlist('images')
+
+        serializer = UpdateListingImagesSerializer(
+            data={'images': images},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            with transaction.atomic():
+                listing.images.all().delete()
+
+                for index, image in enumerate(serializer.validated_data['images']):
+                    ListingImage.objects.create(
+                        listing=listing,
+                        image=image,
+                        is_main=(index == 0)
+                    )
+
+        except IntegrityError:
+            return Response(
+                {
+                    'message': 'No fue posible actualizar las imágenes de la publicación.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                'message': 'Property images updated successfully.',
+                'images': ListingImageSerializer(
+                    listing.images.all(),
+                    many=True,
+                    context={'request': request}
+                ).data
+            },
+            status=status.HTTP_200_OK
+        )
+               
 class ListingSearchView(generics.ListAPIView):
     serializer_class = ListingSerializer
     pagination_class = ListingPagination
