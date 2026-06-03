@@ -29,7 +29,6 @@ export default function useCancelReservation(perspective){
         } catch(err) {
             handleCancelError(err);
         } finally {
-            if (!cancelError) fetchReservations
             setCancelLoading(false);
         }
 
