@@ -1,49 +1,75 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import "./UserSideBar.css";
-import { useAuthContext } from "../../contexts/AuthContext";
+import usePersonalInfo from "../../hooks/usePersonalInfo";
 
 export default function UserSideBar()  {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const selected = location.state?.selectedOption;
+  const pathname = location.pathname;
 
-  const { state } = useAuthContext();
-  const user = state.user;
+  const selected =
+    pathname === "/user/my-profile"
+      ? "profile"
+      : pathname === "/user/my-reservations"
+      ? "reservations"
+      : pathname === "/user/historic-reservations"
+      ? "historic"
+      : pathname === "/host/public-information"
+      ? "publicInfo"
+      : pathname === "/host/my-accommodations"
+      ? "accommodations"
+       : "";
 
-  const handleNavigate = (key, path) => {
-    navigate(path ,{ state : { selectedOption: key }});
-  };
+    const handleNavigate = (path) => {
+        navigate(path);
+    };
+
+    const {
+        userProfile,
+        loading,
+        error,
+    } = usePersonalInfo();
 
   return (
     <div className="sidebar-container">
             
         {/* Foto y nombre */}
-        <div className="profile-section" onClick={() => handleNavigate("profile", "/user/my-profile")}>
+        <div className="profile-section" onClick={() => handleNavigate("/user/my-profile")}>
                 <div className="avatar-container">
                     <div className="avatar-circle">
-                        {(user.username).charAt(0).toUpperCase()}
+                        {userProfile?.profile_picture ? (
+                            <img
+                                src={
+                                userProfile?.profile_picture
+                                }
+                                alt="Profile Picture"
+                                className="profile-preview"
+                            />
+                            ) : userProfile?.username && (
+                            (userProfile?.username).charAt(0).toUpperCase()
+                        )}
                     </div>
                 </div>
-            <p className="profile-name">{user.username}</p>
+            <p className="profile-name">{userProfile?.username}</p>
         </div>
 
         {/* Opciones */}
         <div className="menu-section">
             <button
-            className={selected === "profile" ? "menu-item selected" : "menu-item"}
-            onClick={() => handleNavigate("profile", "/user/my-profile")}
+                className={selected === "profile" ? "menu-item selected" : "menu-item"}
+                onClick={() => handleNavigate("/user/my-profile")}
             >
-            My profile
+                My profile
             </button>
 
             <p className="menu-label">As guest</p>
 
             <button
-            className={selected === "reservations" ? "menu-item selected" : "menu-item"}
-            onClick={() => handleNavigate("reservations", "/user/my-reservations")}
+                className={selected === "reservations" ? "menu-item selected" : "menu-item"}
+                onClick={() => handleNavigate("/user/my-reservations")}
             >
-            Reservations
+                Reservations
             </button>
 
             {user.is_host && (
@@ -55,7 +81,7 @@ export default function UserSideBar()  {
                         selected === "accomodations" ? "menu-item selected" : "menu-item"
                     }
                     onClick={() =>
-                        handleNavigate("accomodations", "/user/host/reservations")
+                        handleNavigate("/user/host/reservations")
                     }
                     >
                     My accomodations reservations

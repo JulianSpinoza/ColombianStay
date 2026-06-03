@@ -1,10 +1,12 @@
 from .models import CustomUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import ContactHostSerializer, UserRegisterSerializer
+from .serializers import ContactHostSerializer, UserInformation, UserRegisterSerializer
 from .serializers import CustomTokenObtainPairSerializer
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from django.http import Http404
 from rest_framework.exceptions import ValidationError
@@ -45,3 +47,11 @@ class ContactHostView(generics.RetrieveAPIView):
                     "detail": "El usuario no existe o no corresponde a un host."
                 }
             )
+        
+class OwnProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserInformation
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_object(self):
+        return self.request.user

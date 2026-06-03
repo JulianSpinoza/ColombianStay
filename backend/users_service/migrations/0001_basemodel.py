@@ -2,6 +2,9 @@
 
 import django.contrib.auth.models
 import django.contrib.auth.validators
+import django.core.validators
+import phonenumber_field.modelfields
+import users_service.models
 import django.utils.timezone
 from django.db import migrations, models
 
@@ -30,6 +33,8 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
                 ('is_host', models.BooleanField(default=False,  help_text='Designates whether this user has properties.', verbose_name='host status')),
+                ('phone_number', phonenumber_field.modelfields.PhoneNumberField(blank=False, null=False, max_length=128, region='CO')),
+                ('profile_picture', models.ImageField(blank=True, upload_to=users_service.models.CustomUser.upload_path, validators=[django.core.validators.FileExtensionValidator(['jpg', 'png', 'jpeg']), users_service.models.CustomUser.validate_image_size])),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
             ],

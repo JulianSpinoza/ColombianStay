@@ -30,4 +30,5 @@ export const USERS_ENDPOINTS = {
   LOGIN: "auth/login/",
   REFRESH: "auth/refresh/",
   CONTACT_HOST: (id) => `contact_host/${id}/`,
+  INFO_ME: "profile/me/",
 }

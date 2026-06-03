@@ -2,13 +2,25 @@ from rest_framework import serializers
 from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from phonenumber_field.serializerfields import PhoneNumberField
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
-
+    phone_number = PhoneNumberField(region="CO")
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'is_host']
+        fields = [
+            'username', 
+            'email', 
+            'password', 
+            'first_name', 
+            'last_name', 
+            'is_host',
+            'phone_number',
+            'profile_picture',
+            ]
         extra_kwargs = {
+            'username' : {'required': True},
+            'password' : {'required': True},
             'email': {'required': True},
             'is_host': {'required': False},
         }
@@ -35,7 +47,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['username'] = user.username
 
         return token
-    
 
 class ContactHostSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,4 +59,27 @@ class ContactHostSerializer(serializers.ModelSerializer):
         if not instance.email_as_contact:
             data["email"] = None
 
+        return data
+    
+
+class UserInformation(serializers.ModelSerializer):
+
+    phone_number = PhoneNumberField(region="CO")
+    class Meta:
+        model=CustomUser
+        fields=[
+            'username',
+            'first_name', 
+            'last_name', 
+            'email', 
+            'phone_number', 
+            'profile_picture'
+            ]
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        if instance.phone_number:
+            data["phone_number"] = instance.phone_number.national_number
+        
         return data

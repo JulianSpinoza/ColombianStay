@@ -1,15 +1,31 @@
 import React, { useState } from "react";
 import './SignupModal.css'
-import { registerUser } from "../../services/usersService";
+import { registerUser, loginUser } from "../../services/usersService";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { useApiState } from "../../../../services/api/useApiState";
+import { useAuthContext } from "../../contexts/AuthContext";
 
 const SignupModal = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
+  const { dispatch } = useAuthContext();
+
+  const {
+    loading,
+    setLoading,
+    error,
+    setError,
+    handleError,
+  } = useApiState();
+
+  const [formerror, setFormError] = useState("");
   const navigate = useNavigate()
 
   const onClose = () => {
@@ -23,52 +39,82 @@ const SignupModal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
+    setFormError("");
+    setLoading(true);
 
     if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError("Please fill all fields");
-      setIsLoading(false);
+      setFormError("Please fill all fields");
+      setLoading(false);
       return;
     }
 
     if (!validateEmail(email)) {
-      setError("Please enter a valid email address");
-      setIsLoading(false);
+      setFormError("Please enter a valid email address");
+      setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      setIsLoading(false);
+      setFormError("Password must be at least 6 characters");
+      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
+      setFormError("Passwords do not match");
+      setLoading(false);
       return;
     }
+    
+    setError(null);
 
     try {
       
       const userData = {
         username,
-        password,
         email,
-        firstName: username.charAt(0).toUpperCase() + username.slice(1),
+        password,
+        first_name:firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
         is_host: false,
       };
 
       await registerUser(userData);
 
-    } catch (error) {
-      setError("Registration failed. Please try again.");
-      console.log(error);
+    } catch (err) {
+      setFormError("Registration failed. Please try again.");
+      handleError(err)
+    } 
+
+    try {
+
+      const credentials = {
+        username: username,
+        password: password
+      };
+
+      const JWTToken = await loginUser(credentials);
+    
+      const access = JWTToken.access;
+      const refresh = JWTToken.refresh;
+      const user = jwtDecode(access);
+
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      dispatch({
+        type: "LOGIN",
+        payload: { access, refresh, user }
+      });
+
+    } catch (err) {
+      handleError(err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+      if (!error) onClose();
     }
-    onClose();
+    
   };
 
   return (
@@ -79,15 +125,50 @@ const SignupModal = () => {
           <form className="form" onSubmit={handleSubmit}>
             <div className="title">Create an account</div>
 
-            {error && <div className="error-message">{error}</div>}
+            {formerror && <div className="error-message">{formerror}</div>}
 
             <input
               className="input"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
+
+            <input
+              className="input"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              disabled={loading}
+              required
+            />
+
+            <input
+              className="input"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              disabled={loading}
+              required
+            />
+
+            <div className="input-container">
+              <span> +57 </span>
+              <input
+                className="input"
+                type="tel"
+                pattern="3[0-9]{9}"
+                title="El número debe tener 10 dígitos y empezar con 3"
+                required
+                placeholder="Phone"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            
 
             <input
               className="input"
@@ -95,7 +176,8 @@ const SignupModal = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
 
             <input
@@ -104,7 +186,8 @@ const SignupModal = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
 
             <input
@@ -113,11 +196,12 @@ const SignupModal = () => {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={loading}
+              required
             />
 
-            <button className="button-confirm" type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Sign up"}
+            <button className="button-confirm" type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Sign up"}
             </button>
 
             <button type="button" className="button-cancel" onClick={onClose}>
