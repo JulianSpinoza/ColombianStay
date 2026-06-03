@@ -134,14 +134,29 @@ class BookingServiceAPITestCase(APITestCase):
         status_value=BookingStatus.CONFIRMED,
         guests=2,
     ):
-        return Booking.objects.create(
+        initial_status = (
+            BookingStatus.CONFIRMED
+            if status_value == BookingStatus.CANCELLED
+            else status_value
+        )
+
+        booking = Booking.objects.create(
             listing=listing or self.listing,
             guest=guest or self.guest,
             check_in_date=timezone.localdate() + timedelta(days=check_in_days),
             check_out_date=timezone.localdate() + timedelta(days=check_out_days),
             number_of_guests=guests,
-            actual_status=status_value,
+            actual_status=initial_status,
         )
+
+        if status_value == BookingStatus.CANCELLED:
+            booking.update_status(
+                new_status=BookingStatus.CANCELLED,
+                principal_actuator=Actuator.HOST,
+                desc_of_transaction='Reserva cancelada para prueba.',
+            )
+
+        return booking
 
 
 class CancelReservationAPITests(BookingServiceAPITestCase):
@@ -526,6 +541,108 @@ class UserReservationsAPITests(BookingServiceAPITestCase):
             Booking.objects.filter(pk=other_booking.pk).exists()
         )
 
+
+    def test_user_reservations_can_filter_by_search_term_on_listing_title(self):
+        self.create_booking(
+            listing=self.other_listing,
+            guest=self.guest,
+            check_in_days=15,
+            check_out_days=17,
+        )
+
+        self.client.force_authenticate(user=self.guest)
+
+        response = self.client.get(
+            reverse('user-reservations'),
+            {'search_term': 'Otra'},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn('Otra casa test', response_text)
+        self.assertNotIn('Casa test', response_text)
+
+    def test_user_reservations_can_filter_by_search_term_on_listing_description(self):
+        self.other_listing.title = 'Alojamiento sin coincidencia'
+        self.other_listing.description = 'Descripción con palabra playa'
+        self.other_listing.save()
+
+        self.create_booking(
+            listing=self.other_listing,
+            guest=self.guest,
+            check_in_days=15,
+            check_out_days=17,
+        )
+
+        self.client.force_authenticate(user=self.guest)
+
+        response = self.client.get(
+            reverse('user-reservations'),
+            {'search_term': 'playa'},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn('Alojamiento sin coincidencia', response_text)
+        self.assertNotIn('Casa test', response_text)
+
+    def test_user_reservations_can_filter_by_actual_status(self):
+        self.create_booking(
+            listing=self.other_listing,
+            guest=self.guest,
+            check_in_days=15,
+            check_out_days=17,
+            status_value=BookingStatus.CANCELLED,
+        )
+
+        self.client.force_authenticate(user=self.guest)
+
+        response = self.client.get(
+            reverse('user-reservations'),
+            {'actual_status': BookingStatus.CANCELLED},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn('Otra casa test', response_text)
+        self.assertNotIn('Casa test', response_text)
+
+    def test_user_reservations_can_combine_search_term_and_actual_status(self):
+        self.create_booking(
+            listing=self.other_listing,
+            guest=self.guest,
+            check_in_days=15,
+            check_out_days=17,
+            status_value=BookingStatus.CANCELLED,
+        )
+
+        self.client.force_authenticate(user=self.guest)
+
+        response = self.client.get(
+            reverse('user-reservations'),
+            {
+                'search_term': 'Otra',
+                'actual_status': BookingStatus.CANCELLED,
+            },
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn('Otra casa test', response_text)
+        self.assertNotIn('Casa test', response_text)
+
     def test_unauthenticated_user_cannot_list_user_reservations(self):
         response = self.client.get(
             reverse('user-reservations'),
@@ -561,6 +678,119 @@ class HostReservationsAPITests(BookingServiceAPITestCase):
         self.assertTrue(
             Booking.objects.filter(pk=other_booking.pk).exists()
         )
+
+
+    def test_host_reservations_can_filter_by_search_term_on_listing_title(self):
+        matching_listing = Listing.objects.create(
+            owner=self.host,
+            municipality=self.municipality,
+            title='Apartamento con vista al mar',
+            description='Descripción diferente',
+            bedrooms=2,
+            bathrooms=1,
+            locationdesc='Ubicación vista',
+            addresstext='Dirección vista',
+            propertytype='Apartment',
+            pricepernight=Decimal('180.00'),
+            maxguests=4,
+            exactlocation=Point(-74.08, 4.62, srid=4326),
+        )
+
+        self.create_booking(
+            listing=matching_listing,
+            guest=self.other_guest,
+            check_in_days=15,
+            check_out_days=17,
+        )
+
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.get(
+            reverse('host-reservations'),
+            {'search_term': 'vista'},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn('Apartamento con vista al mar', response_text)
+        self.assertNotIn('Casa test', response_text)
+
+    def test_host_reservations_can_filter_by_actual_status(self):
+        cancelled_booking = self.create_booking(
+            listing=self.listing,
+            guest=self.other_guest,
+            check_in_days=15,
+            check_out_days=17,
+            status_value=BookingStatus.CANCELLED,
+        )
+
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.get(
+            reverse('host-reservations'),
+            {'actual_status': BookingStatus.CANCELLED},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn(str(cancelled_booking.booking_id), response_text)
+        self.assertNotIn(str(self.booking.booking_id), response_text)
+
+    def test_host_reservations_can_combine_search_term_and_actual_status(self):
+        matching_listing = Listing.objects.create(
+            owner=self.host,
+            municipality=self.municipality,
+            title='Cabaña familiar buscada',
+            description='Descripción para filtro combinado',
+            bedrooms=2,
+            bathrooms=1,
+            locationdesc='Ubicación familiar',
+            addresstext='Dirección familiar',
+            propertytype='Cabin',
+            pricepernight=Decimal('180.00'),
+            maxguests=4,
+            exactlocation=Point(-74.08, 4.62, srid=4326),
+        )
+
+        self.create_booking(
+            listing=matching_listing,
+            guest=self.other_guest,
+            check_in_days=15,
+            check_out_days=17,
+            status_value=BookingStatus.CANCELLED,
+        )
+
+        self.create_booking(
+            listing=self.listing,
+            guest=self.other_guest,
+            check_in_days=18,
+            check_out_days=20,
+            status_value=BookingStatus.CANCELLED,
+        )
+
+        self.client.force_authenticate(user=self.host)
+
+        response = self.client.get(
+            reverse('host-reservations'),
+            {
+                'search_term': 'familiar',
+                'actual_status': BookingStatus.CANCELLED,
+            },
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_text = str(response.data)
+
+        self.assertIn('Cabaña familiar buscada', response_text)
+        self.assertNotIn('Casa test', response_text)
 
     def test_unauthenticated_user_cannot_list_host_reservations(self):
         response = self.client.get(
