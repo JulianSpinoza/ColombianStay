@@ -13,12 +13,8 @@ export default function UserSideBar()  {
       ? "profile"
       : pathname === "/user/my-reservations"
       ? "reservations"
-      : pathname === "/user/historic-reservations"
-      ? "historic"
-      : pathname === "/host/public-information"
-      ? "publicInfo"
-      : pathname === "/host/my-accommodations"
-      ? "accommodations"
+      : pathname === "/user/host/reservations"
+      ? "accomodations-reservations"
        : "";
 
     const handleNavigate = (path) => {
@@ -78,7 +74,7 @@ export default function UserSideBar()  {
 
                     <button
                     className={
-                        selected === "accomodations" ? "menu-item selected" : "menu-item"
+                        selected === "accomodations-reservations" ? "menu-item selected" : "menu-item"
                     }
                     onClick={() =>
                         handleNavigate("/user/host/reservations")
