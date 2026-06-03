@@ -340,13 +340,10 @@ class LocationTermsUnifiedSerializer(serializers.Serializer):
 
 class UpdateListingSerializer(serializers.ModelSerializer):
 
-    exactlocation = LocationField()
-
     class Meta:
         model = Listing
         fields = [
             'accomodationid',
-            'municipality',
             'title',
             'description',
             'bedrooms',
@@ -356,7 +353,6 @@ class UpdateListingSerializer(serializers.ModelSerializer):
             'propertytype',
             'pricepernight',
             'maxguests',
-            'exactlocation',
         ]
         read_only_fields = ['accomodationid']
         extra_kwargs = {
@@ -378,20 +374,6 @@ class UpdateListingSerializer(serializers.ModelSerializer):
     def validate_addresstext(self, value):
         return value.strip()
 
-    def _location_changed(self, new_location):
-        current_location = getattr(self.instance, 'exactlocation', None)
-
-        if not current_location and not new_location:
-            return False
-
-        if not current_location or not new_location:
-            return True
-
-        return (
-            float(current_location.x) != float(new_location.x) or
-            float(current_location.y) != float(new_location.y)
-        )
-
     def validate(self, attrs):
         bedrooms = attrs.get('bedrooms', getattr(self.instance, 'bedrooms', None))
         bathrooms = attrs.get('bathrooms', getattr(self.instance, 'bathrooms', None))
@@ -399,9 +381,10 @@ class UpdateListingSerializer(serializers.ModelSerializer):
         pricepernight = attrs.get('pricepernight', getattr(self.instance, 'pricepernight', None))
         title = attrs.get('title', getattr(self.instance, 'title', None))
         description = attrs.get('description', getattr(self.instance, 'description', None))
-        municipality = attrs.get('municipality', getattr(self.instance, 'municipality', None))
-        exactlocation = attrs.get('exactlocation', getattr(self.instance, 'exactlocation', None))
         addresstext = attrs.get('addresstext', getattr(self.instance, 'addresstext', None))
+
+        municipality = getattr(self.instance, 'municipality', None)
+        exactlocation = getattr(self.instance, 'exactlocation', None)
 
         if maxguests < bedrooms:
             raise serializers.ValidationError({
@@ -423,23 +406,6 @@ class UpdateListingSerializer(serializers.ModelSerializer):
                 'description': 'La descripción no debe ser igual al título.'
             })
 
-        if self.instance and self.instance.bookings.exists():
-            municipality_changed = (
-                'municipality' in attrs and
-                self.instance.municipality_id != municipality.municipalityid
-            )
-            exactlocation_changed = (
-                'exactlocation' in attrs and
-                self._location_changed(exactlocation)
-            )
-
-            if municipality_changed or exactlocation_changed:
-                raise serializers.ValidationError({
-                    'exactlocation': (
-                        'No se puede cambiar la geolocalización de una publicación que ya tiene reservas.'
-                    )
-                })
-
         request = self.context.get('request')
         owner = getattr(request, 'user', None)
 
@@ -460,14 +426,6 @@ class UpdateListingSerializer(serializers.ModelSerializer):
                     'non_field_errors': [
                         'Ya existe una publicación con el mismo usuario, municipio, título y dirección.'
                     ]
-                })
-
-        if municipality and exactlocation:
-            if not municipality.boundary.contains(exactlocation):
-                raise serializers.ValidationError({
-                    'exactlocation': (
-                        'La ubicación no pertenece al municipio.'
-                    )
                 })
 
         return attrs
