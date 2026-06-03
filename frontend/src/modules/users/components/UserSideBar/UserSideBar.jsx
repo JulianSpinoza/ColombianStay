@@ -15,6 +15,10 @@ export default function UserSideBar()  {
       ? "reservations"
       : pathname === "/user/host/reservations"
       ? "accomodations-reservations"
+      //: pathname === "/user/my-accommodations"
+      //? "my-accommodations"
+      //: pathname === "/user/my-accommodations/*"
+      //? "my-accommodations"
        : "";
 
     const handleNavigate = (path) => {
@@ -71,6 +75,17 @@ export default function UserSideBar()  {
             {userProfile?.is_host && (
                 <>
                     <p className="menu-label">As host</p>
+
+                    {/*<button
+                    className={
+                        selected === "my-accommodations" ? "menu-item selected" : "menu-item"
+                    }
+                    onClick={() =>
+                        handleNavigate("/user/my-accommodations")
+                    }
+                    >
+                    My own accomodations
+                    </button>*/}
 
                     <button
                     className={

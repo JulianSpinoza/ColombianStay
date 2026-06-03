@@ -26,10 +26,8 @@ export default function UsersRoutes () {
                     <Route path="my-reservations" element={<UserReservationsDashboard/>} />
                     <Route element={<HostRoute/>}>
                         <Route path="host/reservations" element={<HostReservationsDashboard/>}/>
-                        <Route path="historic-reservations" element={<HistoricReservationsPage/>} />
-                        <Route path="public-information" element={<PublicInformationPage/>} />
-                        <Route path="my-accommodations" element={<OwnAccommodationsList/>} /> 
-                        <Route path= "my-accommodation/:id" element={<OwnAccommodationDetail />} />
+                        {/*<Route path="my-accommodations" element={<OwnAccommodationsList/>} /> 
+                        <Route path="my-accommodation/:id" element={<OwnAccommodationDetail />} /> */}
                     </Route>
                 </Route>
             </Route>
