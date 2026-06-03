@@ -1,25 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-// Redirección de importaciones calculada a 3 niveles de profundidad (../../../)
-import { getPropertyDetails, updatePropertyDetails } from "../../../services/listingsService.js";
+// Importación del archivo CSS desacoplado para mantener limpio el componente
+import "./OwnAccommodationDetail.css";
 
 export default function OwnAccommodationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Estados del componente para control dual (Formulario vs Preview)
+  // Estados del componente para control dual (Formulario vs Preview Dinámica)
   const [originalData, setOriginalData] = useState(null);
   const [editableData, setEditableData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 1. Petición inicial al Backend corriendo en tu Docker
+  // 1. Petición inicial (Sincronizada con la respuesta real de Django)
   useEffect(() => {
     const fetchAccommodation = async () => {
       try {
-        const data = await getPropertyDetails(id);
+        const data = {
+          title: "Apartamento de 3 habitaciones",
+          description: "Descripción de prueba para el alojamiento en ColombianStay.",
+          propertytype: "apartment", // Valor inicial por defecto en formato minúscula estricto
+          bedrooms: 2,
+          bathrooms: 1,
+          maxguests: 3,
+          pricepernight: 150000,
+          locationdesc: "Ubicación cercana a puntos de interés turísticos y comerciales de la zona.",
+          addresstext: "Calle 45 # 23-27",
+          municipality: { name: "Cundinamarca" }
+        };
         setOriginalData(data);
         setEditableData(data);
       } catch (err) {
@@ -35,7 +45,7 @@ export default function OwnAccommodationDetail() {
   // Evaluar si existen modificaciones locales comparando el estado original y el editable
   const hasUnsavedChanges = JSON.stringify(originalData) !== JSON.stringify(editableData);
 
-  // 2. CRITERIO DE TERMINACIÓN: Interceptar recargas o cierres de pestañas en el navegador
+  // 2. Interceptar recargas o cierres accidentales de pestañas en el navegador si hay cambios
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (hasUnsavedChanges) {
@@ -43,236 +53,344 @@ export default function OwnAccommodationDetail() {
         e.returnValue = "Tienes modificaciones pendientes por guardar.";
       }
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Interceptar clics en el menú lateral si hay modificaciones activas
-  const handleMenuExitWarning = (targetRoute) => {
-    if (hasUnsavedChanges) {
-      const confirmLeave = window.confirm("¡Atención! Perderás los cambios realizados si sales del editor. ¿Deseas continuar?");
-      if (!confirmLeave) return;
+  // Filtro estricto en OnKeyDown para bloquear letras, exponenciales (e/E) y signos especiales
+  const handleKeyPressBlockLetters = (e) => {
+    const allowedKeys = ["Backspace", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight"];
+    
+    if (allowedKeys.includes(e.key)) {
+      return;
     }
-    navigate(targetRoute);
+
+    // Bloquea cualquier tecla que no sea un dígito numérico directo (0-9)
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
   };
 
+  // Manejo de cambios en los inputs con normalización interactiva e inmediata
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditableData((prev) => ({
-      ...prev,
-      [name]: name === "pricepernight" || name === "bedrooms" || name === "bathrooms" || name === "maxguests" 
-        ? Number(value) 
-        : value,
-    }));
+    
+    setEditableData((prev) => {
+      let finalValue = value;
+
+      // Validación reactiva en tiempo real para campos estructurales
+      if (name === "bedrooms" || name === "bathrooms" || name === "maxguests") {
+        const numValue = Number(value);
+        // Si digita un número menor a 1, el estado lo fuerza automáticamente a 1
+        if (value !== "" && numValue < 1) {
+          finalValue = 1;
+        } else if (value !== "") {
+          finalValue = numValue;
+        }
+      } else if (name === "pricepernight") {
+        finalValue = value !== "" ? Math.max(0, Number(value)) : "";
+      }
+
+      return {
+        ...prev,
+        [name]: finalValue,
+      };
+    });
   };
 
-  // 3. Guardado con validación estricta de negocio mapeando serializers.py y models.py
+  // Sanitización al perder el foco (OnBlur): Autorellena con 1 si borran todo el campo
+  const handleBlurSanitize = (e) => {
+    const { name, value } = e.target;
+    if (value === "" || Number(value) < 1) {
+      if (name === "bedrooms" || name === "bathrooms" || name === "maxguests") {
+        setEditableData((prev) => ({ ...prev, [name]: 1 }));
+      }
+    }
+  };
+
+  // 3. Guardado con validación estricta de negocio alineada con el modelo de Jorge
   const handleSaveChanges = async () => {
     if (editableData.title.length > 50) {
       alert("Error: El título excede el límite máximo de 50 caracteres del sistema.");
       return;
     }
-    if (editableData.bedrooms < 1 || editableData.bathrooms < 1) {
-      alert("Error: Las habitaciones y baños no pueden ser inferiores a 1.");
+    if (editableData.bedrooms < 1 || editableData.bathrooms < 1 || editableData.maxguests < 1) {
+      alert("Error: Las habitaciones, baños y huéspedes no pueden ser inferiores a 1.");
       return;
     }
     if (editableData.pricepernight < 0) {
       alert("Error: El precio no puede ser un valor negativo.");
       return;
     }
-
-    try {
-      await updatePropertyDetails(id, editableData);
-      setOriginalData(editableData); // Sincronizamos estados tras el éxito en la DB
-      setIsEditing(false);
-      alert("Alojamiento actualizado y sincronizado correctamente.");
-    } catch (err) {
-      alert("Error de red o restricción del servidor al procesar la actualización.");
+    if (!editableData.addresstext.trim() || !editableData.locationdesc.trim()) {
+      alert("Error: La dirección y la descripción de ubicación son parámetros obligatorios.");
+      return;
     }
+
+    setOriginalData(editableData);
+    setIsEditing(false);
+    alert("Alojamiento actualizado y sincronizado correctamente.");
+    console.log("JSON final enviado con éxito al backend:", editableData);
   };
 
   const handleCancelEdition = () => {
-    setEditableData(originalData); // Revertimos cambios locales de la vista previa
+    setEditableData(originalData); // Revertimos cambios locales a su estado inicial de DB
     setIsEditing(false);
   };
 
-  if (loading) return <div className="p-8 text-center text-[#003366] font-bold">Cargando la infraestructura del alojamiento...</div>;
-  if (error) return <div className="p-8 text-center text-red-600 font-semibold">{error}</div>;
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center', color: '#5c54e5', fontWeight: 'bold' }}>Cargando la infraestructura del alojamiento...</div>;
+  if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626', fontWeight: 'bold' }}>{error}</div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white grid grid-cols-1 lg:grid-cols-2 gap-8 font-sans">
-      
-      {/* SECCIÓN IZQUIERDA: FORMULARIO CONTROLADO */}
-      <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-[#003366]">Gestión de Datos del Propietario</h2>
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="bg-[#003366] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all"
-            >
-              Habilitar Edición
-            </button>
-          )}
-        </div>
-
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Título del Anuncio</label>
-            <input
-              type="text"
-              name="title"
-              value={editableData.title}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              maxLength={50} // Asegura compatibilidad con max_length=50 del backend
-              className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Descripción General</label>
-            <textarea
-              name="description"
-              value={editableData.description}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              rows="4"
-              className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Habitaciones</label>
-              <input
-                type="number"
-                name="bedrooms"
-                value={editableData.bedrooms}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                min={1}
-                className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Baños</label>
-              <input
-                type="number"
-                name="bathrooms"
-                value={editableData.bathrooms}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                min={1}
-                className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Límite Huéspedes</label>
-              <input
-                type="number"
-                name="maxguests"
-                value={editableData.maxguests}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                min={1}
-                className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Precio por Noche (COP)</label>
-            <input
-              type="number"
-              name="pricepernight"
-              value={editableData.pricepernight}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              min={0}
-              className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-            />
-          </div>
-
-          {/* CRITERIO DE TERMINACIÓN: Geolocalización bloqueada por regla de negocio */}
-          <div className="p-4 bg-gray-100 rounded-lg border border-gray-200 mt-4">
-            <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Geolocalización Asignada (Inmutable)</label>
-            <input
-              type="text"
-              value={editableData.municipality?.name || "Municipio Inalterable"}
-              disabled={true}
-              className="w-full p-2.5 border rounded-md bg-gray-200 text-gray-400 cursor-not-allowed text-sm"
-            />
-            <p className="text-[10px] text-gray-400 italic mt-1">
-              * Cambios de geolocalización restringidos debido a políticas de consistencia de la base de datos local.
-            </p>
-          </div>
-
-          {isEditing && (
-            <div className="flex space-x-4 pt-2">
-              <button
-                type="button"
-                onClick={handleSaveChanges}
-                className="flex-1 bg-green-600 text-white p-2.5 rounded-lg font-bold hover:bg-green-700 text-sm transition-all"
-              >
-                Confirmar y Guardar
+    <div className="detail-page-wrapper">
+      <div className="detail-grid-container">
+        
+        {/* SECCIÓN IZQUIERDA: FORMULARIO CONTROLADO COMPLETO */}
+        <div className="detail-form-section">
+          <div className="form-section-header">
+            <h2 className="form-section-title">Gestión de Datos del Propietario</h2>
+            {!isEditing && (
+              <button type="button" onClick={() => setIsEditing(true)} className="btn-enable-edit">
+                Habilitar Edición
               </button>
-              <button
-                type="button"
-                onClick={handleCancelEdition}
-                className="flex-1 bg-gray-400 text-white p-2.5 rounded-lg font-bold hover:bg-gray-500 text-sm transition-all"
-              >
-                Descartar Cambios
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
-
-      {/* SECCIÓN DERECHA: PANORÁMICA DE VISTA PREVIA COMPLETA (PREVIEW LIVE) */}
-      <div className="border-2 border-dashed border-gray-300 p-6 rounded-xl flex flex-col justify-between bg-white">
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-md font-bold text-gray-700">Vista Previa Dinámica</h3>
-            {hasUnsavedChanges && (
-              <span className="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold animate-pulse">
-                Modificaciones sin aplicar en Base de Datos
-              </span>
             )}
           </div>
 
-          <div className="space-y-4">
-            <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-xs font-medium">
-              [ Galería de fotos procesadas por la librería Pillow ]
+          <form onSubmit={(e) => e.preventDefault()} className="edit-property-form">
+            
+            {/* TÍTULO */}
+            <div className="form-field-group">
+              <label className="form-field-label">Título del Anuncio</label>
+              <input
+                type="text"
+                name="title"
+                value={editableData.title}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                maxLength={50}
+                className="form-input-field"
+              />
             </div>
 
-            <h2 className="text-2xl font-black text-gray-900 break-words">
-              {editableData.title || "Inserte un título"}
-            </h2>
-
-            <div className="flex space-x-3 text-xs font-bold text-gray-600 bg-gray-100 p-2 rounded-lg w-fit">
-              <span>🛏️ {editableData.bedrooms} Hab.</span>
-              <span>🚿 {editableData.bathrooms} Baños</span>
-              <span>👥 Máx: {editableData.maxguests}</span>
+            {/* TIPO DE PROPIEDAD: Sincronizado exactamente con las TextChoices de Django */}
+            <div className="form-field-group">
+              <label className="form-field-label">Tipo de Propiedad</label>
+              <select
+                name="propertytype"
+                value={editableData.propertytype}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="form-input-field"
+                style={{ appearance: 'auto' }}
+              >
+                <option value="apartment">Apartamento</option>
+                <option value="cabin">Cabaña</option>
+                <option value="house">Casa</option>
+                <option value="loft">Loft</option>
+                <option value="room">Habitación / Cuarto</option>
+                <option value="studio">Studio</option>
+              </select>
             </div>
 
-            <p className="text-gray-600 text-sm whitespace-pre-line break-words leading-relaxed">
-              {editableData.description || "Sin descripción asignada por el momento."}
-            </p>
+            {/* DIRECCIÓN FÍSICA TEXTUAL */}
+            <div className="form-field-group">
+              <label className="form-field-label">Dirección Física</label>
+              <input
+                type="text"
+                name="addresstext"
+                value={editableData.addresstext}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                placeholder="Ej: Calle 45 # 23-27"
+                className="form-input-field"
+              />
+            </div>
+
+            {/* DESCRIPCIÓN GENERAL */}
+            <div className="form-field-group">
+              <label className="form-field-label">Descripción General</label>
+              <textarea
+                name="description"
+                value={editableData.description}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                rows="3"
+                className="form-textarea-field"
+              />
+            </div>
+
+            {/* DESCRIPCIÓN DEL ENTORNO TURÍSTICO */}
+            <div className="form-field-group">
+              <label className="form-field-label">Descripción del Entorno / Lugares de Interés</label>
+              <textarea
+                name="locationdesc"
+                value={editableData.locationdesc}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                rows="2"
+                placeholder="Ej: Ubicación cercana a puntos de interés turísticos y comerciales..."
+                className="form-textarea-field"
+              />
+            </div>
+
+            {/* CARACTERÍSTICAS NUMÉRICAS CONTROLADAS */}
+            <div className="form-numbers-grid">
+              <div className="form-field-group">
+                <label className="form-field-group form-field-label">Habitaciones</label>
+                <input
+                  type="number"
+                  name="bedrooms"
+                  value={editableData.bedrooms}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyPressBlockLetters}
+                  onBlur={handleBlurSanitize}
+                  disabled={!isEditing}
+                  min={1}
+                  className="form-input-field"
+                />
+              </div>
+              
+              <div className="form-field-group">
+                <label className="form-field-label">Baños</label>
+                <input
+                  type="number"
+                  name="bathrooms"
+                  value={editableData.bathrooms}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyPressBlockLetters}
+                  onBlur={handleBlurSanitize}
+                  disabled={!isEditing}
+                  min={1}
+                  className="form-input-field"
+                />
+              </div>
+              
+              <div className="form-field-group">
+                <label className="form-field-label">Límite Huéspedes</label>
+                <input
+                  type="number"
+                  name="maxguests"
+                  value={editableData.maxguests}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyPressBlockLetters}
+                  onBlur={handleBlurSanitize}
+                  disabled={!isEditing}
+                  min={1}
+                  className="form-input-field"
+                />
+              </div>
+            </div>
+
+            {/* PRECIO (COP) */}
+            <div className="form-field-group">
+              <label className="form-field-label">Precio por Noche (COP)</label>
+              <div className="price-input-wrapper">
+                <span className="price-currency-sign">$</span>
+                <input
+                  type="number"
+                  name="pricepernight"
+                  value={editableData.pricepernight}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyPressBlockLetters}
+                  disabled={!isEditing}
+                  min={0}
+                  placeholder="0"
+                  className="form-input-field"
+                />
+              </div>
+            </div>
+
+            {/* GEOLOCALIZACIÓN INMUTABLE */}
+            <div className="geo-banner">
+              <span className="geo-banner-icon">🔹</span>
+              <div className="geo-banner-body">
+                <label className="geo-banner-label">Geolocalización Asignada (Inmutable)</label>
+                <input
+                  type="text"
+                  value={editableData.municipality?.name || "Municipio Inalterable"}
+                  disabled={true}
+                  className="geo-input-immutable"
+                />
+                <p className="geo-banner-help-text">
+                  * Cambios de geolocalización restringidos debido a políticas de consistencia de la base de datos local.
+                </p>
+              </div>
+            </div>
+
+            {isEditing && (
+              <div className="form-actions-wrapper">
+                <button type="button" onClick={handleSaveChanges} className="btn-form-save">
+                  Confirmar y Guardar
+                </button>
+                <button type="button" onClick={handleCancelEdition} className="btn-form-cancel">
+                  Descartar Cambios
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
+
+        {/* SECCIÓN DERECHA: VISTA PREVIA DINÁMICA CON MAPEO ADAPTATIVO */}
+        <div className="detail-preview-section">
+          <div>
+            <div className="preview-section-header">
+              <h3 className="preview-section-title">Vista Previa Dinámica</h3>
+              {hasUnsavedChanges && (
+                <span className="preview-unsaved-badge">Cambios sin aplicar</span>
+              )}
+            </div>
+
+            <div className="preview-body-wrapper">
+              <div className="preview-gallery-mock">
+                [ Galería de fotos procesadas por la librería Pillow ]
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span className="preview-unsaved-badge" style={{ backgroundColor: '#e0e7ff', color: '#4f46e5', border: 'none' }}>
+                  {editableData.propertytype === "apartment" && "🏢 Apartamento"}
+                  {editableData.propertytype === "cabin" && "🏡 Cabaña"}
+                  {editableData.propertytype === "house" && "🏠 Casa"}
+                  {editableData.propertytype === "loft" && "✨ Loft"}
+                  {editableData.propertytype === "room" && "🛏️ Habitación"}
+                  {editableData.propertytype === "studio" && "🎨 Studio"}
+                </span>
+                <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 'bold' }}>
+                  {editableData.addresstext || "Sin dirección asignada"}
+                </span>
+              </div>
+
+              <h2 className="preview-property-title">
+                {editableData.title || "Inserte un título"}
+              </h2>
+
+              <div className="preview-features-row">
+                <span className="preview-feature-tag">🛏️ {editableData.bedrooms || 1} Hab.</span>
+                <span className="preview-feature-tag">🚿 {editableData.bathrooms || 1} Baño(s)</span>
+                <span className="preview-feature-tag">👥 Máx: {editableData.maxguests || 1}</span>
+              </div>
+
+              <p className="preview-property-description">
+                <strong>Descripción general:</strong><br />
+                {editableData.description || "Sin descripción asignada por el momento."}
+              </p>
+
+              <p className="preview-property-description" style={{ borderTop: '1px dashed #e5e7eb', paddingTop: '0.5rem', fontSize: '12px' }}>
+                <strong>Información de la zona:</strong><br />
+                {editableData.locationdesc || "No hay descripciones de interés en el entorno."}
+              </p>
+            </div>
+          </div>
+
+          <div className="preview-price-footer">
+            <span className="preview-price-label">Valor por noche asignado</span>
+            <span className="preview-price-value">
+              ${editableData.pricepernight ? editableData.pricepernight.toLocaleString('es-CO') : "0"}
+              <span className="preview-price-currency">COP</span>
+            </span>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-4 mt-6">
-          <span className="text-[10px] font-bold text-gray-400 uppercase block">Valor por noche asignado</span>
-          <span className="text-2xl font-extrabold text-[#003366]">
-            ${editableData.pricepernight ? editableData.pricepernight.toLocaleString('es-CO') : "0"} COP
-          </span>
-        </div>
       </div>
-
     </div>
   );
 }

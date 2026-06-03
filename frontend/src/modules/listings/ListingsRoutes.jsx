@@ -5,6 +5,7 @@ import PrivateRoute from "../../global/routes/PrivateRoute";
 import PublishListing from "./pages/PublishListingPage/PublishListingPage";
 import ReservationConfirmation from "../booking/pages/ReservationConfirmation/ReservationConfirmation";
 import ListingsLayout from "./layout/ListingsLayout";
+import OwnAccommodationDetail from "./pages/AccommodationDetailsPage/OwnAccommodationDetail";
 
 // Rutas del servicio Listing
 
@@ -18,6 +19,8 @@ export default function ListingsRoutes () {
                 {/* Rutas Privadas*/ }
                 <Route element={<PrivateRoute/>}>
                     <Route path="publish-listing" element={<PublishListing/>}/>
+                    
+  
                     {/* Creo que esta es global */}
                     <Route path="reservation-confirmation" element={<ReservationConfirmation/>}/>
                 </Route>
