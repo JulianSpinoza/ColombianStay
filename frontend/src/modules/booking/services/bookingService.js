@@ -44,3 +44,25 @@ export const getBookingPreInfo = async (query) => {
         throw error;
     }
 }
+
+export const cancelReservationAsGuest = async (reservationId) => {
+    try {
+        const response = await httpClient.post(BOOKINGS_ENDPOINTS.CANCEL_AS_GUEST(reservationId))
+        return response.data;
+    } catch (error) {
+        console.error("Error to cancel a reservation as guest", error);
+        throw error;
+    }
+}
+
+export const cancelReservationAsHost = async (reservationId, reason) => {
+    try {
+        const response = await httpClient.post(BOOKINGS_ENDPOINTS.CANCEL_AS_HOST(reservationId), {
+            reason: reason.trim()
+        })
+        return response.data;
+    } catch (error) {
+        console.error("Error to cancel a reservation as host", error);
+        throw error;
+    }
+}

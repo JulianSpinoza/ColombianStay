@@ -6,17 +6,24 @@ import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 import "./UserReservationsDashboard.css";
 import httpClient from "../../../../services/api/httpClient.js";
 import useReservations from "../../hooks/useReservations.js";
+import useCancelReservation from "../../hooks/useCancelReservation.js";
 
 const RECENT_CANCELLED_DAYS = 30;
 
 const UserReservationsDashboard = () => {
+  const { 
+      reservations, 
+      loading, 
+      error, 
+      setError,
+      fetchReservations,
+    } = useReservations("guest");
+
   const {
-    reservations,
-    setReservations,
-    loading,
-    error,
-    setError,
-  } = useReservations("guest");
+      cancelReservation,
+      cancelLoading,
+      cancelError,
+    } = useCancelReservation("guest");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -25,57 +32,20 @@ const UserReservationsDashboard = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const isRecentlyCancelled = (reservation) => {
-    if (reservation.status !== "cancelled") return false;
-
-    const referenceDate = reservation.updated_at || reservation.created_at;
-
-    if (!referenceDate) return true;
-
-    const cancelledDate = new Date(referenceDate);
-    const today = new Date();
-
-    const differenceInDays =
-      (today - cancelledDate) / (1000 * 60 * 60 * 24);
-
-    return differenceInDays <= RECENT_CANCELLED_DAYS;
-  };
-
-  const panelReservations = useMemo(() => {
-    const activeStatuses = ["pending", "confirmed", "active"];
-
-    return reservations.filter((reservation) => {
-      const status = reservation.status || "pending";
-
-      return (
-        activeStatuses.includes(status) ||
-        isRecentlyCancelled(reservation)
-      );
-    });
-  }, [reservations]);
-
-  const filteredReservations = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return panelReservations.filter((reservation) => {
-      const status = reservation.status || "pending";
-      const propertyTitle = reservation.property?.title?.toLowerCase() || "";
-      const location = reservation.property?.location?.toLowerCase() || "";
-
-      const matchesSearch =
-        !normalizedSearch ||
-        propertyTitle.includes(normalizedSearch) ||
-        location.includes(normalizedSearch);
-
-      const matchesFilter =
-        activeFilter === "all" ||
-        (activeFilter === "active" &&
-          ["pending", "confirmed", "active"].includes(status)) ||
-        (activeFilter === "cancelled" && status === "cancelled");
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [panelReservations, searchTerm, activeFilter]);
+  useEffect(() => {
+      const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  
+      if(activeFilter === "all"){
+        fetchReservations({
+          search_term: normalizedSearchTerm,
+        })
+      } else {
+        fetchReservations({
+          search_term: normalizedSearchTerm,
+          actual_status: activeFilter,
+        })
+      }
+    }, [searchTerm, activeFilter]);
 
   const selectedReservation = reservations.find(
     (reservation) => reservation.id === selectedReservationId
@@ -96,48 +66,10 @@ const UserReservationsDashboard = () => {
       setError(null);
       setSuccessMessage("");
 
-      try {
-        const response = await httpClient.patch(
-          BOOKINGS_ENDPOINTS.CANCEL(reservationId),
-          {
-            status: "cancelled",
-            cancellation_reason: cancellationReason.trim(),
-          }
-        );
+      cancelReservation(reservationId,cancellationReason);
 
-        // Actualizar el estado de la reserva
-        setReservations((prevReservations) =>
-          prevReservations.map((reservation) =>
-            reservation.id === reservationId
-              ? {
-                  ...reservation,
-                  status: response.data.status,
-                  updated_at: new Date().toISOString(),
-                }
-              : reservation
-          )
-        );
-
-        setIsCancelModalOpen(false);
-        setSelectedReservationId(null);
-        setSuccessMessage(response.data.message);
-      } catch (err) {
-        console.error("Error cancelando reserva:", err);
-
-        let message = "Error al cancelar la reserva en el servidor.";
-
-        // Si el backend devuelve un mensaje
-        if (err?.response?.data) {
-          const data = err.response.data;
-          if (data?.cancellation_reason?.[0]) message = data.cancellation_reason[0];
-          else if (data?.detail) message = data.detail;
-          else if (data?.message) message = data.message;
-        }
-
-        setError(message);
-      } finally {
-        setIsCancelling(false);
-      }
+      setIsCancelModalOpen(false);
+      setSelectedReservationId(null);
     };
 
   const handleOpenCancelModal = (reservationId) => {
@@ -240,8 +172,8 @@ const UserReservationsDashboard = () => {
           <div className="guest-reservations-filter-buttons">
             {[
               { key: "all", label: "Todas" },
-              { key: "active", label: "Activas" },
-              { key: "cancelled", label: "Canceladas recientes" },
+              { key: "ACTIVE", label: "Activas" },
+              { key: "CANCELLED", label: "Canceladas recientes" },
             ].map((filter) => (
               <button
                 key={filter.key}

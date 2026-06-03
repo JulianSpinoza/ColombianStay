@@ -17,7 +17,7 @@ export default function useReservations(perspective) {
   } = useApiState();
 
   useEffect(() => {
-    fetchReservations({});
+    fetchReservations();
   }, []);
 
   const normalizeStatus = (booking) => {
@@ -91,9 +91,9 @@ export default function useReservations(perspective) {
     }
   }
 
+
   return {
     reservations,
-    setReservations,
     loading,
     error,
     setError,
