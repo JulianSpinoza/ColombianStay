@@ -4,8 +4,12 @@ import {
   getGuestReservations,
   getHostReservations,
 } from "../services/bookingService";
+import { useSearchParams } from "react-router-dom";
 
 export default function useReservations(perspective) {
+
+  const [searchParams] = useSearchParams();
+
   const [reservations, setReservations] = useState([]);
 
   const {
@@ -17,8 +21,8 @@ export default function useReservations(perspective) {
   } = useApiState();
 
   useEffect(() => {
-    fetchReservations();
-  }, []);
+    fetchReservations(Object.fromEntries(searchParams));
+  }, [searchParams.toString()]);
 
   const normalizeStatus = (booking) => {
     return (
@@ -97,6 +101,5 @@ export default function useReservations(perspective) {
     loading,
     error,
     setError,
-    fetchReservations,
   };
 }

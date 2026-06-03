@@ -4,14 +4,17 @@ import CancelReservationModal from "../../components/CancelReservationModal/Canc
 import "./HostReservationsDashboard.css";
 import useReservations from "../../hooks/useReservations.js";
 import useCancelReservation from "../../hooks/useCancelReservation.js";
+import { useSearchParams } from "react-router-dom";
 
 export default function HostReservationsDashboard() {
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { 
     reservations, 
     loading, 
     error, 
     setError,
-    fetchReservations,
   } = useReservations("host");
 
   const {
@@ -29,18 +32,30 @@ export default function HostReservationsDashboard() {
 
   useEffect(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    
+    let filter;
 
-    if(activeFilter === "all"){
-      fetchReservations({
-        search_term: normalizedSearchTerm,
-      })
-    } else {
-      fetchReservations({
-        search_term: normalizedSearchTerm,
-        actual_status: activeFilter,
-      })
-    }
-  }, [searchTerm, activeFilter]);
+      if(normalizedSearchTerm === "" && activeFilter === "all") {
+        filter = {}
+      } else if(normalizedSearchTerm === "" && activeFilter !== "all"){
+        filter = {
+          actual_status: activeFilter,
+        }
+      } else if(normalizedSearchTerm !== "" && activeFilter === "all"){
+        filter = {
+          search_term: normalizedSearchTerm,
+        }
+      } else {
+        filter = {
+          search_term: normalizedSearchTerm,
+          actual_status: activeFilter,
+        }
+      }
+    
+
+    setSearchParams(filter);
+
+  }, [searchTerm, activeFilter])
 
   const selectedReservation = reservations.find(r => r.id === selectedReservationId);
 
