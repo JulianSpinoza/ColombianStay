@@ -51,7 +51,7 @@ export default function UserSideBar()  {
                 selected === "historic" ? "menu-item selected" : "menu-item"
             }
             onClick={() =>
-                handleNavigate("historic")
+                handleNavigate("historic", "/user/my-reservations")
             }
             >
             Historic reservations
@@ -75,10 +75,10 @@ export default function UserSideBar()  {
                 selected === "accomodations" ? "menu-item selected" : "menu-item"
             }
             onClick={() =>
-                handleNavigate("accomodations")
+                handleNavigate( "accomodations", "/user/my-accommodations")
             }
             >
-            My accomodations
+            Mi accomodations
             </button>
 
             <button

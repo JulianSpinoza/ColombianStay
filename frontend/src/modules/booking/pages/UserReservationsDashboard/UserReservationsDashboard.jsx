@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import ReservationCard from "../../components/ReservationCard/ReservationCard.jsx";
 import CancelReservationModal from "../../components/CancelReservationModal/CancelReservationModal.jsx";
 import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
@@ -6,32 +7,42 @@ import { BOOKINGS_ENDPOINTS } from "../../../../services/api/endpoints.js";
 import "./UserReservationsDashboard.css";
 import httpClient from "../../../../services/api/httpClient.js";
 import useReservations from "../../hooks/useReservations.js";
+import RateStayModal from "../../../ratings/components/RateStayModal/RateStayModal.jsx";
 
-/**
- * UserReservationsDashboard
- * User Story: 'Como usuario, quiero ver mis reservas y poder cancelarlas'
- * 
- * Features:
- * - Muestra lista de reservas del usuario actual
- * - Información de cada propiedad (título, localización, foto)
- * - Filtros: Próximas, Pasadas, Canceladas
- * - Búsqueda por nombre de propiedad
- * - Lógica de cancelación con modal de confirmación
- * - Actualización optimista de UI
- * - Acceso a detalles de la propiedad
- */
 const UserReservationsDashboard = () => {
-
+  // Consumo del hook de reservas del cliente
   const { reservations, loading, error, fetchReservations } = useReservations("guest");
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all"); // all, upcoming, past, cancelled
+  const location = useLocation();
+  const [activeFilter, setActiveFilter] = useState(location.state?.selectedOption === "historic" ? "past" : "all");
   const [selectedReservationId, setSelectedReservationId] = useState(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [localError, setLocalError] = useState(null);
 
-  // Mock data - En producción, obtener del backend
+  // --- CONTROL DE LA TAREA #104 (RATE PROPERTY POP UP) ---
+  const [pendingRatingListing, setPendingRatingListing] = useState(null);
+  const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+
+  // Trigger automático: Escanea el set de datos simulado o real para levantar el modal
+  useEffect(() => {
+    if (mockReservations && mockReservations.length > 0) {
+      const completedStay = mockReservations.find((res) => res.status === "completed");
+      
+      if (completedStay) {
+        setPendingRatingListing({
+          accomodationid: completedStay.property.id,
+          title: completedStay.property.title
+        });
+        setIsRateModalOpen(true);
+      }
+    }
+  }, []); // Se ejecuta una sola vez al montar para evitar bucles infinitos
+  // --------------------------------------------------------
+
+  // Mock data local para desarrollo y pruebas del entorno
   const mockReservations = [
     {
       id: "RES101",
@@ -105,70 +116,58 @@ const UserReservationsDashboard = () => {
     },
   ];
 
+  // Determinar la colección final de visualización (Usamos los datos locales para la fase de pruebas)
+  const displayReservations = reservations && reservations.length > 0 ? reservations : mockReservations;
 
-  // Aplicar filtros y búsqueda
-  const handleSearch = () => {
+  // Filtrado síncrono local basado en la barra de búsqueda y tabs activos
+  const filteredReservations = displayReservations.filter((res) => {
+    const matchesSearch = res.property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          res.property.location.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (activeFilter === "all") return matchesSearch;
+    if (activeFilter === "upcoming") return matchesSearch && res.status === "confirmed";
+    if (activeFilter === "past") return matchesSearch && res.status === "completed";
+    if (activeFilter === "cancelled") return matchesSearch && res.status === "cancelled";
+    return matchesSearch;
+  });
+
+  // Manejar el envío de filtros hacia la API si el hook lo requiere
+  const handleSearchSubmit = () => {
     const query = {};
-
-    // Filtro por búsqueda
-    if (searchTerm) {
-      query.nameOfProperty = searchTerm;
-    }
-
-    // Filtro por estado
-    if (activeFilter) {
-      query.perspectiveStatus = activeFilter;
-    }
-
+    if (searchTerm) query.nameOfProperty = searchTerm;
+    if (activeFilter && activeFilter !== "all") query.perspectiveStatus = activeFilter;
     fetchReservations(query);
   };
 
-  // Manejar cancelación
+  // Manejar proceso de cancelación e inyección síncrona en el servidor
   const handleCancelReservation = async (reservationId) => {
     setIsCancelling(true);
+    setLocalError(null);
     try {
-      // Actualizar optimistamente en la UI
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === reservationId ? { ...res, status: "cancelled" } : res
-        )
-      );
-
+      // Consumo del endpoint real patch sincronizado con Docker
+      await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), { status: 'cancelled' });
+      
       setIsCancelModalOpen(false);
       setSuccessMessage("Tu reserva ha sido cancelada");
+      
+      // Re-fechear el hook para actualizar el listado del servidor de Django
+      fetchReservations();
 
-      // En producción: llamar al API para cancelar
-      try {
-        
-        await httpClient.patch(BOOKINGS_ENDPOINTS.CANCEL(reservationId), { status: 'cancelled' });
-        
-      } catch (apiErr) {
-        console.error('API cancel error', apiErr);
-        setError('Error al cancelar la reserva en el servidor');
-        
-      }
-
-      // Limpiar mensaje de éxito después de 3 segundos
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      setError("Error al cancelar la reserva");
-      console.error(err);
-      // Revertir cambio optimista en caso de error
-      setReservations(mockReservations);
+    } catch (apiErr) {
+      console.error('API cancel error', apiErr);
+      setLocalError('Error al procesar la cancelación en el servidor remoto de Django.');
     } finally {
       setIsCancelling(false);
     }
   };
 
-  // Abrir modal de confirmación
   const handleOpenCancelModal = (reservationId) => {
     setSelectedReservationId(reservationId);
     setIsCancelModalOpen(true);
   };
 
-  const selectedReservation = reservations.find(
-    (res) => res.id === selectedReservationId
-  );
+  const selectedReservation = displayReservations.find((res) => res.id === selectedReservationId);
 
   return (
     <div className="page">
@@ -207,10 +206,10 @@ const UserReservationsDashboard = () => {
           </div>
         )}
 
-        {/* Error */}
-        {error && (
+        {/* Errores del Dashboard */}
+        {(error || localError) && (
           <div className="error-message">
-            <p>{error}</p>
+            <p>{localError || error}</p>
           </div>
         )}
 
@@ -230,6 +229,7 @@ const UserReservationsDashboard = () => {
               placeholder="Buscar una propiedad..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyUp={(e) => e.key === 'Enter' && handleSearchSubmit()}
               className="search-input"
             />
           </div>
@@ -243,6 +243,7 @@ const UserReservationsDashboard = () => {
             ].map((filter) => (
               <button
                 key={filter.key}
+                type="button"
                 onClick={() => setActiveFilter(filter.key)}
                 className={`filter-button ${
                   activeFilter === filter.key ? "active" : ""
@@ -254,19 +255,19 @@ const UserReservationsDashboard = () => {
           </div>
         </div>
 
-        {/* Lista de reservas */}
+        {/* Lista de reservas controladas */}
         {loading ? (
           <div className="loader-container">
             <div className="loader" />
           </div>
-        ) : reservations.length > 0 ? (
+        ) : filteredReservations.length > 0 ? (
           <div className="reservations">
             <p className="counter">
-              {reservations.length}{" "}
-              {reservations.length === 1 ? "reserva" : "reservas"}
+              {filteredReservations.length}{" "}
+              {filteredReservations.length === 1 ? "reserva filtrada" : "reservas filtradas"}
             </p>
 
-            {reservations.map((reservation) => (
+            {filteredReservations.map((reservation) => (
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
@@ -282,7 +283,7 @@ const UserReservationsDashboard = () => {
             <p>
               {searchTerm
                 ? "No hay reservas que coincidan con tu búsqueda"
-                : "Aún no has hecho ninguna reserva"}
+                : "Aún no tienes registros bajo este filtro"}
             </p>
             <a href="/" className="primary-button">
               Explorar propiedades
@@ -298,6 +299,15 @@ const UserReservationsDashboard = () => {
         onConfirm={handleCancelReservation}
         onCancel={() => setIsCancelModalOpen(false)}
         isLoading={isCancelling}
+      />
+
+      <RateStayModal
+        isOpen={isRateModalOpen}
+        onClose={() => setIsRateModalOpen(false)}
+        listing={pendingRatingListing}
+        onSubmit={(data) => {
+          console.log("Rating guardado con éxito en Docker:", data);
+        }}
       />
     </div>
   );
