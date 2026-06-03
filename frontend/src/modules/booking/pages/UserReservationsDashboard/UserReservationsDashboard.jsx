@@ -155,6 +155,12 @@ const UserReservationsDashboard = () => {
           </section>
         )}
 
+        {cancelError && (
+          <section className="guest-reservations-error-message">
+            <p>{cancelError}</p>
+          </section>
+        )}
+
         <section className="guest-reservations-filters">
           <div className="guest-reservations-search">
             <svg
