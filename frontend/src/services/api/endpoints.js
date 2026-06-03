@@ -13,7 +13,7 @@ export const LISTINGS_ENDPOINTS = {
 
 export const RATINGS_ENDPOINTS = {
   ALL: "ratings/",
-  CREATE: "ratings/",
+  RATE: (id) => `rating/booking/${id}/`,
   HOST_RATINGS: "host-ratings/",
 };
 
