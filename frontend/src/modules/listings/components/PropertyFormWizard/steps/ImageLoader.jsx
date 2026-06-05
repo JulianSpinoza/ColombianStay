@@ -47,9 +47,9 @@ const ImageLoader = ({
 
       const isDuplicate = images.some(
         (existingImage) =>
-          existingImage.file.name === file.name &&
-          existingImage.file.size === file.size &&
-          existingImage.file.lastModified === file.lastModified
+          existingImage.image.name === file.name &&
+          existingImage.image.size === file.size &&
+          existingImage.image.lastModified === file.lastModified
       );
 
       if (isDuplicate) {
