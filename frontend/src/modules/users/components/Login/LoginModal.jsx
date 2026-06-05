@@ -4,6 +4,7 @@ import { useAuthContext } from "../../contexts/AuthContext";
 import { loginUser } from "../../services/usersService";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { useApiState } from "../../../../services/api/useApiState";
 
 function LoginModal() {
   const [username, setUsername] = useState("");
@@ -12,6 +13,14 @@ function LoginModal() {
   const [isLoading, setIsLoading] = useState(false);
   const { dispatch } = useAuthContext();
   const navigate = useNavigate()
+
+  const {
+    loading,
+    setLoading,
+    error: APIError,
+    setError: setAPIError,
+    handleError,
+  } = useApiState();
 
   const onClose = () => {
     navigate(-1);
@@ -35,6 +44,8 @@ function LoginModal() {
       return;
     }
 
+    setAPIError(null);
+
     try {
       const credentials = {
         username: username,
@@ -55,11 +66,13 @@ function LoginModal() {
         payload: { access, refresh, user }
       });
 
+      onClose();
+
     } catch (err) {
-      setError(err.response?.data?.detail || "Invalid credentials. Please try again.");
+      handleError(err);
+      setError("Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
-      if (!error) onClose();
     }
   };
 
