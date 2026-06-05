@@ -81,6 +81,8 @@ const SignupModal = () => {
       };
 
       await registerUser(userData);
+      
+      onClose();
 
     } catch (err) {
       setFormError("Registration failed. Please try again.");
@@ -112,7 +114,6 @@ const SignupModal = () => {
       handleError(err);
     } finally {
       setLoading(false);
-      if (!error) onClose();
     }
     
   };
