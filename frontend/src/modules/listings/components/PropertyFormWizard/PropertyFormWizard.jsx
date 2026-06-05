@@ -78,8 +78,23 @@ const PropertyFormWizard = ({ onPublish }) => {
     }
 
     if (currentStep === 2) {
+      if (formData.region === undefined) {
+        alert("You must select a region.");
+        return false;
+      }
+
+      if (formData.department === undefined) {
+        alert("You must select a department.");
+        return false;
+      }
+
       if (formData.city === undefined) {
         alert("You must select a city.");
+        return false;
+      }
+
+      if (formData.location_lat === undefined && formData.location_lng === undefined) {
+        alert("You must select a geolocation on the city selected.");
         return false;
       }
 
