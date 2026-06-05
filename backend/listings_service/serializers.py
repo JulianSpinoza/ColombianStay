@@ -193,10 +193,10 @@ class PublishListingSerializer(serializers.ModelSerializer):
         return value.strip()
 
     def validate(self, attrs):
-        if attrs['maxguests'] < attrs['bedrooms']:
-            raise serializers.ValidationError({
-                'maxguests': 'El máximo de huéspedes no puede ser menor que la cantidad de habitaciones.'
-            })
+        #if attrs['maxguests'] < attrs['bedrooms']:
+        #    raise serializers.ValidationError({
+        #        'maxguests': 'El máximo de huéspedes no puede ser menor que la cantidad de habitaciones.'
+        #    })
 
         if attrs['title'].lower() == attrs['description'].lower():
             raise serializers.ValidationError({
