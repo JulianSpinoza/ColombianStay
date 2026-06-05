@@ -1,77 +1,42 @@
 import axios from "axios";
-import { BACKENDDJANGO, USERS_ENDPOINTS } from "./endpoints";
+import { BACKENDDJANGO } from "./endpoints";
+import { clearTokens, getAccessToken, isTokenExpired, refreshAccessToken } from "./authService";
 
 const httpClient = axios.create({
-  baseURL: BACKENDDJANGO,
+  baseURL: BACKENDDJANGO, // URL del backend Django
   timeout: 10000,
 });
-
-const refreshClient = axios.create({
-  baseURL: BACKENDDJANGO,
-  timeout: 10000,
-});
-
-const isTokenExpired = (token) => {
-  if (!token) return true;
-
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const now = Date.now() / 1000;
-
-    return payload.exp < now + 30;
-  } catch (error) {
-    return true;
-  }
-};
-
-let isRefreshing = false;
-let refreshPromise = null;
 
 httpClient.interceptors.request.use(
   async (config) => {
-    const isRefreshRequest = config.url?.includes("refresh");
 
-    if (isRefreshRequest) {
-      return config;
-    }
-
-    let access = localStorage.getItem("access");
-    const refresh = localStorage.getItem("refresh");
-
-    if (access && isTokenExpired(access) && refresh) {
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        refreshPromise = refreshClient
-          .post(USERS_ENDPOINTS.REFRESH, {
-            refresh,
-          })
-          .then((response) => {
-            const newAccess = response.data.access;
-
-            localStorage.setItem("access", newAccess);
-            isRefreshing = false;
-
-            return newAccess;
-          })
-          .catch((error) => {
-            isRefreshing = false;
-
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
-
-            throw error;
-          });
+      if (config.url?.includes("refresh")) {
+          return config;
       }
 
-      access = await refreshPromise;
-    }
+      let access = getAccessToken();
 
-    if (access) {
-      config.headers.Authorization = `Bearer ${access}`;
-    }
+      if (!access) {
+          return config;
+      }
 
-    return config;
+      if (isTokenExpired(access)) {
+
+          try {
+
+              access = await refreshAccessToken();
+
+          } catch {
+
+              clearTokens();
+              return config;
+          }
+      }
+
+      config.headers.Authorization =
+          `Bearer ${access}`;
+
+      return config;
   },
   (error) => Promise.reject(error)
 );
@@ -79,14 +44,14 @@ httpClient.interceptors.request.use(
 httpClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error.response?.status;
 
-    if (status === 401 || status === 403) {
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-    }
+      const status = error.response?.status;
 
-    return Promise.reject(error);
+      if (status === 401 || status === 403) {
+          clearTokens();
+      }
+
+      return Promise.reject(error);
   }
 );
 

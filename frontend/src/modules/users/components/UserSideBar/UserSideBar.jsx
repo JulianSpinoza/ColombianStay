@@ -22,6 +22,7 @@ export default function UserSideBar()  {
        : "";
 
     const handleNavigate = (path) => {
+        fetchPersonalInfo();
         navigate(path);
     };
 
@@ -29,6 +30,7 @@ export default function UserSideBar()  {
         userProfile,
         loading,
         error,
+        fetchPersonalInfo,
     } = usePersonalInfo();
 
   return (

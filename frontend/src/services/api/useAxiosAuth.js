@@ -1,76 +1,103 @@
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { clearTokens, getAccessToken, getRefreshToken, isTokenExpired, refreshAccessToken } from "./authService";
 
-export function useAxiosAuth() {
-  const initialState = {
+const initialState = {
     access: null,
     refresh: null,
     user: null,
     isAuthenticated: false,
-  };
+};
 
-  function authReducer(state, action) {
+function authReducer(state, action) {
+
     switch (action.type) {
-      case "LOGIN":
-        localStorage.setItem("access", action.payload.access);
-        localStorage.setItem("refresh", action.payload.refresh);
 
-        return {
-          ...state,
-          access: action.payload.access,
-          refresh: action.payload.refresh,
-          user: action.payload.user,
-          isAuthenticated: true,
-        };
+        case "LOGIN":
+            return {
+                access: action.payload.access,
+                refresh: action.payload.refresh,
+                user: action.payload.user,
+                isAuthenticated: true,
+            };
 
-      case "LOGOUT":
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
+        case "LOGOUT":
+            return initialState;
 
-        return initialState;
+        case "REFRESH":
+            return {
+                ...state,
+                access: action.payload.access,
+            };
 
-      case "REFRESH":
-        localStorage.setItem("access", action.payload.access);
-
-        return {
-          ...state,
-          access: action.payload.access,
-        };
-
-      default:
-        return state;
+        default:
+            return state;
     }
-  }
+}
 
-  const getLocalSession = () => {
+function getLocalSession() {
+
     const access = localStorage.getItem("access");
     const refresh = localStorage.getItem("refresh");
 
-    if (access && refresh) {
-      try {
-        const user = jwtDecode(access);
-
-        return {
-          access,
-          refresh,
-          user,
-          isAuthenticated: true,
-        };
-      } catch (error) {
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
-
+    if (!access || !refresh) {
         return initialState;
-      }
     }
 
-    return initialState;
-  };
+    return {
+        access,
+        refresh,
+        user: jwtDecode(access),
+        isAuthenticated: true,
+    };
+}
 
-  const [state, dispatch] = useReducer(authReducer, null, getLocalSession);
+export function useAxiosAuth() {
 
-  return {
-    state,
-    dispatch,
-  };
+    const [authReady, setAuthReady] =
+        useState(false);
+
+    const [state, dispatch] = useReducer(
+        authReducer,
+        null,
+        getLocalSession
+    );
+
+    async function initializeAuthentication() {
+
+        const access =
+            getAccessToken();
+
+        const refresh =
+            getRefreshToken();
+
+        if (!refresh) {
+
+            setAuthReady(true);
+            return;
+        }
+
+        try {
+
+            if (
+                !access ||
+                isTokenExpired(access)
+            ) {
+                await refreshAccessToken();
+            }
+
+        } catch {
+            clearTokens();
+        }
+        
+        setAuthReady(true);
+    }
+    
+
+    return {
+        state,
+        dispatch,
+        initializeAuthentication,
+        authReady,
+    };
 }

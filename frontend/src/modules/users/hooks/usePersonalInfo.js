@@ -16,7 +16,7 @@ export default function usePersonalInfo () {
 
     useEffect(() => {
         fetchPersonalInfo()
-      }, [])
+    }, [])
 
     async function fetchPersonalInfo() {
         setLoading(true);
@@ -32,34 +32,23 @@ export default function usePersonalInfo () {
         }
       }
 
-    async function updatePersonalInfo(newData) {
+    async function updatePersonalInformation(newData) {
         setLoading(true);
         setError(null);
 
-        const formatted = {
-            username: newData.username,
-            first_name:newData.first_name,
-            last_name:newData.last_name,
-            email:newData.email,
-            phone_number:newData.phone,
-            profile_picture:newData.profile_picture,
-        }
-
         const formData = new FormData();
 
-        Object.entries(formatted).forEach(([key,value]) =>{
+        Object.entries(newData).forEach(([key,value]) =>{
             formData.append(key, value);
         })
 
         try {
             const response = await updatePersonalInfo(formData);
-            console.log(response);
         } catch (err) {
             handleError(err)
         } finally {
             setLoading(false);
             if (!error) {
-                setIsEditing(false);
                 fetchPersonalInfo();
             }
         }
@@ -71,6 +60,7 @@ export default function usePersonalInfo () {
         userProfile,
         loading,
         error,
-        updatePersonalInfo,
+        fetchPersonalInfo,
+        updatePersonalInformation,
     }
 }
