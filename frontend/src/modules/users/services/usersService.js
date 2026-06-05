@@ -42,10 +42,10 @@ export const getPersonalInfo = async () => {
 export const updatePersonalInfo = async (updateInfo) => {
 
     try {
-        const response = await httpClient.put(USERS_ENDPOINTS.INFO_ME, updateInfo);
+        const response = await httpClient.patch(USERS_ENDPOINTS.INFO_ME, updateInfo);
         return response.data
     } catch (error) {
-        console.error("Error getting my personal information:", error);
+        console.error("Error updating my personal information:", error);
         throw error;
     }
 

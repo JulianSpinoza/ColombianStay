@@ -10,17 +10,18 @@ import usePersonalInfo from "../../hooks/usePersonalInfo";
  * Displays user profile info and allows editing via EditProfileForm
  */
 const ProfilePage = () => {
-  const { state } = useAuthContext();
   const [isEditing, setIsEditing] = useState(false);
   const {
     userProfile,
     loading,
     error,
-    updatePersonalInfo,
+    fetchPersonalInfo,
+    updatePersonalInformation,
   } = usePersonalInfo();
 
   const handleSaveProfile = async (data) => {
-    updatePersonalInfo(data);
+    updatePersonalInformation(data);
+    setIsEditing(false);
   };
 
   const handleCancel = () => {
