@@ -24,6 +24,7 @@ export default function useBookingProcess(values_booking, initial_unavailibity, 
     const {
         totalPrice,
         unavailablesDates,
+        fetchUnavaliablesDates,
         loading:preInfoLoading,
         error:preInfoError,
     } = useBookingPreInfo(formattedValues, initial_unavailibity, validateError);
@@ -44,6 +45,7 @@ export default function useBookingProcess(values_booking, initial_unavailibity, 
 
             const result_booking = await bookAProperty(reservationData);
             setResultOfBooking(result_booking)
+            fetchUnavaliablesDates(values_booking.listing);
         } catch (err) {
             handleError(err)
         } finally {

@@ -1,3 +1,5 @@
+from tabnanny import check
+
 from rest_framework import serializers
 
 from django.utils import timezone
@@ -293,6 +295,14 @@ class BookingTotalPriceSerializer(serializers.Serializer):
 
         return total_price
 
+class BookingDatesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Booking
+        fields = [
+            'check_in_date',
+            'check_out_date',
+        ]
 
 class CancelBookingSerializer(serializers.Serializer):
     reason = serializers.CharField(

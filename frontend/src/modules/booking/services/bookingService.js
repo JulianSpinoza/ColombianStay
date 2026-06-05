@@ -35,12 +35,22 @@ export const getHostReservations = async (query = {}) => {
     }
 };
 
-export const getBookingPreInfo = async (query) => {
+export const getBookingTotalPrice = async (query) => {
     try {
-        const response = await httpClient.post(BOOKINGS_ENDPOINTS.PREINFORMATION, query)
+        const response = await httpClient.post(BOOKINGS_ENDPOINTS.TOTAL_PRICE, query)
         return response.data;
     } catch (error) {
-        console.error("Error to retrieve the host reservations", error);
+        console.error("Error to retrieve total price calculation", error);
+        throw error;
+    }
+}
+
+export const getBookedDates = async (listingId) => {
+    try {
+        const response = await httpClient.get(BOOKINGS_ENDPOINTS.BOOKED_DATES(listingId))
+        return response.data;
+    } catch (error) {
+        console.error("Error to retrieve the booked dates", error);
         throw error;
     }
 }
