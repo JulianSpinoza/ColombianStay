@@ -5,6 +5,8 @@ import BookingConfirmationModal from "../BookingConfirmationModal/BookingConfirm
 import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css'; 
 import 'react-date-range/dist/theme/default.css';
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuthContext } from "../../../users/contexts/AuthContext.jsx";
 
 const BookingWidget = ({
   propertyId,
@@ -13,6 +15,10 @@ const BookingWidget = ({
   reviews,
   initial_unavailibity
 }) => {
+
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { state } = useAuthContext();
 
   const [showModal, setShowModal] = useState(false);
 
@@ -69,6 +75,8 @@ const BookingWidget = ({
   useEffect(() => {
     if (success && resultOfBooking) {
       setShowModal(true);
+      setCheckInDate(new Date());
+      setCheckOutDate(new Date());
     }
   }, [success, resultOfBooking]);
 
@@ -81,6 +89,12 @@ const BookingWidget = ({
 
   // Handle reservation
   const handleReservation = async () => {
+
+    if(!state.isAuthenticated) {
+      navigate("/login", { state: { backgroundLocation: location } });
+      return
+    }
+
     if (!validateForm()) return;
 
     try {

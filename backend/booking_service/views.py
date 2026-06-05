@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from listings_service.models import Listing
 from .models import Booking, BookingStatus, Actuator
 from .serializers import (
+    BookingDatesSerializer,
     CreateBookingSerializer,
     BookingSerializer,
     BookingTotalPriceSerializer,
@@ -173,7 +174,7 @@ class CreateBookingView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
-class BookingPreInformationQuoteView(APIView):
+class BookingTotalPriceView(APIView):
     def post(self, request):
         data = request.data
 
@@ -202,12 +203,10 @@ class BookingPreInformationQuoteView(APIView):
 
         if serializer.is_valid():
             total_price = serializer.calculate_total()
-            unavailables_dates = listing.get_unavailable_dates()
 
             return Response(
                 {
                     'total_price': total_price,
-                    'unavailables_dates': unavailables_dates,
                 },
                 status=status.HTTP_200_OK
             )
@@ -216,6 +215,22 @@ class BookingPreInformationQuoteView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+class BookingDatesView(generics.ListAPIView):
+    serializer_class = BookingDatesSerializer
+
+    def get_queryset(self):
+        today = timezone.localdate()
+
+        listing = self.kwargs['listing_id']
+
+        return Booking.objects.filter(
+            listing=listing,
+            check_out_date__gt=today,
+        ).exclude(
+            actual_status__in=[BookingStatus.CANCELLED]
+        ).order_by('check_in_date')
+
 class PendingRatingsListView(generics.ListAPIView):
     serializer_class = PendingRatingBookingSerializer
     permission_classes = [IsAuthenticated]

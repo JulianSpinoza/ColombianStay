@@ -25,7 +25,8 @@ export const BOOKINGS_ENDPOINTS = {
   CREATE: "bookings/",
   CANCEL_AS_GUEST: (id) => `reservations/${id}/cancel/guest/`,
   CANCEL_AS_HOST: (id) => `reservations/${id}/cancel/host/`,
-  PREINFORMATION: "bookings/preinformation/",
+  TOTAL_PRICE: "bookings/total_price/",
+  BOOKED_DATES: (id) => `bookings/${id}/`,
 };
 
 export const USERS_ENDPOINTS = {
