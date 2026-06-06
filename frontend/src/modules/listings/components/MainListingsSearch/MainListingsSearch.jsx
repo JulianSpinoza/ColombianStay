@@ -557,7 +557,7 @@ const PropertyTypeFilter = ({ filters, setFilters }) => {
           key={option}
           onClick={() => handleSelect(option)}
           className={active === option ? "active" : ""}
-          data_testid="property_type-item"
+          data_testid={`property_type-item-${option}`}  
         >
           {option}
         </button>

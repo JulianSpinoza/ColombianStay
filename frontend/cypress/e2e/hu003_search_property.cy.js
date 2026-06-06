@@ -1,3 +1,5 @@
+import { formatNumber } from "../../src/global/utils/general_utils";
+
 describe("HU003: Search Property", () => {
   beforeEach(() => {
     cy.visit("/");
@@ -146,11 +148,9 @@ describe("HU003: Search Property", () => {
         .type(`${correctSearch.price_per_night + 100000}`);
 
       cy.get("@searchBar")
-        .contains(
-          '[data_testid="property_type-item"]', 
-          correctSearch.property_type
+        .find(
+          `[data_testid="property_type-item-${correctSearch.property_type}"]`,
         )
-        .first()
         .click();
 
       cy.get("@searchBar")
@@ -213,11 +213,9 @@ describe("HU003: Search Property", () => {
         .type(`${correctSearch.price_per_night + 100000}`);
 
       cy.get("@searchBar")
-        .contains(
-          '[data_testid="property_type-item"]',
-          correctSearch.property_type,
+        .find(
+          `[data_testid="property_type-item-${correctSearch.property_type}"]`,
         )
-        .first()
         .click();
 
       cy.get("@searchBar")
@@ -272,11 +270,9 @@ describe("HU003: Search Property", () => {
         .type(`${correctSearch.price_per_night + 100000}`);
 
       cy.get("@searchBar")
-        .contains(
-          '[data_testid="property_type-item"]',
-          correctSearch.property_type,
+        .find(
+          `[data_testid="property_type-item-${correctSearch.property_type}"]`,
         )
-        .first()
         .click();
 
       cy.get("@searchBar")
@@ -335,11 +331,9 @@ describe("HU003: Search Property", () => {
         .type(`${correctSearch.price_per_night + 100000}`);
 
       cy.get("@searchBar")
-        .contains(
-          '[data_testid="property_type-item"]',
-          correctSearch.property_type,
+        .find(
+          `[data_testid="property_type-item-${correctSearch.property_type}"]`,
         )
-        .first()
         .click();
 
       cy.get("@searchBar")
@@ -378,18 +372,20 @@ describe("HU003: Search Property", () => {
 
       cy.get("@showAdvancedFiltersButton").click();
 
-      cy.get("@searchBar")
-        .find('[data_testid="min-price-input"]')
-        .should("have.value", `${correctSearch.price_per_night}`)
+      const correctMinValue = formatNumber(correctSearch.price_per_night);
+      const correctMaxValue = formatNumber(correctSearch.price_per_night + 100000);
 
       cy.get("@searchBar")
         .find('[data_testid="min-price-input"]')
-        .should("have.value", `${correctSearch.price_per_night + 100000}`);
+        .should("have.value", correctMinValue)
 
       cy.get("@searchBar")
-        .contains(
-          '[data-testid="property_type-item"]', 
-          correctSearch.property_type
+        .find('[data_testid="max-price-input"]')
+        .should("have.value", correctMaxValue);
+
+      cy.get("@searchBar")
+        .find(
+          `[data_testid="property_type-item-${correctSearch.property_type}"]`,
         )
         .should("have.class", "active");
 

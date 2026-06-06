@@ -24,7 +24,14 @@ def create_initial_users(apps, schema_editor):
 
     # Lista de usuarios reales solicitados
     users = [
-        ("Julian", True), ("Juan", False), ("Pablo", False), ("Camila", False),
+
+        # User host for testing (don't erase) 
+        ("Julian", True),
+
+        # User guest for testing (don't erase) 
+        ("Juan", False), 
+
+        ("Pablo", False), ("Camila", False),
         ("Valentina", True), ("Andres", False), ("Sebastian", False), ("Mateo", True),
         ("Laura", False), ("Sofia", False), ("Daniel", False), ("Maria", True),
         ("Diego", False), ("Nicolas", False), ("Sara", True), ("Carolina", False),
