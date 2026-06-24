@@ -94,7 +94,7 @@ export default function UserSideBar()  {
                         selected === "accomodations-reservations" ? "menu-item selected" : "menu-item"
                     }
                     onClick={() =>
-                        handleNavigate("accomodations", "/user/host/reservations")
+                        handleNavigate("/user/host/reservations")
                     }
                     >
                     My accomodations reservations

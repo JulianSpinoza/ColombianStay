@@ -16,6 +16,8 @@ const EditProfileForm = ({
     last_name: initialData.last_name || "",
   });
 
+  console.log(initialData);
+
   // Solo campos modificados
   const [changedFields, setChangedFields] = useState({});
 
