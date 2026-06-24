@@ -69,19 +69,47 @@ The project showcases full-stack software engineering practices, including REST 
 
 ### Home Page
 
-![Home](docs/screenshots/home.png)
-
-### Property Creation
-
-![Property Creation](docs/screenshots/property-creation.png)
+![Home](docs/screenshots/homepage.png)
 
 ### Property Details
 
-![Property Details](docs/screenshots/property-details.png)
+![Property Details](docs/screenshots/property-detail.png)
 
-### Booking Management
+### Property Creation
 
-![Booking Management](docs/screenshots/bookings.png)
+Step 1:
+
+![Property Creation-1](docs/screenshots/property-creation-1.png)
+
+Step 2:
+
+![Property Creation-2](docs/screenshots/property-creation-2.png)
+
+![Property Creation-2b](docs/screenshots/property-creation-2b.png)
+
+Step 3:
+
+![Property Creation-3](docs/screenshots/property-creation-3.png)
+
+Step 4:
+
+![Property Creation-4](docs/screenshots/property-creation-4.png)
+
+Step 5:
+
+![Property Creation-5](docs/screenshots/property-creation-5.png)
+
+### My Profile
+
+![My_Profile](docs/screenshots/my-profile.png)
+
+### My Own Reservations
+
+![My_Reservations](docs/screenshots/my-reservations.png)
+
+### My Host Reservations
+
+![My_Host_Reservations](docs/screenshots/my-host-reservations.png)
 
 ---
 
