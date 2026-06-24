@@ -8,7 +8,6 @@ import HostReservationsDashboard from "../booking/pages/HostReservationsDashboar
 
 import HistoricReservationsPage from "./pages/HistoricReservationsPage/HistoricReservationsPage";
 import PublicInformationPage from "./pages/PublicInformationPage/PublicInformationPage";
-import MyAccommodationsPage from "./pages/MyAccommodationsPage/MyAccommodationsPage";
 import OwnAccommodationsList from "../listings/pages/AccommodationDetailsPage/OwnAccommodationsList";
 import OwnAccommodationDetail from "../listings/pages/AccommodationDetailsPage/OwnAccommodationDetail";
 

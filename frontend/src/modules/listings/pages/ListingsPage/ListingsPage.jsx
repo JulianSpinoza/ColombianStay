@@ -53,7 +53,7 @@ const ListingsPage = () => {
             type='empty'  
             message="No encontramos alojamientos con esos filtros"
           />
-          <section className="suggestions-section">
+          <section className="suggestions-section" data_testid="listing-suggestions">
             <h2 className="section-title">Suggested properties</h2>
             <div className="listings-grid">
               {suggestions.map((listing) => (
@@ -76,7 +76,7 @@ const ListingsPage = () => {
   return (
     <div className="listings-page">
       <div className="listings-page-container">
-          <section className="results-section">
+          <section className="results-section" data_testid="listing-results">
 
             {/* Listings Grid */}
             <div className="listings-grid">
@@ -85,8 +85,9 @@ const ListingsPage = () => {
                   key={listing.accomodationid || listing.id}
                   onClick={() => handleListingClick(listing)}
                   className="cursor-pointer"
+                  data_testid="listing-item"
                 >
-                  <ListingCard listing={listing} />
+                  <ListingCard listing={listing}/>
                 </div>
               ))}
             </div>

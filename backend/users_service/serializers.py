@@ -65,6 +65,7 @@ class ContactHostSerializer(serializers.ModelSerializer):
 class UserInformation(serializers.ModelSerializer):
 
     phone_number = PhoneNumberField(region="CO")
+    profile_picture = serializers.SerializerMethodField()
     class Meta:
         model=CustomUser
         fields=[
@@ -77,6 +78,11 @@ class UserInformation(serializers.ModelSerializer):
             'is_host'
             ]
         read_only_fields = ['is_host']
+
+    def get_profile_picture(self, obj):
+        if obj.profile_picture:
+            return obj.profile_picture.url
+        return None
     
     def to_representation(self, instance):
         data = super().to_representation(instance)

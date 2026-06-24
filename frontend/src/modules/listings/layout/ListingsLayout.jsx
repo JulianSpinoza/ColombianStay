@@ -6,14 +6,12 @@ export default function ListingsLayout () {
 
     const location = useLocation()
 
-    const inTheMainListings = location.pathname == "/" || location.pathname == "/listings/*";
+    const inTheMainListings = location.pathname == "/";
 
     return (
         <>
             <Navbar>
-                {(inTheMainListings) && (
-                    <MainListingsSearch/>
-                )}  
+                <MainListingsSearch data_testid="search-listing"/>
             </Navbar>
 
             {/*<CategoryBar />*/}

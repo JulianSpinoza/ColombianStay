@@ -81,7 +81,6 @@ class BookingSerializer(serializers.ModelSerializer):
         return obj.guest.username
 
     def get_listing_image(self, obj):
-        request = self.context.get("request")
 
         listing_image = (
             obj.listing.images
@@ -94,9 +93,6 @@ class BookingSerializer(serializers.ModelSerializer):
 
         if listing_image and listing_image.image:
             image_url = listing_image.image.url
-
-            if request:
-                return request.build_absolute_uri(image_url)
 
             return image_url
 

@@ -19,7 +19,7 @@ const DEFAULT_FILTERS = {
   property_type:null,
 };
 
-export default function MainListingsSearch() {
+export default function MainListingsSearch({data_testid}) {
 
     const {
       options:locations,
@@ -131,10 +131,10 @@ export default function MainListingsSearch() {
     };
 
     return (
-      <div className="search-container">
+      <div className="search-container" data_testid={data_testid}>
 
         {filters.location && (
-          <div className="location-selected-container">
+          <div className="location-selected-container" data_testid="location-selected-type">
             {locations_loading ? (
               <ApiState type='loading'/>
             ) : (
@@ -170,6 +170,7 @@ export default function MainListingsSearch() {
         <button 
           onClick={() => setShowFilters(prev => !prev)}
           className="show-filters-button"
+          data_testid="show-advanced-filters-button"
         >
           {!showFilters ? (
             <svg
@@ -241,7 +242,8 @@ const Filter = ({title, handleResetFilter, isActive, children}) => {
 
 const PriceFilter = ({ filters, setFilters }) => {
   const DEFAULT = DEFAULT_FILTERS.price;
-  const [MIN_LIMIT, MAX_LIMIT] = DEFAULT_FILTERS.price;
+  const [MIN_LIMIT, MAX_LIMIT] = DEFAULT;
+
   const value = filters.price;
 
   const setValue = (newValue) => {
@@ -252,75 +254,148 @@ const PriceFilter = ({ filters, setFilters }) => {
   };
 
   const isActive =
-    value[0] !== DEFAULT[0] || value[1] !== DEFAULT[1];
+    value[0] !== DEFAULT[0] ||
+    value[1] !== DEFAULT[1];
 
-  // estados locales (solo texto)
-  const [minInput, setMinInput] = useState(formatNumber(value[0]));
-  const [maxInput, setMaxInput] = useState(formatNumber(value[1]));
+  // Inputs visuales
+  const [minInput, setMinInput] = useState(
+    formatNumber(value[0])
+  );
 
+  const [maxInput, setMaxInput] = useState(
+    formatNumber(value[1])
+  );
+
+  // Saber si el usuario está editando
+  const [editingMin, setEditingMin] = useState(false);
+  const [editingMax, setEditingMax] = useState(false);
+
+  /**
+   * Cuando el slider cambie el valor,
+   * actualizamos los inputs SOLO si
+   * el usuario no está escribiendo.
+   */
   useEffect(() => {
-    setMinInput(formatNumber(value[0]));
-    setMaxInput(formatNumber(value[1]));
-  }, [value]);
+    if (!editingMin) {
+      setMinInput(formatNumber(value[0]));
+    }
 
-  // MIN
+    if (!editingMax) {
+      setMaxInput(formatNumber(value[1]));
+    }
+  }, [value, editingMin, editingMax]);
+
+  // =========================
+  // MIN INPUT
+  // =========================
+
+  const handleMinFocus = () => {
+    setEditingMin(true);
+
+    setMinInput(
+      parseNumber(minInput).toString()
+    );
+  };
+
   const handleMinChange = (e) => {
-    const raw = e.target.value;
-    setMinInput(raw);
-
-    let parsed = parseNumber(raw);
-    parsed = clamp(parsed, MIN_LIMIT, value[1]);
-
-    setValue([parsed, value[1]]);
+    setMinInput(e.target.value);
   };
 
   const handleMinBlur = () => {
     let parsed = parseNumber(minInput);
-    parsed = clamp(parsed, MIN_LIMIT, value[1]);
+
+    parsed = clamp(
+      parsed,
+      MIN_LIMIT,
+      value[1]
+    );
+
+    setValue([
+      parsed,
+      value[1]
+    ]);
 
     setMinInput(formatNumber(parsed));
-    setValue([parsed, value[1]]);
+    setEditingMin(false);
   };
 
-  // MAX
+  const handleMinKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    }
+  };
+
+  // =========================
+  // MAX INPUT
+  // =========================
+
+  const handleMaxFocus = () => {
+    setEditingMax(true);
+
+    setMaxInput(
+      parseNumber(maxInput).toString()
+    );
+  };
+
   const handleMaxChange = (e) => {
-    const raw = e.target.value;
-    setMaxInput(raw);
-
-    let parsed = parseNumber(raw);
-    parsed = clamp(parsed, value[0], MAX_LIMIT);
-
-    setValue([value[0], parsed]);
+    setMaxInput(e.target.value);
   };
 
   const handleMaxBlur = () => {
     let parsed = parseNumber(maxInput);
-    parsed = clamp(parsed, value[0], MAX_LIMIT);
+
+    parsed = clamp(
+      parsed,
+      value[0],
+      MAX_LIMIT
+    );
+
+    setValue([
+      value[0],
+      parsed
+    ]);
 
     setMaxInput(formatNumber(parsed));
-    setValue([value[0], parsed]);
+    setEditingMax(false);
+  };
+
+  const handleMaxKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    }
   };
 
   return (
     <Filter
       title="Price Per Night Filter"
-      handleResetFilter={() => setValue(DEFAULT)}
+      handleResetFilter={() =>
+        setValue(DEFAULT)
+      }
       isActive={isActive}
     >
       <div className="filter-price-slider-container">
 
         {/* MIN */}
         <div className="filter-price-input-wrapper">
-          <span className="filter-price-currency-symbol">$</span>
+
+          <span className="filter-price-currency-symbol">
+            $
+          </span>
 
           <input
             className="filter-price-input"
             value={minInput}
+            onFocus={handleMinFocus}
             onChange={handleMinChange}
             onBlur={handleMinBlur}
+            onKeyDown={handleMinKeyDown}
+            data_testid="min-price-input"
           />
 
-          <span className="filter-price-currency-code">COP</span>
+          <span className="filter-price-currency-code">
+            COP
+          </span>
+
         </div>
 
         {/* SLIDER */}
@@ -334,16 +409,25 @@ const PriceFilter = ({ filters, setFilters }) => {
 
         {/* MAX */}
         <div className="filter-price-input-wrapper">
-          <span className="filter-price-currency-symbol">$</span>
+
+          <span className="filter-price-currency-symbol">
+            $
+          </span>
 
           <input
             className="filter-price-input"
             value={maxInput}
+            onFocus={handleMaxFocus}
             onChange={handleMaxChange}
             onBlur={handleMaxBlur}
+            onKeyDown={handleMaxKeyDown}
+            data_testid="max-price-input"
           />
 
-          <span className="filter-price-currency-code">COP</span>
+          <span className="filter-price-currency-code">
+            COP
+          </span>
+
         </div>
 
       </div>
@@ -390,6 +474,7 @@ const QuantityFilter = ({ filters, setFilters }) => {
               value={value}
               onChange={(e) => handleChange(key, e.target.value)}
               className="number-box"
+              data_testid={`${key}-quantity-input`}
             />
             <span className="quantity-label">{key}</span>
           </div>
@@ -472,6 +557,7 @@ const PropertyTypeFilter = ({ filters, setFilters }) => {
           key={option}
           onClick={() => handleSelect(option)}
           className={active === option ? "active" : ""}
+          data_testid={`property_type-item-${option}`}  
         >
           {option}
         </button>

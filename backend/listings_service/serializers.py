@@ -62,16 +62,10 @@ class ListingImageSerializer(serializers.ModelSerializer):
         fields = ["image_url", "thumbnail_url", "is_main"]
 
     def get_image_url(self, obj):
-        request = self.context.get("request")
-        if obj.image:
-            return request.build_absolute_uri(obj.image.url)
-        return None
+        return obj.image.url if obj.image else None
 
     def get_thumbnail_url(self, obj):
-        request = self.context.get("request")
-        if obj.thumbnail:
-            return request.build_absolute_uri(obj.thumbnail.url)
-        return None
+        return obj.thumbnail.url if obj.thumbnail else None
     
 class ListingSerializer(serializers.ModelSerializer):
     images = ListingImageSerializer(many=True, read_only=True)

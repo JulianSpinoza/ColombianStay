@@ -28,5 +28,3 @@ export default function ListingsRoutes () {
         </Routes>
 );
 }
-
-// Cuestionar el scope del ListingProvider

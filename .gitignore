@@ -37,5 +37,11 @@ Thumbs.db
 .env.*.local
 .venv
 
+# Cypress
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+frontend/cypress/downloads/
+.cypress-cache/
+
 backend/poetry.lock
 backend/pyproject.toml
